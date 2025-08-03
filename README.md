@@ -103,6 +103,3 @@ CafeChain is a web-based application designed to:
 We welcome contributions! Open issues, submit PRs, and help us improve CafeChain.
 
 ---
-```
-Or if you'd like it customized for **investor**, **customer**, or **admin** audiences.
-```
