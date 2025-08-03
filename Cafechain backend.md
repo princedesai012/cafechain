@@ -1,134 +1,121 @@
-CafeNet Backend Documentation System Architecture: Phone Number-Based Check-in + Referral + Cafe Validation
+# ☕ CafeNet Backend Documentation
 
+## 📊 System Architecture: Phone Number-Based Check-in + Referral + Cafe Validation
 
+---
 
-## 📊 OVERVIEW
+### 📌 Overview
 
-This backend powers the CafeNet platform, a local cafe discovery and loyalty system that uses phone numbers as a core identifier. It supports:
+CafeNet is a local cafe discovery and loyalty platform. The backend uses **phone number-based identity** to drive:
 
-User registration and referral chain system
+| Feature               | Description                                       |
+| --------------------- | ------------------------------------------------- |
+| ✅ Phone Number Login  | Secure login via phone (password & OTP supported) |
+| 🤝 Referral System    | Track referrers & allocate reward points          |
+| 👨‍🍳 Cafe Accounts   | Staff can log visits & allocate rewards           |
+| 🎁 Points System      | Track earned and redeemed points                  |
+| 🔒 Obfuscated Numbers | Secure storage for admin-only views               |
 
-Cafe account and staff dashboard
+---
 
-Manual reward entry by phone number
-
-Secure point allocation and leaderboard tracking
-
-Obfuscated secure phone number storage for admin-only access
-
-
-
-## 👤 USER MODULE (Updated & Extended)
+## 👤 User Module
 
 ### 🔍 Core Features
 
-Phone number-based registration & login password and otp
+| Feature                 | Details                                                            |
+| ----------------------- | ------------------------------------------------------------------ |
+| 📱 Registration/Login   | Phone-based with password or OTP                                   |
+| 🛡️ Secure Phone Suffix | Only visible to admin (`securePhoneId`)                            |
+| 👤 Editable Profile     | Includes name & profile image                                      |
+| 🤝 Referral Chain       | Auto point allocation (150 points on first visit by referred user) |
+| 💰 Points System        | ₹500 spent = 50 points (default logic)                             |
+| 📜 Transaction History  | Track visits, earned and redeemed points                           |
 
-Admin-only secure suffix stored with phone number
+### 🧾 User API Endpoints
 
-Editable user profile with profile image
+| Method | Endpoint                          | Description                                              |
+| ------ | --------------------------------- | -------------------------------------------------------- |
+| POST   | /api/users/register               | Register user with phone number, password, referral code |
+| POST   | /api/users/login                  | Login using phone + password or OTP                      |
+| GET    | /api/users/profile/\:phone        | Retrieve profile info                                    |
+| PUT    | /api/users/profile/\:phone        | Edit name/profile image                                  |
+| GET    | /api/users/referral-chain/\:phone | View full referral tree                                  |
+| GET    | /api/users/history/\:phone        | View visit history                                       |
+| GET    | /api/users/rewards/\:phone        | View reward transaction history                          |
 
-Referral system with automatic point allocation (150 points on first visit by referred user)
+### 📂 User Model (Schema)
 
-Points system based on spending (₹500 = 50 points default logic)
-
-Complete visit and transaction history (earned & redeemed)
-
-
-
-### 📚 API Endpoints
-
-Method	      Endpoint	                        Description
-POST	        /api/users/register	              Register user with phone number, password, referral code
-POST	        /api/users/login	                Login with phone + password or OTP
-GET	          /api/users/profile/:              phone	Get profile data by phone
-PUT	          /api/users/profile/:              phone	Edit name or profile image
-GET	          /api/users/referral-chain/:phone	Retrieve full referral tree
-GET	          /api/users/history/:phone	        Fetch visit history
-GET	          /api/users/rewards/:phone	        Fetch earned and redeemed point history
-
-
-
-### 📂 Model: User
-
+```json
 {
   name: String,
-  phone: { type: String, unique: true }, // visible to cafe and user
-  securePhoneId: { type: String, unique: true }, // phone + 3-digit suffix, admin-only
-  password: String, // hashed
+  phone: { type: String, unique: true },
+  securePhoneId: { type: String, unique: true },
+  password: String,
   profilePic: String,
   points: { type: Number, default: 0 },
-  referredBy: String, // referral code of parent
-  referralCode: String, // auto-generated code
-  referralChildren: [String], // phone numbers referred by this user
+  referredBy: String,
+  referralCode: String,
+  referralChildren: [String],
   createdAt: Date,
-  visitLogs: [ObjectId], // VisitLog refs
-  rewardLogs: [ObjectId]  // RewardTransaction refs
+  visitLogs: [ObjectId],
+  rewardLogs: [ObjectId]
 }
+```
 
+### 🔁 Referral Flow
 
+1. User provides valid `referralCode` during registration.
+2. Referrer gets stored in `referredBy`.
+3. On first visit of referred user:
 
-### 🔁 Referral Logic
+   * Referrer receives **150 points**.
+   * Logged in `RewardTransaction`.
 
-During registration, if a valid referralCode is provided:
+### 📖 Visit History Example
 
-It maps to an existing user.
-
-That user is stored in referredBy.
-
-Once the new user completes their first cafe order, the referrer gets 150 points via RewardTransaction.
-
-
-
-### 📖 Visit History
-
-Available at /api/users/history/:phone
-
-Retrieved from VisitLog collection
+**Endpoint:** `/api/users/history/:phone`
 
 Includes:
 
-Cafe name
+* Cafe name
+* Amount spent
+* Points earned
+* Timestamp
 
-Amount spent
+### 💰 Reward History Example
 
-Points earned
+**Endpoint:** `/api/users/rewards/:phone`
 
-Timestamp
-
-
-
-### 💰 Reward History (Earned & Redeemed)
-
-Available at /api/users/rewards/:phone
-
-Retrieved from RewardTransaction
-
+```json
 {
   userPhone: String,
   type: "earn" | "redeem",
   points: Number,
   description: String,
-  source: String, // Cafe or system
+  source: String,
   timestamp: Date
 }
+```
 
+### 🔐 Admin-only Secure Phone Handling
 
+* `securePhoneId`: Appends 3-digit suffix to phone
+* Example: `9876543210` → `9876543210-491`
+* Only visible in admin logs and audit endpoints
 
 ### 🧰 Middleware
 
-validatePhoneNumber: Checks phone number format
+| Middleware               | Purpose                             |
+| ------------------------ | ----------------------------------- |
+| validatePhoneNumber      | Ensures valid phone format          |
+| authenticateUserJWT      | Protects user endpoints             |
+| checkReferralEligibility | Prevents duplicate referral bonuses |
 
-authenticateUserJWT: Protect routes requiring user auth
+### 🗂 Folder Structure
 
-checkReferralEligibility: Ensures referrer gets points only once
-
-
-
-### 🧭 Routes (Folder Structure)
-
+```
 /routes
-  users.js // user routes
+  users.js
 /controllers
   userController.js
 /models
@@ -138,120 +125,66 @@ checkReferralEligibility: Ensures referrer gets points only once
 /middleware
   auth.js
   validate.js
+```
 
+---
 
+## 🏆 Leaderboard & Ranking System
 
-### 🔐 Admin-only Logic
+### 📈 Weekly User Leaderboard (per Cafe)
 
-Every phone number stored with a hidden suffix:
+| Feature        | Description                         |
+| -------------- | ----------------------------------- |
+| 🏁 Reset Cycle | Every Sunday Midnight               |
+| 🥇 Top 3 Users | Get 1.5x point multiplier next week |
+| 📉 Others      | Standard 1x rate                    |
 
-e.g., 9876543210 → 9876543210-491 in securePhoneId
-
-Not exposed to cafes or end users
-
-Used by:
-
-/api/admin/users
-
-Internal logs & fraud audit
-
-
-
-### ✅ Sample Reward Logic (Earned)
-
-When cafe logs ₹500 bill:
-
-System gives 50 points based on business rule (₹10 = 1 point)
-
-Logs it to RewardTransaction
-
-If referred user is making first visit:
-
-System checks checkReferralEligibility
-
-Gives 150 points to referrer
-
-Logs separate transaction for that
-
-
-
-### ✅ Sample Reward Logic (Redeem)
-
-When user redeems 300 points:
-
-System checks if points >= 300
-
-Deducts 300 from user.points
-
-Logs redemption in RewardTransaction
-
-Sends SMS confirmation (optional)
-
-
-
-Let me know if you’d like this exported as a .docx or .pdf file!
-
-
-# 🏆 Leaderboard System and Cafe Comparison (Points-Based)
-
-## 📈 User Leaderboard (Weekly Reset)
-
-- Each café has its own points leaderboard.
-- Users who earn the most points at a café during a week appear on that café’s leaderboard.
-- Leaderboards reset every Sunday midnight.
-
-### 🏅 Top 3 Leaderboard Perks:
-- Top 3 users get a 1.5x point multiplier at that café for the next week.
-- Other users earn points at normal 1x rate.
-- Multiplier status resets each week.
-
-### 🛠 Implementation Notes:
-- Store current leaderboard in a separate collection with fields:
+#### 🛠 Leaderboard Schema
 
 ```json
 {
-  "cafeId": "String",
-  "week": "ISODate",
-  "leaders": [
-    { "userPhone": "String", "points": Number }
+  cafeId: "String",
+  week: "ISODate",
+  leaders: [
+    { userPhone: "String", points: Number }
   ]
 }
 ```
 
-- Weekly cron job:
-  - Calculate leaders from point earning logs.
-  - Update leaderboard collection.
-  - Assign multiplier flag to top 3 users for each café.
-  - Reset old multipliers.
+#### ⏱ Weekly Cron Job Tasks:
 
-## 📊 Cafe Comparison Leaderboard
+* Calculate top 3 users per cafe
+* Store in Leaderboard collection
+* Flag top 3 with `multiplier = 1.5x`
+* Reset previous week multipliers
 
-- CafeNet ranks cafés based on total user activity each week.
-- Metrics used:
-  - Total points earned by users at that café.
-  - Total number of unique users.
-  - Average visit value (optional).
+### 📊 Cafe Performance Leaderboard
 
-### 🏆 Example Ranking Parameters:
-1. Total Points Earned (Primary Weight)
-2. Total Unique Visitors (Secondary)
-3. Average Order Size (Optional Bonus Score)
+Ranks cafes weekly based on user activity:
 
-### 🛠 Backend Logic:
-- Store weekly cafe stats:
+| Metric                | Weight |
+| --------------------- | ------ |
+| ⭐ Total Points Earned | High   |
+| 👥 Unique Visitors    | Medium |
+| 💸 Average Order Size | Bonus  |
+
+#### 🗂 CafeStats Schema
 
 ```json
 {
-  "cafeId": "String",
-  "week": "ISODate",
-  "totalPoints": Number,
-  "uniqueUsers": Number,
-  "avgOrder": Number
+  cafeId: "String",
+  week: "ISODate",
+  totalPoints: Number,
+  uniqueUsers: Number,
+  avgOrder: Number
 }
 ```
 
-- Sort weekly to rank top cafés.
+### 🎖 Optional: Sponsored Visibility
 
-### 🎁 Optional Sponsor Feature:
-- Top cafés can receive badges or sponsored visibility on the app.
-- Leaderboard can be public-facing in app UI.
+* Top cafes can display **badges** in app
+* Featured in **public leaderboard view**
+
+---
+
+Let me know if you want this exported as a PDF or Word document.
