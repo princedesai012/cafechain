@@ -6,17 +6,22 @@ const userSchema = new mongoose.Schema({
     securePhoneId: { type: String, unique: true },
     password: String, // hashed
     profilePic: String,
-    points: { type: Number, default: 0 },
+    points: [{
+        cafeId: { type: mongoose.Schema.Types.ObjectId, ref: "Cafe" }, 
+        totalPoints: { type: Number, default: 0 }
+    }],
     referredBy: String,
     referralCode: String,
     referralChildren: [String],
     createdAt: { type: Date, default: Date.now },
     visitLogs: [{ type: mongoose.Schema.Types.ObjectId, ref: "VisitLog" }],
     rewardLogs: [{ type: mongoose.Schema.Types.ObjectId, ref: "RewardTransaction" }],
+    xp: { type: Number, default: 0 },
+    hasMultiplier: { type: Boolean, default: false }
 });
 
 module.exports = mongoose.model("User", userSchema);
 
 
-// point data type 
+// point data type
 // zender
