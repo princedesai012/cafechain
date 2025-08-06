@@ -17,7 +17,8 @@ const userSchema = new mongoose.Schema({
     visitLogs: [{ type: mongoose.Schema.Types.ObjectId, ref: "VisitLog" }],
     rewardLogs: [{ type: mongoose.Schema.Types.ObjectId, ref: "RewardTransaction" }],
     xp: { type: Number, default: 0 },
-    hasMultiplier: { type: Boolean, default: false }
+    hasMultiplier: { type: Boolean, default: false },
+    favoriteCafes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Cafe" }]
 });
 
 module.exports = mongoose.model("User", userSchema);

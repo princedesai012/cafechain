@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { register, login, logVisit, getUserProfile, updateUserProfile, getReferralChain, getRewardHistory, getVisitHistory } = require("../controllers/userController");
+const { register, login, logVisit, getUserProfile, updateUserProfile, getReferralChain, getRewardHistory, getVisitHistory, addFavoriteCafe, getFavoriteCafes } = require("../controllers/userController");
 const { validatePhoneNumber } = require("../middlewares/validate");
 const { authenticateUserJWT } = require("../middlewares/auth");
 
@@ -15,5 +15,7 @@ router.put("/profile/:phone", authenticateUserJWT, updateUserProfile);
 router.get("/referral-chain/:phone", authenticateUserJWT, getReferralChain);
 router.get("/history/:phone", authenticateUserJWT, getVisitHistory); 
 router.get("/rewards/:phone", authenticateUserJWT, getRewardHistory); 
+router.post("/favorites/:phone", authenticateUserJWT, addFavoriteCafe);
+router.get("/favorites/:phone", authenticateUserJWT, getFavoriteCafes);
 
 module.exports = router;

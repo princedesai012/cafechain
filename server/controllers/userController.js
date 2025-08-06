@@ -10,6 +10,8 @@ const generateReferralCode = () => crypto.randomBytes(3).toString("hex");
 // XP System Constants
 const XP_FOR_VISIT = 100;
 const XP_FOR_FIRST_VISIT = 250;
+const XP_FOR_REGISTRATION = 100;
+const XP_FOR_REFERRAL_BONUS = 200;
 
 exports.register = async (req, res) => {
     const { name, phone, password, referralCode } = req.body;
@@ -19,7 +21,7 @@ exports.register = async (req, res) => {
         if (existingUser) return res.status(400).json({ error: "Phone already registered" });
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const securePhoneId = `${phone}-${Math.floor(100 + Math.random() * 900)}`;
+        const securePhoneId = `${phone}-607`; 
 
         const newUser = new User({
         name,
@@ -27,6 +29,7 @@ exports.register = async (req, res) => {
         password: hashedPassword,
         securePhoneId,
         referralCode: generateReferralCode(),
+        xp: XP_FOR_REGISTRATION,
         referredBy: null,
     });
 
@@ -35,11 +38,18 @@ exports.register = async (req, res) => {
         if (referrer) {
             newUser.referredBy = referralCode;
             referrer.referralChildren.push(phone);
+            referrer.xp += XP_FOR_REFERRAL_BONUS;
             await referrer.save();
         }
     }
 
     await newUser.save();
+    const token = jwt.sign({ phone: newUser.phone }, process.env.JWT_SECRET, { expiresIn: "7d" });
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Lax'
+        });
     res.status(201).json({ message: "User registered" });
 
     } catch (error) {
@@ -58,6 +68,11 @@ exports.login = async (req, res) => {
         if (!isMatch) return res.status(400).json({ error: "Incorrect password" });
 
         const token = jwt.sign({ phone: user.phone }, process.env.JWT_SECRET, { expiresIn: "7d" });
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Lax'
+        });
         res.json({ token, user: { name: user.name, phone: user.phone, profilePic: user.profilePic } });
     } catch (error) {
         res.status(500).json({ error: "Server error" });
@@ -138,7 +153,7 @@ exports.logVisit = async (req, res) => {
                     userId: referrer._id,
                     cafeId: cafe._id,
                     type: "referral_bonus",
-                    points: 150,
+                    points: 100,
                     description: `Referral bonus from new user ${user.name || user.phone}.`
                 });
                 await referralBonusTransaction.save();
@@ -296,6 +311,70 @@ exports.getRewardHistory = async (req, res) => {
 
     } catch (error) {
         console.error("Get reward history error:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+};
+
+exports.addFavoriteCafe = async (req, res) => {
+    const { phone } = req.params;
+    const { cafeId } = req.body;
+
+    // Authorization check
+    if (req.user.phone !== phone) {
+        return res.status(403).json({ error: "Unauthorized access" });
+    }
+
+    try {
+        const user = await User.findOne({ phone });
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const cafe = await Cafe.findById(cafeId);
+        if (!cafe) {
+            return res.status(404).json({ error: "Cafe not found" });
+        }
+
+        // Check if the cafe is already in the favorites list
+        const isAlreadyFavorite = user.favoriteCafes.some(favId => favId.equals(cafeId));
+        
+        if (isAlreadyFavorite) {
+            // If already a favorite, remove it
+            user.favoriteCafes.pull(cafeId);
+            await user.save();
+            return res.status(200).json({ message: "Cafe removed from favorites.", favoriteCafes: user.favoriteCafes });
+        } else {
+            // If not a favorite, add it
+            user.favoriteCafes.push(cafeId);
+            await user.save();
+            return res.status(200).json({ message: "Cafe added to favorites.", favoriteCafes: user.favoriteCafes });
+        }
+
+    } catch (error) {
+        console.error("Add/remove favorite cafe error:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+};
+
+// New endpoint: Get a user's favorite cafes
+exports.getFavoriteCafes = async (req, res) => {
+    const { phone } = req.params;
+    
+    // Authorization check
+    if (req.user.phone !== phone) {
+        return res.status(403).json({ error: "Unauthorized access" });
+    }
+
+    try {
+        const user = await User.findOne({ phone }).populate('favoriteCafes');
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        
+        res.status(200).json({ favoriteCafes: user.favoriteCafes });
+
+    } catch (error) {
+        console.error("Get favorite cafes error:", error);
         res.status(500).json({ error: "Server error" });
     }
 };
