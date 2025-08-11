@@ -3,11 +3,23 @@ const mongoose = require("mongoose");
 const otpSchema = new mongoose.Schema({
     phone: {
         type: String,
-        required: true,
-        unique: true
+        required: false,
+        unique: true,
+        sparse: true
+    },
+    email: {
+        type: String,
+        required: false,
+        unique: true,
+        sparse: true
     },
     otp: {
         type: String,
+        required: true
+    },
+    type: {
+        type: String,
+        enum: ['phone', 'email'],
         required: true
     },
     createdAt: {

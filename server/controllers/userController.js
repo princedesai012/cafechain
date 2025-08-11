@@ -31,6 +31,7 @@ exports.register = async (req, res) => {
         referralCode: generateReferralCode(),
         xp: XP_FOR_REGISTRATION,
         referredBy: null,
+        isEmailVerified: false, // Email verification will be done separately
     });
 
     if (referralCode) {
@@ -44,13 +45,17 @@ exports.register = async (req, res) => {
     }
 
     await newUser.save();
-    const token = jwt.sign({ phone: newUser.phone }, process.env.JWT_SECRET, { expiresIn: "7d" });
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Lax'
-        });
-    res.status(201).json({ message: "User registered" });
+    
+    // Return success without setting token - user needs to verify email first
+    res.status(201).json({ 
+        message: "User registered successfully. Please verify your email to continue.",
+        user: {
+            name: newUser.name,
+            phone: newUser.phone,
+            isEmailVerified: newUser.isEmailVerified
+        },
+        requiresEmailVerification: true
+    });
 
     } catch (error) {
         res.status(500).json({ error: "Server error" });
