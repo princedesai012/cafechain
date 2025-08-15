@@ -1,6 +1,9 @@
+// RewardsPage.jsx (Modified)
+
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
 import { useAuth } from '../context/AuthContext';
-import { ArrowRight, Share2 } from 'lucide-react';
+import { ArrowRight, Share2, Plus } from 'lucide-react'; // Import Plus icon
 
 // Mock data to replace the external assets
 const rewards = {
@@ -79,17 +82,21 @@ const extendedHistory = [
 
 
 const RewardsPage = () => {
-  // const { user } = useAuth(); // Assuming useAuth provides user info.
+  // const { user } = useAuth();
+  const navigate = useNavigate(); // Hook for navigation
   const [showAllHistory, setShowAllHistory] = useState(false);
 
   const handleShareReferral = () => {
-    // TODO: Implement share functionality when backend is ready
-    // Example: navigator.share({ text: `Join CafeNet using my code: ${rewards.referralCode}` });
     console.log('Share referral code:', rewards.referralCode);
   };
 
   const handleViewAllHistory = () => {
     setShowAllHistory(!showAllHistory);
+  };
+
+  // New handler for navigating to the Claim Rewards page
+  const handleClaimReward = () => {
+    navigate('/claim-reward');
   };
 
   const displayedHistory = showAllHistory ? extendedHistory : extendedHistory.slice(0, 2);
@@ -129,13 +136,19 @@ const RewardsPage = () => {
                 <div className="text-sm text-gray-600">XP</div>
               </div>
             </div>
-            <div className="bg-white rounded-2xl shadow-soft p-6 text-center flex items-center justify-center">
-              <div>
+            {/* The 'Referred' card is now the 'Claim Reward' button */}
+            <div
+              onClick={handleClaimReward}
+              className="bg-white rounded-2xl shadow-soft p-6 text-center flex items-center justify-center cursor-pointer transition-transform transform hover:scale-105"
+            >
+              <div className="text-dark-brown">
                 <div className="text-sm text-gray-600 mb-1">Referred</div>
                 <div className="text-3xl font-bold text-accent mb-1">
                   {rewards.referredCount}
                 </div>
-                <div className="text-sm text-gray-600">Refer and Earn</div>
+                <button className="text-sm font-semibold text-accent mt-2 hover:underline">
+                  Claim Reward
+                </button>
               </div>
             </div>
           </div>
@@ -219,11 +232,18 @@ const RewardsPage = () => {
                 {rewards.xpPoints}
               </div>
             </div>
-            <div className="bg-white rounded-2xl shadow-soft p-8 text-center flex flex-col justify-center">
+            {/* The 'Referred' card is now the 'Claim Reward' button */}
+            <div
+              onClick={handleClaimReward}
+              className="bg-white rounded-2xl shadow-soft p-8 text-center flex flex-col justify-center cursor-pointer transition-transform transform hover:scale-105"
+            >
               <div className="text-base text-gray-600 mb-2">Total Referrals</div>
               <div className="text-5xl font-bold text-accent">
                 {rewards.referredCount}
               </div>
+              <button className="text-base font-semibold text-accent mt-4 hover:underline">
+                Claim Reward
+              </button>
             </div>
           </div>
 

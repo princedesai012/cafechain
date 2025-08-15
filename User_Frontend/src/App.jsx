@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import WelcomePage from './pages/WelcomePage';
+import ClaimRewardPage from './pages/ClaimRewardPage'; // <-- Add this import
 
 const Layout = () => {
   const location = useLocation();
@@ -22,7 +23,7 @@ const Layout = () => {
   React.useEffect(() => {
     const path = location.pathname;
     if (path === '/') setActivePage('home');
-    else if (path === '/cafes') setActivePage('cafes');
+    else if (path.startsWith('/cafes')) setActivePage('cafes');
     else if (path === '/rewards') setActivePage('rewards');
     else if (path === '/leaderboard') setActivePage('leaderboard');
     else if (path === '/profile') setActivePage('profile');
@@ -41,8 +42,8 @@ const Layout = () => {
     }
   };
 
-  const isAuthPage = location.pathname === '/login' || 
-                     location.pathname === '/signup' || 
+  const isAuthPage = location.pathname === '/login' ||
+                     location.pathname === '/signup' ||
                      location.pathname === '/welcome';
 
   return (
@@ -62,6 +63,7 @@ const Layout = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/cafes" element={<CafesPage />} />
           <Route path="/cafes/:id" element={<CafeDetailPage />} />
+          <Route path="/claim-reward" element={<ClaimRewardPage />} />
           <Route path="/rewards" element={<RewardsPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/profile" element={<ProfilePage />} />

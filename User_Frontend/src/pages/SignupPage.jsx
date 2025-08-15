@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, Lock, Eye, EyeOff, ArrowLeft, User, Gift } from 'lucide-react';
+import { Phone, Lock, Eye, EyeOff, ArrowLeft, User, Gift, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/Images/logo.jpg';
 
@@ -7,8 +7,10 @@ const SignupPage = ({ onNavigate }) => {
   const [formData, setFormData] = useState({
     name: '',
     mobile: '',
+    email: '',
     password: '',
     confirmPassword: '',
+    otp: '',
     referralCode: ''
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -16,6 +18,8 @@ const SignupPage = ({ onNavigate }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
 
   const { signup } = useAuth();
 
@@ -25,7 +29,6 @@ const SignupPage = ({ onNavigate }) => {
       ...prev,
       [name]: value
     }));
-    // Clear messages when user starts typing
     if (error) setError('');
     if (success) setSuccess('');
   };
@@ -37,13 +40,45 @@ const SignupPage = ({ onNavigate }) => {
     if (!formData.mobile || formData.mobile.length !== 10) {
       return 'Please enter a valid 10-digit mobile number';
     }
+    if (!formData.email.includes('@')) {
+      return 'Please enter a valid email address';
+    }
     if (!formData.password || formData.password.length < 6) {
       return 'Password must be at least 6 characters long';
     }
     if (formData.password !== formData.confirmPassword) {
       return 'Passwords do not match';
     }
+    if (!otpVerified) {
+      return 'Please verify your email OTP before signing up';
+    }
     return null;
+  };
+
+  const handleSendOtp = () => {
+    console.log("Send OTP to:", formData.email);
+    if (!formData.email.includes('@')) {
+      setError('Enter a valid email to send OTP');
+      return;
+    }
+    setOtpSent(true);
+    setSuccess('OTP sent to your email!');
+  };
+
+  const handleVerifyOtp = () => {
+    console.log("Verify OTP:", formData.otp);
+    // This is where backend verification happens
+    if (formData.otp.trim() === '') {
+      setError('Enter the OTP before verifying');
+      return;
+    }
+    setOtpVerified(true);
+    setSuccess('Email verified successfully!');
+  };
+
+  const handleResendOtp = () => {
+    console.log("Resend OTP to:", formData.email);
+    setSuccess('OTP resent to your email!');
   };
 
   const handleSubmit = async (e) => {
@@ -52,7 +87,6 @@ const SignupPage = ({ onNavigate }) => {
     setError('');
     setSuccess('');
 
-    // Validate form
     const validationError = validateForm();
     if (validationError) {
       setError(validationError);
@@ -61,10 +95,8 @@ const SignupPage = ({ onNavigate }) => {
     }
 
     try {
-      // Check if referral code is valid (mock validation)
       let referralBonus = 0;
       if (formData.referralCode) {
-        // Mock referral codes - in real app, this would be validated against database
         const validReferralCodes = ['CAFE100', 'FRIEND50', 'WELCOME25'];
         if (validReferralCodes.includes(formData.referralCode.toUpperCase())) {
           referralBonus = formData.referralCode.toUpperCase() === 'CAFE100' ? 100 : 
@@ -77,10 +109,10 @@ const SignupPage = ({ onNavigate }) => {
         }
       }
 
-      // Simulate API call
       const result = await signup({
         name: formData.name,
         mobile: formData.mobile,
+        email: formData.email,
         password: formData.password,
         referralCode: formData.referralCode,
         referralBonus
@@ -115,7 +147,7 @@ const SignupPage = ({ onNavigate }) => {
           <img src={logo} alt="CafeChain" className="w-8 h-8 rounded-lg" />
           <span className="ml-2 text-lg font-semibold text-dark-brown">CafeChain</span>
         </div>
-        <div className="w-10"></div> {/* Spacer for alignment */}
+        <div className="w-10"></div>
       </div>
 
       {/* Main Content */}
@@ -129,11 +161,9 @@ const SignupPage = ({ onNavigate }) => {
 
           {/* Signup Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Full Name Input */}
+            {/* Full Name */}
             <div>
-              <label className="block text-sm font-medium text-dark-brown mb-2">
-                Full Name
-              </label>
+              <label className="block text-sm font-medium text-dark-brown mb-2">Full Name</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -142,16 +172,14 @@ const SignupPage = ({ onNavigate }) => {
                   value={formData.name}
                   onChange={handleInputChange}
                   placeholder="Enter your full name"
-                  className="w-full pl-11 pr-4 py-3 border border-light-cream rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent bg-warm-white"
+                  className="w-full pl-11 pr-4 py-3 border border-light-cream rounded-xl focus:outline-none focus:ring-2 focus:ring-accent bg-warm-white"
                 />
               </div>
             </div>
 
-            {/* Mobile Number Input */}
+            {/* Mobile */}
             <div>
-              <label className="block text-sm font-medium text-dark-brown mb-2">
-                Mobile Number
-              </label>
+              <label className="block text-sm font-medium text-dark-brown mb-2">Mobile Number</label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -160,17 +188,71 @@ const SignupPage = ({ onNavigate }) => {
                   value={formData.mobile}
                   onChange={handleInputChange}
                   placeholder="Enter your mobile number"
-                  className="w-full pl-11 pr-4 py-3 border border-light-cream rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent bg-warm-white"
+                  className="w-full pl-11 pr-4 py-3 border border-light-cream rounded-xl focus:outline-none focus:ring-2 focus:ring-accent bg-warm-white"
                   maxLength="10"
                 />
               </div>
             </div>
 
-            {/* Password Input */}
+            {/* Email + Send OTP */}
             <div>
-              <label className="block text-sm font-medium text-dark-brown mb-2">
-                Password
-              </label>
+              <label className="block text-sm font-medium text-dark-brown mb-2">Email</label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="Enter your email"
+                    className="w-full pl-11 pr-4 py-3 border border-light-cream rounded-xl focus:outline-none focus:ring-2 focus:ring-accent bg-warm-white"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSendOtp}
+                  className="px-4 py-2 bg-accent text-white rounded-xl hover:bg-dark-brown transition-colors"
+                >
+                  Send OTP
+                </button>
+              </div>
+            </div>
+
+            {/* OTP Input + Verify */}
+            {otpSent && (
+              <div>
+                <label className="block text-sm font-medium text-dark-brown mb-2">Enter OTP</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    name="otp"
+                    value={formData.otp}
+                    onChange={handleInputChange}
+                    placeholder="Enter OTP"
+                    className="flex-1 pl-4 pr-4 py-3 border border-light-cream rounded-xl focus:outline-none focus:ring-2 focus:ring-accent bg-warm-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleVerifyOtp}
+                    className="px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors"
+                  >
+                    Verify
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  className="mt-2 text-sm text-accent hover:text-dark-brown transition-colors"
+                >
+                  Resend OTP
+                </button>
+              </div>
+            )}
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium text-dark-brown mb-2">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -179,23 +261,21 @@ const SignupPage = ({ onNavigate }) => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Create a password"
-                  className="w-full pl-11 pr-11 py-3 border border-light-cream rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent bg-warm-white"
+                  className="w-full pl-11 pr-11 py-3 border border-light-cream rounded-xl focus:outline-none focus:ring-2 focus:ring-accent bg-warm-white"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
 
-            {/* Confirm Password Input */}
+            {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-medium text-dark-brown mb-2">
-                Confirm Password
-              </label>
+              <label className="block text-sm font-medium text-dark-brown mb-2">Confirm Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -204,23 +284,21 @@ const SignupPage = ({ onNavigate }) => {
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                   placeholder="Confirm your password"
-                  className="w-full pl-11 pr-11 py-3 border border-light-cream rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent bg-warm-white"
+                  className="w-full pl-11 pr-11 py-3 border border-light-cream rounded-xl focus:outline-none focus:ring-2 focus:ring-accent bg-warm-white"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                 >
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
 
-            {/* Referral Code Input */}
+            {/* Referral Code */}
             <div>
-              <label className="block text-sm font-medium text-dark-brown mb-2">
-                Referral Code (Optional)
-              </label>
+              <label className="block text-sm font-medium text-dark-brown mb-2">Referral Code (Optional)</label>
               <div className="relative">
                 <Gift className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -229,7 +307,7 @@ const SignupPage = ({ onNavigate }) => {
                   value={formData.referralCode}
                   onChange={handleInputChange}
                   placeholder="Enter referral code"
-                  className="w-full pl-11 pr-4 py-3 border border-light-cream rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent bg-warm-white"
+                  className="w-full pl-11 pr-4 py-3 border border-light-cream rounded-xl focus:outline-none focus:ring-2 focus:ring-accent bg-warm-white"
                 />
               </div>
               <p className="text-xs text-gray-500 mt-1">
@@ -238,22 +316,14 @@ const SignupPage = ({ onNavigate }) => {
             </div>
 
             {/* Error/Success Messages */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-xl text-sm">
-                {success}
-              </div>
-            )}
+            {error && <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">{error}</div>}
+            {success && <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-xl text-sm">{success}</div>}
 
             {/* Signup Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-accent text-white py-3 rounded-xl font-medium hover:bg-dark-brown transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+              className="w-full bg-accent text-white py-3 rounded-xl font-medium hover:bg-dark-brown disabled:opacity-50 mt-6"
             >
               {loading ? 'Creating Account...' : 'Create Account'}
             </button>
@@ -264,7 +334,7 @@ const SignupPage = ({ onNavigate }) => {
             <span className="text-gray-600">Already have an account? </span>
             <button
               onClick={() => onNavigate && onNavigate('login')}
-              className="text-accent hover:text-dark-brown transition-colors font-medium"
+              className="text-accent hover:text-dark-brown font-medium"
             >
               Sign In
             </button>
