@@ -6,10 +6,10 @@ const jwt = require("jsonwebtoken");
 
 // Email transporter configuration
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // or your email service
+    service: process.env.EMAIL_SERVICE || 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD // Use app password for Gmail
+        pass: process.env.EMAIL_PASS // Use app password for Gmail
     }
 });
 
@@ -50,7 +50,7 @@ exports.requestEmailOTP = async (req, res) => {
 
         // Email content
         const mailOptions = {
-            from: process.env.EMAIL_USER,
+            from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
             to: email,
             subject: 'CafeNet Email Verification',
             html: `
@@ -91,7 +91,17 @@ exports.verifyEmailOTP = async (req, res) => {
         const otpDocument = await OTP.findOne({ email, otp, type: 'email' });
 
         if (!otpDocument) {
-            return res.status(400).json({ error: "Invalid or expired OTP." });
+            return res.status(400).json({ error: "Invalid or expired OTP. Please request a new OTP." });
+        }
+        
+        // Check if OTP is expired (older than 10 minutes)
+        const otpCreationTime = new Date(otpDocument.createdAt).getTime();
+        const currentTime = new Date().getTime();
+        
+        if ((currentTime - otpCreationTime) > 10 * 60 * 1000) {
+            // Delete expired OTP
+            await OTP.deleteOne({ email, otp, type: 'email' });
+            return res.status(400).json({ error: "OTP has expired. Please request a new OTP." });
         }
 
         // Find the user
@@ -167,7 +177,7 @@ exports.resendEmailOTP = async (req, res) => {
 
         // Send new email
         const mailOptions = {
-            from: process.env.EMAIL_USER,
+            from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
             to: email,
             subject: 'CafeNet Email Verification - New Code',
             html: `

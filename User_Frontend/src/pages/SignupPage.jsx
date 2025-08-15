@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Phone, Lock, Eye, EyeOff, ArrowLeft, User, Gift } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import logo from '../assets/Images/logo.jpg';
 
-const SignupPage = ({ onNavigate }) => {
+const SignupPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     mobile: '',
@@ -18,6 +19,7 @@ const SignupPage = ({ onNavigate }) => {
   const [success, setSuccess] = useState('');
 
   const { signup } = useAuth();
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -61,36 +63,19 @@ const SignupPage = ({ onNavigate }) => {
     }
 
     try {
-      // Check if referral code is valid (mock validation)
-      let referralBonus = 0;
-      if (formData.referralCode) {
-        // Mock referral codes - in real app, this would be validated against database
-        const validReferralCodes = ['CAFE100', 'FRIEND50', 'WELCOME25'];
-        if (validReferralCodes.includes(formData.referralCode.toUpperCase())) {
-          referralBonus = formData.referralCode.toUpperCase() === 'CAFE100' ? 100 : 
-                         formData.referralCode.toUpperCase() === 'FRIEND50' ? 50 : 25;
-          setSuccess(`Great! You'll receive ${referralBonus} bonus points with referral code: ${formData.referralCode.toUpperCase()}`);
-        } else {
-          setError('Invalid referral code');
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Simulate API call
+      // Call backend API
       const result = await signup({
         name: formData.name,
-        mobile: formData.mobile,
+        phone: formData.mobile,
         password: formData.password,
-        referralCode: formData.referralCode,
-        referralBonus
+        referralCode: formData.referralCode || undefined
       });
 
       if (result.success) {
-        setSuccess('Account created successfully! Redirecting to login...');
-        setTimeout(() => {
-          onNavigate && onNavigate('login');
-        }, 2000);
+        // ✅ Always redirect to email verification page after signup
+        navigate('/email-verification', { 
+          state: { phone: formData.mobile } 
+        });
       } else {
         setError(result.error || 'Signup failed');
       }
@@ -101,12 +86,13 @@ const SignupPage = ({ onNavigate }) => {
     }
   };
 
+
   return (
     <div className="min-h-screen bg-warm-gray flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4">
         <button
-          onClick={() => window.history.back()}
+          onClick={() => navigate('/login')}
           className="p-2 rounded-full hover:bg-light-gray transition-colors"
         >
           <ArrowLeft className="w-6 h-6 text-dark-brown" />
@@ -263,7 +249,7 @@ const SignupPage = ({ onNavigate }) => {
           <div className="text-center mt-4">
             <span className="text-gray-600">Already have an account? </span>
             <button
-              onClick={() => onNavigate && onNavigate('login')}
+              onClick={() => navigate('/login')}
               className="text-accent hover:text-dark-brown transition-colors font-medium"
             >
               Sign In

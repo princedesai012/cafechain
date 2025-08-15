@@ -66,21 +66,64 @@ exports.login = async (req, res) => {
     const { phone, password } = req.body;
 
     try {
+        // Find user by phone number
         const user = await User.findOne({ phone });
-        if (!user) return res.status(400).json({ error: "User not found" });
+        if (!user) {
+            return res.status(400).json({ error: "Invalid credentials" });
+        }
 
+        // Check if user is active
+        if (!user.isActive) {
+            return res.status(403).json({ error: "Account has been deactivated. Please contact support." });
+        }
+
+        // Verify password
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ error: "Incorrect password" });
+        if (!isMatch) {
+            return res.status(400).json({ error: "Invalid credentials" });
+        }
 
-        const token = jwt.sign({ phone: user.phone }, process.env.JWT_SECRET, { expiresIn: "7d" });
+        // Check if email is verified
+        if (!user.isEmailVerified) {
+            return res.status(403).json({ 
+                error: "Email verification required", 
+                requiresEmailVerification: true,
+                phone: user.phone
+            });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign(
+            { phone: user.phone }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: "7d" }
+        );
+
+        // Update last login timestamp
+        user.lastLogin = new Date();
+        await user.save();
+
+        // Set cookie and send response
         res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Lax'
+            sameSite: 'Lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds
         });
-        res.json({ token, user: { name: user.name, phone: user.phone, profilePic: user.profilePic } });
+
+        res.json({ 
+            success: true,
+            token, 
+            user: { 
+                name: user.name, 
+                phone: user.phone, 
+                profilePic: user.profilePic,
+                email: user.email
+            } 
+        });
     } catch (error) {
-        res.status(500).json({ error: "Server error" });
+        console.error("Login error:", error);
+        res.status(500).json({ error: "Server error. Please try again later." });
     }
 };
 

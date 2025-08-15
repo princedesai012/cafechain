@@ -62,21 +62,66 @@ CafeChain is a web-based application designed to:
 
 1. Go to the CafeChain website/app
 2. Register using your phone number
-3. Enter referral code (optional)
-4. Visit partner cafes and give your phone number
-5. Check your profile to track points & rewards
-6. Compete on leaderboards and redeem rewards!
+3. Verify your email with OTP
+4. Enter referral code (optional)
+5. Visit partner cafes and give your phone number
+6. Check your profile to track points & rewards
+7. Compete on leaderboards and redeem rewards!
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js (v16 or higher)
+- MongoDB (local or Atlas)
+- npm or yarn
+
+### Installation & Setup
+
+```bash
+# 1. Install all dependencies
+npm run install-all
+
+# 2. Set up environment variables
+# Copy .env.example to .env in server directory and configure
+
+# 3. Start both servers
+npm run dev
+```
+
+Visit http://localhost:3000 to access the application.
+
+**🚀 Need help getting started?** See [QUICKSTART.md](./QUICKSTART.md) for a 5-minute setup guide!
+
+For detailed setup instructions, see [SETUP.md](./SETUP.md)
 
 ---
 
 ## 📦 Technologies Used
 
+### Backend
 * **Node.js + Express** – Web server
-* **MongoDB** – Data storage
+* **MongoDB + Mongoose** – Data storage
 * **JWT Auth** – User authentication
-* **Cloud Scheduler** – Weekly leaderboard resets
-* **REST API** – For mobile/web clients
-* **(Optional)** React or Flutter – Frontend interface
+* **Nodemailer** – Email OTP verification
+* **bcryptjs** – Password hashing
+* **CORS** – Cross-origin resource sharing
+
+### Frontend
+* **React 18** – UI framework
+* **Vite** – Build tool
+* **React Router** – Navigation
+* **Tailwind CSS** – Styling
+* **Axios** – HTTP client
+* **React Hook Form** – Form handling
+* **Framer Motion** – Animations
+
+### Authentication Flow
+* Phone number registration
+* Email verification with OTP
+* JWT-based session management
+* Protected routes
 
 ---
 

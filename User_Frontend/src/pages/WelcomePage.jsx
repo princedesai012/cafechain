@@ -1,10 +1,10 @@
 import React from 'react';
 import { Coffee, Star, Trophy, Users } from 'lucide-react';
-// import logo from '../assets/Images/logo.jpg'; // Assuming logo is a static asset
+import { useNavigate } from 'react-router-dom';
+import logo from '../assets/Images/logo.jpg';
 
 const WelcomePage = () => {
-  // Mock logo for the project.
-  const logo = "./assets/Images/logo.jpg"; // Replace with actual path to logo image
+  const navigate = useNavigate();
 
   return (
     // Main page container with a responsive background color.
@@ -80,29 +80,13 @@ const WelcomePage = () => {
             </div>
           </div>
 
-          {/* Action buttons for mobile. */}
+          {/* Action button for mobile. */}
           <div className="space-y-4">
             <button
-              onClick={() => window.location.href = '/signup'}
+              onClick={() => navigate('/login')}
               className="w-full bg-accent text-white py-4 rounded-xl font-semibold text-lg hover:bg-dark-brown transition-colors shadow-soft"
             >
               Get Started
-            </button>
-            <button
-              onClick={() => window.location.href = '/login'}
-              className="w-full bg-white text-dark-brown py-4 rounded-xl font-semibold text-lg hover:bg-light-gray transition-colors border border-light-cream"
-            >
-              I Already Have an Account
-            </button>
-          </div>
-
-          {/* Guest access button. */}
-          <div className="text-center mt-6">
-            <button
-              onClick={() => window.location.href = '/'}
-              className="text-gray-500 hover:text-accent transition-colors text-sm font-medium"
-            >
-              Continue as Guest
             </button>
           </div>
         </div>
@@ -156,25 +140,13 @@ const WelcomePage = () => {
             </div>
           </div>
 
-          {/* Action buttons for desktop. */}
+          {/* Action button for desktop. */}
           <div className="flex flex-col items-center w-full max-w-sm mx-auto space-y-6">
             <button
-              onClick={() => window.location.href = '/signup'}
+              onClick={() => navigate('/login')}
               className="w-full bg-accent text-white py-4 rounded-xl font-semibold text-lg hover:bg-dark-brown transition-colors shadow-soft"
             >
               Get Started
-            </button>
-            <button
-              onClick={() => window.location.href = '/login'}
-              className="w-full bg-white text-dark-brown py-4 rounded-xl font-semibold text-lg hover:bg-light-gray transition-colors border border-light-cream shadow-soft"
-            >
-              I Already Have an Account
-            </button>
-            <button
-              onClick={() => window.location.href = '/'}
-              className="text-gray-500 hover:text-accent transition-colors text-base font-medium"
-            >
-              Continue as Guest
             </button>
           </div>
         </div>
