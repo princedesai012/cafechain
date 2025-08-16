@@ -16,38 +16,29 @@ export const useAuth = () => {
 // Auth Provider Component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  // Initialize user data (simulating login)
-  useEffect(() => {
-    // Simulate API call to get user data
-    // TODO: Replace with actual API call when backend is ready
-    // Example: const userData = await api.getUserProfile();
-    
-    setTimeout(() => {
-      setUser(userData);
-      setLoading(false);
-    }, 1000);
-  }, []);
+  // Define dummy users
+  const dummyUsers = [
+    { mobile: '9876543210', password: 'password', userData: userData },
+    { mobile: '1234567890', password: '123456', userData: {...userData, name: 'Test User', mobile: '1234567890'} }
+  ];
 
   // Login function (now using mobile number)
   const login = async (mobile, password) => {
     try {
       setLoading(true);
       
-      // TODO: Replace with actual API call
-      // const response = await api.login(mobile, password);
-      // const userData = response.data.user;
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // For now, simulate successful login with mobile numbers
-      const validUsers = [
-        { mobile: '9876543210', password: 'password', userData: userData },
-        { mobile: '1234567890', password: '123456', userData: {...userData, name: 'Test User', mobile: '1234567890'} }
-      ];
-      
-      const user = validUsers.find(u => u.mobile === mobile && u.password === password);
+      // Find user with matching credentials
+      const user = dummyUsers.find(u => u.mobile === mobile && u.password === password);
       if (user) {
         setUser(user.userData);
+        // Store authentication state in localStorage
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userMobile', mobile);
         return { success: true };
       } else {
         throw new Error('Invalid mobile number or password');
@@ -56,6 +47,42 @@ export const AuthProvider = ({ children }) => {
       return { success: false, error: error.message };
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      setLoading(true);
+      const isAuth = localStorage.getItem('isAuthenticated');
+      const mobile = localStorage.getItem('userMobile');
+      
+      if (isAuth === 'true' && mobile) {
+        // Find the user data based on stored mobile
+        const user = dummyUsers.find(u => u.mobile === mobile);
+        if (user) {
+          setUser(user.userData);
+        }
+      }
+      setLoading(false);
+    };
+    
+    checkAuth();
+  }, []);
+
+  // Logout function
+  const logout = async () => {
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Clear authentication state
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('userMobile');
+      setUser(null);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
     }
   };
 
@@ -93,19 +120,6 @@ export const AuthProvider = ({ children }) => {
       return { success: false, error: error.message };
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Logout function
-  const logout = async () => {
-    try {
-      // TODO: Replace with actual API call
-      // await api.logout();
-      
-      setUser(null);
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
     }
   };
 
@@ -147,4 +161,4 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-}; 
+};

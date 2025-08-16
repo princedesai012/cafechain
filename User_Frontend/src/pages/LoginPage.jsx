@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Phone, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import logo from '../assets/Images/logo.jpg';
 
 const LoginPage = ({ onNavigate }) => {
@@ -13,6 +14,7 @@ const LoginPage = ({ onNavigate }) => {
   const [error, setError] = useState('');
 
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -45,8 +47,8 @@ const LoginPage = ({ onNavigate }) => {
     try {
       const result = await login(formData.mobile, formData.password);
       if (result.success) {
-        // Navigate to home page
-        window.location.href = '/';
+        // Use React Router navigation instead of window.location
+        navigate('/');
       } else {
         setError(result.error || 'Login failed');
       }
