@@ -43,7 +43,7 @@ const CafesPage = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-background flex flex-col items-center">
+    <div className="w-full min-h-screen bg-background flex flex-col items-center pb-24"> {/* Added pb-24 class */}
       <div className="w-full max-w-2xl px-0 py-6 md:max-w-full md:px-0">
         {/* MOBILE VIEW */}
         <div className="block md:hidden">
