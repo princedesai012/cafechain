@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import WelcomePage from './pages/WelcomePage';
+import ClaimRewardPage from './pages/ClaimRewardPage'; // <-- Add this import
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -39,7 +40,7 @@ const Layout = () => {
   React.useEffect(() => {
     const path = location.pathname;
     if (path === '/') setActivePage('home');
-    else if (path === '/cafes') setActivePage('cafes');
+    else if (path.startsWith('/cafes')) setActivePage('cafes');
     else if (path === '/rewards') setActivePage('rewards');
     else if (path === '/leaderboard') setActivePage('leaderboard');
     else if (path === '/profile') setActivePage('profile');
@@ -77,20 +78,13 @@ const Layout = () => {
       )}
       <main className={!isAuthPage ? 'pt-0' : ''}>
         <Routes>
-          {/* Redirect / to /home if authenticated, otherwise to /login */}
-          <Route path="/" element={
-            isAuthenticated ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />
-          } />
-
-          {/* Protected Routes */}
-          <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-          <Route path="/cafes" element={<ProtectedRoute><CafesPage /></ProtectedRoute>} />
-          <Route path="/cafes/:id" element={<ProtectedRoute><CafeDetailPage /></ProtectedRoute>} />
-          <Route path="/rewards" element={<ProtectedRoute><RewardsPage /></ProtectedRoute>} />
-          <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          
-          {/* Public Routes */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/cafes" element={<CafesPage />} />
+          <Route path="/cafes/:id" element={<CafeDetailPage />} />
+          <Route path="/claim-reward" element={<ClaimRewardPage />} />
+          <Route path="/rewards" element={<RewardsPage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/welcome" element={<WelcomePage />} />
           <Route path="/login" element={<LoginPage onNavigate={handleAuthNavigation} />} />
           <Route path="/signup" element={<SignupPage onNavigate={handleAuthNavigation} />} />

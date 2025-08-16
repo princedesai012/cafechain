@@ -1,6 +1,10 @@
 import React from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const HomePage = () => {
+  // Initialize the navigation function
+  const navigate = useNavigate();
+
   // Example data, replace with your actual data/props if needed
   const points = 1800;
   const nearbyCafes = 5;
@@ -12,18 +16,21 @@ const HomePage = () => {
   ];
   const cafes = [
     {
+      id: 1, // Add a unique ID for each cafe
       name: "The Cafe de meet",
       desc: "Downtown, City Center",
       distance: "0.5km",
       img: "/assets/Images/Photo1.jpg",
     },
     {
+      id: 2,
       name: "Cafe Soul",
       desc: "Arts District",
       distance: "1.2km",
       img: "/assets/Images/Photo2.jpg",
     },
     {
+      id: 3,
       name: "Brew & Bean",
       desc: "University Area",
       distance: "0.8km",
@@ -63,6 +70,11 @@ const HomePage = () => {
       ),
     },
   ];
+
+  // Function to handle the click on a cafe
+  const handleCafeClick = (cafeId) => {
+    navigate(`/cafes/${cafeId}`);
+  };
 
   return (
     <div className="w-full min-h-screen flex flex-col items-center bg-background">
@@ -167,7 +179,9 @@ const HomePage = () => {
             {cafes.map((cafe, i) => (
               <div
                 key={i}
-                className="bg-[#f7f6f3] rounded-xl flex flex-col items-center p-4 w-full md:w-64"
+                // Make the entire card a clickable item and give it a cursor
+                onClick={() => handleCafeClick(cafe.id)}
+                className="bg-[#f7f6f3] rounded-xl flex flex-col items-center p-4 w-full md:w-64 cursor-pointer hover:bg-gray-100 transition-colors"
               >
                 <img
                   src={cafe.img}
