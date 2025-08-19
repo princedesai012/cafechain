@@ -31,7 +31,7 @@ exports.register = async (req, res) => {
         referralCode: generateReferralCode(),
         xp: XP_FOR_REGISTRATION,
         referredBy: null,
-        isEmailVerified: false, // Email verification will be done separately
+        isEmailVerified: false, 
     });
 
     if (referralCode) {
@@ -46,7 +46,6 @@ exports.register = async (req, res) => {
 
     await newUser.save();
     
-    // Return success without setting token - user needs to verify email first
     res.status(201).json({ 
         message: "User registered successfully. Please verify your email to continue.",
         user: {
@@ -111,7 +110,6 @@ exports.logVisit = async (req, res) => {
 
         const hasVisitedCafe = user.visitLogs.some(log => log.cafeId.equals(cafeId));
 
-        // --- POINTS LOGIC ---
         let pointsEarned = Math.floor(amountSpent / 500) * 50;
         if (user.hasMultiplier) {
             pointsEarned = Math.floor(pointsEarned * 1.5);
@@ -119,11 +117,9 @@ exports.logVisit = async (req, res) => {
         const cafePoints = getCafePoints(user, cafeId);
         cafePoints.totalPoints += pointsEarned;
 
-        // --- XP LOGIC ---
         let xpEarned = hasVisitedCafe ? XP_FOR_VISIT : XP_FOR_FIRST_VISIT;
         user.xp += xpEarned;
 
-        // --- CREATE VISIT LOG ENTRY ---
         const newVisitLog = new VisitLog({
             userId: user._id,
             cafeId: cafe._id,

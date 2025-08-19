@@ -1,164 +1,95 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { userData } from '../assets/data';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { loginUser, registerUser, verifyEmailOtp } from '../api/api';
 
-// Create Auth Context
 const AuthContext = createContext();
 
-// Custom hook to use auth context
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
 
-// Auth Provider Component
 export const AuthProvider = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Define dummy users
-  const dummyUsers = [
-    { mobile: '9876543210', password: 'password', userData: userData },
-    { mobile: '1234567890', password: '123456', userData: {...userData, name: 'Test User', mobile: '1234567890'} }
-  ];
-
-  // Login function (now using mobile number)
-  const login = async (mobile, password) => {
-    try {
-      setLoading(true);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Find user with matching credentials
-      const user = dummyUsers.find(u => u.mobile === mobile && u.password === password);
-      if (user) {
-        setUser(user.userData);
-        // Store authentication state in localStorage
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('userMobile', mobile);
-        return { success: true };
-      } else {
-        throw new Error('Invalid mobile number or password');
-      }
-    } catch (error) {
-      return { success: false, error: error.message };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Check if user is already logged in
   useEffect(() => {
-    const checkAuth = async () => {
-      setLoading(true);
-      const isAuth = localStorage.getItem('isAuthenticated');
-      const mobile = localStorage.getItem('userMobile');
-      
-      if (isAuth === 'true' && mobile) {
-        // Find the user data based on stored mobile
-        const user = dummyUsers.find(u => u.mobile === mobile);
-        if (user) {
-          setUser(user.userData);
+    const checkAuthStatus = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          // You could add a call to a backend endpoint here to verify the token
+          // For now, we'll just assume a token means the user is authenticated
+          setIsAuthenticated(true);
+          // In a real app, you would fetch user data here
         }
+      } catch (err) {
+        console.error('Failed to check auth status:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    
-    checkAuth();
+    checkAuthStatus();
   }, []);
 
-  // Logout function
-  const logout = async () => {
+  const login = async (phone, password) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Clear authentication state
-      localStorage.removeItem('isAuthenticated');
-      localStorage.removeItem('userMobile');
-      setUser(null);
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  };
-
-  // Signup function
-  const signup = async (signupData) => {
-    try {
-      setLoading(true);
-      
-      // TODO: Replace with actual API call
-      // const response = await api.signup(signupData);
-      // const userData = response.data.user;
-      
-      // For now, simulate successful signup
-      // Check if mobile number already exists (mock check)
-      if (signupData.mobile === '9876543210') {
-        throw new Error('Mobile number already registered');
+      const response = await loginUser(phone, password);
+      if (response && response.token) {
+        localStorage.setItem('authToken', response.token);
+        setIsAuthenticated(true);
+        setUser(response.user); // Assuming the response includes user data
+        return { success: true };
       }
-      
-      // Create new user data
-      const newUserData = {
-        id: Date.now(), // Mock ID
-        name: signupData.name,
-        mobile: signupData.mobile,
-        email: `user${signupData.mobile}@cafechain.com`, // Generate email
-        points: signupData.referralBonus || 0, // Start with referral bonus if any
-        tier: 'Bronze',
-        visits: 0,
-        referralCode: signupData.referralCode || null,
-        joinDate: new Date().toISOString()
-      };
-      
-      // Don't auto-login after signup, just return success
-      return { success: true, user: newUserData };
-    } catch (error) {
-      return { success: false, error: error.message };
-    } finally {
-      setLoading(false);
+      return { success: false, error: 'Login failed: no token received' };
+    } catch (err) {
+      setIsAuthenticated(false);
+      setUser(null);
+      return { success: false, error: err || 'Login failed' };
     }
   };
 
-  // Update user profile
-  const updateProfile = async (profileData) => {
+  const register = async (data) => {
     try {
-      // TODO: Replace with actual API call
-      // const response = await api.updateProfile(profileData);
-      // const updatedUser = response.data.user;
-      
-      // For now, simulate profile update
-      const updatedUser = { ...user, ...profileData };
-      setUser(updatedUser);
-      return { success: true, user: updatedUser };
-    } catch (error) {
-      return { success: false, error: error.message };
+      const response = await registerUser(data);
+      if (response && response.requiresEmailVerification) {
+        return { success: true, requiresEmailVerification: true };
+      }
+      return { success: false, error: 'Registration failed' };
+    } catch (err) {
+      return { success: false, error: err || 'Registration failed' };
     }
   };
 
-  // Update user points
-  const updatePoints = (newPoints) => {
-    setUser(prev => ({ ...prev, points: newPoints }));
+  const verifyEmail = async (data) => {
+    try {
+      const response = await verifyEmailOtp(data);
+      if (response && response.token) {
+        localStorage.setItem('authToken', response.token);
+        setIsAuthenticated(true);
+        setUser(response.user); // Assuming the response includes user data
+        return { success: true };
+      }
+      return { success: false, error: 'Email verification failed: no token received' };
+    } catch (err) {
+      setIsAuthenticated(false);
+      setUser(null);
+      return { success: false, error: err || 'Email verification failed' };
+    }
   };
 
-  // Context value
+  const logout = () => {
+    localStorage.removeItem('authToken');
+    setIsAuthenticated(false);
+    setUser(null);
+  };
+
   const value = {
+    isAuthenticated,
     user,
     loading,
     login,
-    signup,
+    register,
+    verifyEmail,
     logout,
-    updateProfile,
-    updatePoints,
-    isAuthenticated: !!user
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

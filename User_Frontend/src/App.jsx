@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
@@ -13,29 +13,31 @@ import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import WelcomePage from './pages/WelcomePage';
-import ClaimRewardPage from './pages/ClaimRewardPage'; // <-- Add this import
+import ClaimRewardPage from './pages/ClaimRewardPage';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
-  
+
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
-  
+
+  // If not authenticated, redirect to the login page
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
-  
+
+  // If authenticated, render the child components
   return children;
 };
 
 const Layout = () => {
   const location = useLocation();
   const [activePage, setActivePage] = useState('home');
-  const [currentAuthPage, setCurrentAuthPage] = useState('login');
-  const { isAuthenticated } = useAuth();
+  // Use the useNavigate hook for programmatic navigation
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     const path = location.pathname;
@@ -51,11 +53,11 @@ const Layout = () => {
   };
 
   const handleAuthNavigation = (page) => {
-    setCurrentAuthPage(page);
+    // Use the navigate function from react-router-dom
     if (page === 'login') {
-      window.history.pushState({}, '', '/login');
+      navigate('/login');
     } else if (page === 'signup') {
-      window.history.pushState({}, '', '/signup');
+      navigate('/signup');
     }
   };
 
@@ -78,16 +80,47 @@ const Layout = () => {
       )}
       <main className={!isAuthPage ? 'pt-0' : ''}>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          {/* Public routes */}
+          <Route path="/" element={<WelcomePage />} />
           <Route path="/cafes" element={<CafesPage />} />
           <Route path="/cafes/:id" element={<CafeDetailPage />} />
-          <Route path="/claim-reward" element={<ClaimRewardPage />} />
-          <Route path="/rewards" element={<RewardsPage />} />
-          <Route path="/leaderboard" element={<LeaderboardPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/welcome" element={<WelcomePage />} />
           <Route path="/login" element={<LoginPage onNavigate={handleAuthNavigation} />} />
           <Route path="/signup" element={<SignupPage onNavigate={handleAuthNavigation} />} />
+
+          {/* Protected routes wrapped with ProtectedRoute component */}
+          <Route
+            path="/rewards"
+            element={
+              <ProtectedRoute>
+                <RewardsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/claim-reward"
+            element={
+              <ProtectedRoute>
+                <ClaimRewardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leaderboard"
+            element={
+              <ProtectedRoute>
+                <LeaderboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
       {!isAuthPage && (
