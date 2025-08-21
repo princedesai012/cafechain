@@ -1,37 +1,90 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Settings, LogOut, ArrowRight } from 'lucide-react';
+import { getProfile, updateProfile, changePassword } from '../api/api';
 
 // This component displays the user's profile information, stats, and quick links.
 // It features a single-column layout for mobile and a two-column layout for desktop.
 const ProfilePage = () => {
-  // A mock user object is used for demonstration since the AuthContext is not available.
-  const user = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    points: 1250,
-    referredCount: 5,
-  };
-  // const { user, logout } = useAuth();
+  const { user: authUser, logout } = useAuth();
+  const [profile, setProfile] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [changingPwd, setChangingPwd] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [showChangePwd, setShowChangePwd] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const handleEditProfile = () => {
-    // TODO: Navigate to edit profile page
-    console.log('Navigate to edit profile');
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setError('');
+        const phone = authUser?.phone || localStorage.getItem('userPhone');
+        if (!phone) return;
+        const data = await getProfile(phone);
+        setProfile(data);
+      } catch (e) {
+        setError(e?.toString() || 'Failed to load profile');
+      }
+    };
+    load();
+  }, [authUser]);
+
+  const handleEditProfile = async (e) => {
+    e.preventDefault();
+    try {
+      setSaving(true);
+      setError('');
+      setSuccess('');
+      const phone = authUser?.phone || localStorage.getItem('userPhone');
+      if (!phone) throw new Error('Missing user phone');
+      const form = new FormData();
+      if (profile?.name) form.append('name', profile.name);
+      const fileInput = document.getElementById('avatarInput');
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        form.append('avatar', fileInput.files[0]);
+      }
+      const updated = await updateProfile(phone, form);
+      setProfile(prev => ({ ...prev, ...updated.user }));
+      setSuccess('Profile updated');
+    } catch (e) {
+      setError(e?.toString() || 'Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleChangePassword = () => {
-    // TODO: Navigate to change password page
-    console.log('Navigate to change password');
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    try {
+      setChangingPwd(true);
+      setError('');
+      setSuccess('');
+      const phone = authUser?.phone || localStorage.getItem('userPhone');
+      if (!phone) throw new Error('Missing user phone');
+      const currentPassword = (document.getElementById('currentPassword') || {}).value;
+      const newPassword = (document.getElementById('newPassword') || {}).value;
+      const confirmNewPassword = (document.getElementById('confirmNewPassword') || {}).value;
+      if (!currentPassword || !newPassword || !confirmNewPassword) throw new Error('Enter all password fields');
+      if (newPassword !== confirmNewPassword) throw new Error('New passwords do not match');
+      await changePassword(phone, { currentPassword, newPassword });
+      setSuccess('Password changed');
+      if (document.getElementById('currentPassword')) document.getElementById('currentPassword').value = '';
+      if (document.getElementById('newPassword')) document.getElementById('newPassword').value = '';
+      if (document.getElementById('confirmNewPassword')) document.getElementById('confirmNewPassword').value = '';
+    } catch (e) {
+      setError(e?.toString() || 'Failed to change password');
+    } finally {
+      setChangingPwd(false);
+    }
   };
 
   const handleLogout = async () => {
     try {
-      // const result = await logout();
-      // if (result.success) {
-      //   // TODO: Navigate to login page
-      //   console.log('Logged out successfully');
-      // }
-      console.log('Logged out successfully');
+      const result = await logout();
+      if (result?.success) {
+        console.log('Logged out successfully');
+      }
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -61,17 +114,38 @@ const ProfilePage = () => {
           {/* Profile Card */}
           <div className="bg-white rounded-2xl shadow-soft p-6">
             <div className="text-center">
-              <div className="w-20 h-20 bg-light-gray rounded-full mx-auto mb-4 flex items-center justify-center">
-                <div className="text-2xl font-bold text-gray-400">
-                  {user?.name?.charAt(0)?.toUpperCase()}
-                </div>
+              <div className="w-20 h-20 bg-light-gray rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
+                {profile?.profilePic ? (
+                  <img src={profile.profilePic} alt="avatar" className="w-20 h-20 object-cover" />
+                ) : (
+                  <div className="text-2xl font-bold text-white">
+                    {profile?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
+                )}
               </div>
               <h1 className="text-xl font-semibold text-primary mb-1">
-                {user?.name}
+                {profile?.name || 'Your Name'}
               </h1>
               <p className="text-gray-600 mb-6">
-                {user?.email}
+                {profile?.email || 'your@email.com'}
               </p>
+              {showEdit && (
+                <form onSubmit={handleEditProfile} className="space-y-3">
+                  <input id="avatarInput" type="file" accept="image/*" className="w-full" />
+                  <input
+                    type="text"
+                    defaultValue={profile?.name || ''}
+                    onChange={(e) => setProfile(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Your name"
+                    className="w-full px-3 py-2 border rounded-xl"
+                  />
+                  {error && <div className="text-red-600 text-sm">{error}</div>}
+                  {success && <div className="text-green-600 text-sm">{success}</div>}
+                  <button disabled={saving} className="w-full bg-accent text-white py-2 rounded-xl">
+                    {saving ? 'Saving...' : 'Save Profile'}
+                  </button>
+                </form>
+              )}
             </div>
           </div>
 
@@ -83,14 +157,14 @@ const ProfilePage = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-4 bg-light-gray rounded-xl">
                 <div className="text-2xl font-bold text-accent mb-1">
-                  {user?.points}
+                  {profile?.xp ?? 0}
                 </div>
-                <div className="text-sm text-gray-600">Total Points</div>
+                <div className="text-sm text-gray-600">XP</div>
               </div>
               
               <div className="text-center p-4 bg-light-gray rounded-xl">
                 <div className="text-2xl font-bold text-accent mb-1">
-                  {user?.referredCount}
+                  {profile?.referralChildren?.length ?? 0}
                 </div>
                 <div className="text-sm text-gray-600">Referrals</div>
               </div>
@@ -124,18 +198,29 @@ const ProfilePage = () => {
           <div className="bg-white rounded-2xl shadow-soft p-6">
             <div className="space-y-4">
               <button
-                onClick={handleEditProfile}
+                onClick={() => { setShowEdit((v) => !v); setShowChangePwd(false); }}
                 className="w-full bg-light-gray rounded-xl p-4 text-left hover:bg-gray-200 transition-colors flex items-center justify-between"
               >
                 <span className="font-medium text-primary">Edit Profile</span>
                 <Settings className="w-5 h-5 text-gray-500" />
               </button>
               
+              {showChangePwd && (
+                <form onSubmit={handleChangePassword} className="space-y-3">
+                  <input id="currentPassword" type="password" placeholder="Current password" className="w-full px-3 py-2 border rounded-xl" />
+                  <input id="newPassword" type="password" placeholder="New password" className="w-full px-3 py-2 border rounded-xl" />
+                  <input id="confirmNewPassword" type="password" placeholder="Confirm new password" className="w-full px-3 py-2 border rounded-xl" />
+                  <button disabled={changingPwd} className="w-full bg-accent text-white py-2 rounded-xl">
+                    <span className="font-medium">{changingPwd ? 'Changing...' : 'Save Password'}</span>
+                  </button>
+                </form>
+              )}
+
               <button
-                onClick={handleChangePassword}
+                onClick={() => { setShowChangePwd((v) => !v); setShowEdit(false); }}
                 className="w-full bg-light-gray rounded-xl p-4 text-left hover:bg-gray-200 transition-colors flex items-center justify-between"
               >
-                <span className="font-medium text-primary">Change pass</span>
+                <span className="font-medium text-primary">Change Password</span>
                 <Settings className="w-5 h-5 text-gray-500" />
               </button>
               
@@ -165,27 +250,59 @@ const ProfilePage = () => {
             {/* Left Column: Profile Card */}
             <div className="bg-white rounded-2xl shadow-soft p-8">
               <div className="flex flex-col items-center">
-                <div className="w-32 h-32 bg-light-gray rounded-full mb-6 flex items-center justify-center">
-                  <div className="text-4xl font-bold text-gray-400">
-                    {user?.name?.charAt(0)?.toUpperCase()}
-                  </div>
+                <div className="w-32 h-32 bg-light-gray rounded-full mb-6 flex items-center justify-center overflow-hidden">
+                  {profile?.profilePic ? (
+                    <img src={profile.profilePic} alt="avatar" className="w-32 h-32 object-cover" />
+                  ) : (
+                    <div className="text-4xl font-bold text-white">
+                      {profile?.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                  )}
                 </div>
                 <h1 className="text-2xl font-semibold text-primary mb-1">
-                  {user?.name}
+                  {profile?.name || 'Your Name'}
                 </h1>
                 <p className="text-gray-600 mb-6">
-                  {user?.email}
+                  {profile?.email || 'your@email.com'}
                 </p>
+                {showEdit && (
+                <form onSubmit={handleEditProfile} className="w-full space-y-4">
+                  <input id="avatarInput" type="file" accept="image/*" className="w-full" />
+                  <input
+                    type="text"
+                    defaultValue={profile?.name || ''}
+                    onChange={(e) => setProfile(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Your name"
+                    className="w-full px-3 py-2 border rounded-xl"
+                  />
+                  {error && <div className="text-red-600 text-sm">{error}</div>}
+                  {success && <div className="text-green-600 text-sm">{success}</div>}
+                  <button disabled={saving} className="w-full bg-accent text-white py-2 rounded-xl">
+                    {saving ? 'Saving...' : 'Save Profile'}
+                  </button>
+                </form>
+                )}
                 <div className="w-full space-y-4">
                   <button
-                    onClick={handleEditProfile}
-                    className="w-full bg-light-gray rounded-xl p-4 text-left hover:bg-gray-200 transition-colors flex items-center justify-between"
+                    onClick={() => { setShowEdit((v) => !v); setShowChangePwd(false); }}
+                    className="w-full bg-light-gray rounded-xl p-4 text-left hover:bg-gray-200 transition-colors flex items-center justify-between mt-3"
                   >
                     <span className="font-medium text-primary">Edit Profile</span>
                     <Settings className="w-5 h-5 text-gray-500" />
                   </button>
+                  {showChangePwd && (
+                    <form onSubmit={handleChangePassword} className="space-y-3">
+                      <input id="currentPassword" type="password" placeholder="Current password" className="w-full px-3 py-2 border rounded-xl" />
+                      <input id="newPassword" type="password" placeholder="New password" className="w-full px-3 py-2 border rounded-xl" />
+                      <input id="confirmNewPassword" type="password" placeholder="Confirm new password" className="w-full px-3 py-2 border rounded-xl" />
+                      <button disabled={changingPwd} className="w-full bg-light-gray rounded-xl p-3 text-left hover:bg-gray-200 transition-colors flex items-center justify-between">
+                        <span className="font-medium text-primary">{changingPwd ? 'Changing...' : 'Save Password'}</span>
+                        <Settings className="w-5 h-5 text-gray-500" />
+                      </button>
+                    </form>
+                  )}
                   <button
-                    onClick={handleChangePassword}
+                    onClick={() => { setShowChangePwd((v) => !v); setShowEdit(false); }}
                     className="w-full bg-light-gray rounded-xl p-4 text-left hover:bg-gray-200 transition-colors flex items-center justify-between"
                   >
                     <span className="font-medium text-primary">Change Password</span>
@@ -212,13 +329,13 @@ const ProfilePage = () => {
                 <div className="grid grid-cols-2 gap-6">
                   <div className="text-center p-6 bg-light-gray rounded-xl">
                     <div className="text-4xl font-bold text-accent mb-2">
-                      {user?.points}
+                      {profile?.xp ?? 0}
                     </div>
-                    <div className="text-base text-gray-600">Total Points</div>
+                    <div className="text-base text-gray-600">XP</div>
                   </div>
                   <div className="text-center p-6 bg-light-gray rounded-xl">
                     <div className="text-4xl font-bold text-accent mb-2">
-                      {user?.referredCount}
+                      {profile?.referralChildren?.length ?? 0}
                     </div>
                     <div className="text-base text-gray-600">Referrals</div>
                   </div>

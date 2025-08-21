@@ -2,6 +2,8 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const path = require("path");
+const fs = require("fs");
 const Cafe = require("../models/Cafe");
 const VisitLog = require("../models/VisitLog");
 const RewardTransaction = require("../models/RewardTransaction"); 
@@ -195,9 +197,8 @@ exports.getUserProfile = async (req, res) => {
 
 exports.updateUserProfile = async (req, res) => {
     const { phone } = req.params;
-    const { name, profilePic } = req.body;
+    const { name, email } = req.body;
 
-    // A simple authorization check to ensure the user is updating their own profile
     if (req.user.phone !== phone) {
         return res.status(403).json({ error: "Unauthorized access" });
     }
@@ -208,16 +209,87 @@ exports.updateUserProfile = async (req, res) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        // Update fields if they exist in the request body
+        // Update user fields if provided
         if (name) user.name = name;
-        if (profilePic) user.profilePic = profilePic;
+        if (email) user.email = email;
+
+        // If an avatar file was uploaded
+        if (req.file) {
+            // Delete previous profile image if exists
+            if (user.profilePic) {
+                const oldImagePath = path.join(__dirname, '..', user.profilePic);
+                if (fs.existsSync(oldImagePath)) {
+                    fs.unlinkSync(oldImagePath);
+                }
+            }
+            // Save a full URL path to serve the image statically
+            user.profilePic = `http://localhost:5000/uploads/avatars/${req.file.filename}`;
+        }
 
         await user.save();
-        res.status(200).json({ message: "Profile updated successfully", user });
+        res.status(200).json({ 
+            message: "Profile updated successfully", 
+            user: { 
+                name: user.name, 
+                phone: user.phone, 
+                email: user.email,
+                profilePic: user.profilePic 
+            } 
+        });
 
     } catch (error) {
         console.error("Update profile error:", error);
         res.status(500).json({ error: "Server error" });
+    }
+};
+
+exports.changePassword = async (req, res) => {
+    const { phone } = req.params;
+    const { currentPassword, newPassword } = req.body;
+
+    if (req.user.phone !== phone) {
+        return res.status(403).json({ error: "Unauthorized access" });
+    }
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: "Current and new password are required" });
+    }
+
+    // Password validation
+    if (newPassword.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters long" });
+    }
+
+    try {
+        const user = await User.findOne({ phone });
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ error: "Current password is incorrect" });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+        res.status(200).json({ message: "Password updated successfully" });
+    } catch (error) {
+        console.error("Change password error:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+};
+
+exports.logout = async (req, res) => {
+    try {
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Lax'
+        });
+        return res.status(200).json({ message: "Logged out successfully" });
+    } catch (error) {
+        return res.status(200).json({ message: "Logged out" });
     }
 };
 

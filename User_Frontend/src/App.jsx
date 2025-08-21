@@ -12,6 +12,7 @@ import LeaderboardPage from './pages/LeaderboardPage';
 import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import WelcomePage from './pages/WelcomePage';
 import ClaimRewardPage from './pages/ClaimRewardPage';
 
@@ -24,24 +25,22 @@ const ProtectedRoute = ({ children }) => {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
-  // If not authenticated, redirect to the login page
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If authenticated, render the child components
   return children;
 };
 
 const Layout = () => {
   const location = useLocation();
+  const { isAuthenticated } = useAuth(); // ✅ correctly placed
   const [activePage, setActivePage] = useState('home');
-  // Use the useNavigate hook for programmatic navigation
   const navigate = useNavigate();
 
   React.useEffect(() => {
     const path = location.pathname;
-    if (path === '/') setActivePage('home');
+    if (path === '/home') setActivePage('home');
     else if (path.startsWith('/cafes')) setActivePage('cafes');
     else if (path === '/rewards') setActivePage('rewards');
     else if (path === '/leaderboard') setActivePage('leaderboard');
@@ -53,7 +52,6 @@ const Layout = () => {
   };
 
   const handleAuthNavigation = (page) => {
-    // Use the navigate function from react-router-dom
     if (page === 'login') {
       navigate('/login');
     } else if (page === 'signup') {
@@ -64,31 +62,56 @@ const Layout = () => {
   const isAuthPage =
     location.pathname === '/login' ||
     location.pathname === '/signup' ||
-    location.pathname === '/welcome';
+    location.pathname === '/welcome' ||
+    location.pathname === '/verify-email';
 
   return (
     <div className="min-h-screen bg-background">
       {!isAuthPage && (
-        <div className="hidden md:block">
-          <Navbar onSearch={handleSearch} />
-        </div>
+        <>
+          <div className="hidden md:block">
+            <Navbar onSearch={handleSearch} />
+          </div>
+          <div className="md:hidden">
+            <MobileNavbar />
+          </div>
+        </>
       )}
-      {!isAuthPage && (
-        <div className="md:hidden">
-          <MobileNavbar />
-        </div>
-      )}
-      <main className={!isAuthPage ? 'pt-0' : ''}>
+
+      <main className="pt-0">
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<WelcomePage />} />
-          <Route path="/cafes" element={<CafesPage />} />
-          <Route path="/cafes/:id" element={<CafeDetailPage />} />
           <Route path="/welcome" element={<WelcomePage />} />
           <Route path="/login" element={<LoginPage onNavigate={handleAuthNavigation} />} />
           <Route path="/signup" element={<SignupPage onNavigate={handleAuthNavigation} />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
 
-          {/* Protected routes wrapped with ProtectedRoute component */}
+          {/* Protected routes */}
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cafes"
+            element={
+              <ProtectedRoute>
+                <CafesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cafes/:id"
+            element={
+              <ProtectedRoute>
+                <CafeDetailPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/rewards"
             element={
@@ -123,7 +146,8 @@ const Layout = () => {
           />
         </Routes>
       </main>
-      {!isAuthPage && (
+
+      {!isAuthPage && isAuthenticated && (
         <div className="md:hidden">
           <BottomNav activePage={activePage} />
         </div>

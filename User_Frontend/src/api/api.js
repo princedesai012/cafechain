@@ -27,6 +27,7 @@ const apiClient = async (endpoint, data = {}, options = {}) => {
       url: `${API_URL}${endpoint}`,
       data: options.method === 'POST' || options.method === 'PUT' ? data : null,
       headers,
+      withCredentials: true,
     });
     return response.data;
   } catch (error) {
@@ -53,6 +54,30 @@ export const verifyEmailOtp = async (data) => {
 
 export const resendEmailOtp = async (data) => {
   return apiClient('/email-otp/resend-email-otp', data, { method: 'POST' });
+};
+
+// Profile APIs
+export const getProfile = async (phone) => {
+  return apiClient(`/users/profile/${phone}`, {}, { method: 'GET' });
+};
+
+export const updateProfile = async (phone, formData) => {
+  // Use raw axios for multipart
+  const token = localStorage.getItem('authToken');
+  const headers = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    'Content-Type': 'multipart/form-data',
+  };
+  const response = await axios.put(`${API_URL}/users/profile/${phone}`, formData, { headers, withCredentials: true });
+  return response.data;
+};
+
+export const changePassword = async (phone, body) => {
+  return apiClient(`/users/profile/${phone}/change-password`, body, { method: 'PUT' });
+};
+
+export const logoutUser = async () => {
+  return apiClient('/users/logout', {}, { method: 'POST' });
 };
 
 // You can export the apiClient directly if you want to make other calls

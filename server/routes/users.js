@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { register, login, logVisit, getUserProfile, updateUserProfile, getReferralChain, getRewardHistory, getVisitHistory, addFavoriteCafe, getFavoriteCafes } = require("../controllers/userController");
+const { register, login, logVisit, getUserProfile, updateUserProfile, changePassword, logout, getReferralChain, getRewardHistory, getVisitHistory, addFavoriteCafe, getFavoriteCafes } = require("../controllers/userController");
 const { validatePhoneNumber } = require("../middlewares/validate");
 const { authenticateUserJWT } = require("../middlewares/auth");
+const { uploadAvatar } = require("../middlewares/upload");
 
 // router.get("/", "Welcome");
 router.post("/register", validatePhoneNumber, register);
@@ -10,7 +11,9 @@ router.post("/login", validatePhoneNumber, login);
 
 router.post("/log-visit", authenticateUserJWT, logVisit);
 router.get("/profile/:phone", authenticateUserJWT, getUserProfile);
-router.put("/profile/:phone", authenticateUserJWT, updateUserProfile);
+router.put("/profile/:phone", authenticateUserJWT, uploadAvatar.single('avatar'), updateUserProfile);
+router.put("/profile/:phone/change-password", authenticateUserJWT, changePassword);
+router.post("/logout", authenticateUserJWT, logout);
 
 router.get("/referral-chain/:phone", authenticateUserJWT, getReferralChain);
 router.get("/history/:phone", authenticateUserJWT, getVisitHistory); 

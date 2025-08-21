@@ -6,7 +6,7 @@ import logo from '../assets/Images/logo.jpg';
 
 const LoginPage = ({ onNavigate }) => {
   const [formData, setFormData] = useState({
-    mobile: '',
+    phone: '',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -32,23 +32,22 @@ const LoginPage = ({ onNavigate }) => {
     setError('');
 
     // Basic validation
-    if (!formData.mobile || !formData.password) {
+    if (!formData.phone || !formData.password) {
       setError('Please fill in all fields');
       setLoading(false);
       return;
     }
 
-    if (formData.mobile.length !== 10) {
+    if (formData.phone.length !== 10) {
       setError('Please enter a valid 10-digit mobile number');
       setLoading(false);
       return;
     }
 
     try {
-      const result = await login(formData.mobile, formData.password);
+      const result = await login(formData.phone, formData.password);
       if (result.success) {
-        // Use React Router navigation instead of window.location
-        navigate('/');
+        navigate('/home');
       } else {
         setError(result.error || 'Login failed');
       }
@@ -96,8 +95,8 @@ const LoginPage = ({ onNavigate }) => {
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="tel"
-                  name="mobile"
-                  value={formData.mobile}
+                  name="phone"
+                  value={formData.phone}
                   onChange={handleInputChange}
                   placeholder="Enter your mobile number"
                   className="w-full pl-11 pr-4 py-3 border border-light-cream rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent bg-warm-white"
