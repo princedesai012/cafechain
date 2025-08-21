@@ -93,7 +93,7 @@ const WelcomePage = () => {
       </div>
       
       {/* DESKTOP VIEW - Hidden on smaller screens. */}
-      <div className="hidden md:flex flex-col items-center justify-center p-12">
+      <div className="hidden md:flex flex-col items-center justify-center p-8">
         <div className="md:max-w-4xl md:mx-auto space-y-16 text-center">
           {/* Main welcome message for desktop. */}
           <div className="space-y-6">

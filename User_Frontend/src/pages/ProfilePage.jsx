@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Settings, LogOut, ArrowRight } from 'lucide-react';
 import { getProfile, updateProfile, changePassword } from '../api/api';
 
 // This component displays the user's profile information, stats, and quick links.
 // It features a single-column layout for mobile and a two-column layout for desktop.
 const ProfilePage = () => {
-  const { user: authUser, logout } = useAuth();
+  const { user: authUser, logout, updateUserData } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [changingPwd, setChangingPwd] = useState(false);
@@ -14,6 +16,8 @@ const ProfilePage = () => {
   const [showChangePwd, setShowChangePwd] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -38,16 +42,65 @@ const ProfilePage = () => {
       setSuccess('');
       const phone = authUser?.phone || localStorage.getItem('userPhone');
       if (!phone) throw new Error('Missing user phone');
-      const form = new FormData();
-      if (profile?.name) form.append('name', profile.name);
-      const fileInput = document.getElementById('avatarInput');
-      if (fileInput && fileInput.files && fileInput.files[0]) {
-        form.append('avatar', fileInput.files[0]);
+      
+      const updateData = { name: profile?.name };
+      
+      // Handle profile picture upload
+      console.log('🔍 Selected file from state:', !!selectedFile);
+      console.log('📁 Selected image from state:', !!selectedImage);
+      
+      if (selectedFile) {
+        console.log('📄 Processing file:', selectedFile.name, selectedFile.size, selectedFile.type);
+        
+        // Check if file is actually an image
+        if (!selectedFile.type.startsWith('image/')) {
+          setError('Please select a valid image file');
+          setSaving(false);
+          return;
+        }
+        
+        // Convert file to base64
+        const reader = new FileReader();
+        
+        reader.onload = async () => {
+          try {
+            updateData.profilePic = reader.result; // This will be base64
+            console.log('🔄 Sending profile update with image...');
+            console.log('📸 Image data length:', updateData.profilePic.length);
+            const updated = await updateProfile(phone, updateData);
+            console.log('✅ Profile updated successfully:', updated);
+            console.log('📸 New profilePic URL:', updated.user.profilePic);
+                         setProfile(prev => ({ ...prev, ...updated.user }));
+             // Update AuthContext so navbar shows the new profile picture
+             updateUserData(updated.user);
+             setSuccess('Profile updated successfully!');
+             setSelectedImage(null); // Clear the preview
+             setSelectedFile(null); // Clear the stored file
+             setShowEdit(false); // Hide the edit form
+          } catch (e) {
+            console.error('❌ Profile update failed:', e);
+            setError(e?.toString() || 'Failed to update profile');
+          } finally {
+            setSaving(false);
+          }
+        };
+        
+        reader.readAsDataURL(selectedFile);
+        return; // Exit early, the async operation will continue
       }
-      const updated = await updateProfile(phone, form);
-      setProfile(prev => ({ ...prev, ...updated.user }));
-      setSuccess('Profile updated');
+      
+             // If no file, just update the name
+       console.log('🔄 Sending profile update without image...');
+       const updated = await updateProfile(phone, updateData);
+       console.log('✅ Profile updated successfully:', updated);
+       setProfile(prev => ({ ...prev, ...updated.user }));
+       // Update AuthContext so navbar shows the updated name
+       updateUserData(updated.user);
+       setSuccess('Profile updated successfully!');
+       setSelectedImage(null); // Clear the preview
+       setShowEdit(false); // Hide the edit form
     } catch (e) {
+      console.error('❌ Profile update failed:', e);
       setError(e?.toString() || 'Failed to update profile');
     } finally {
       setSaving(false);
@@ -83,10 +136,23 @@ const ProfilePage = () => {
     try {
       const result = await logout();
       if (result?.success) {
-        console.log('Logged out successfully');
+        navigate('/login');
       }
     } catch (error) {
       console.error('Logout failed:', error);
+    }
+  };
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      console.log('📁 File selected:', file.name, file.size, file.type);
+      setSelectedFile(file); // Store the actual file
+      const reader = new FileReader();
+      reader.onload = () => {
+        setSelectedImage(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -129,9 +195,26 @@ const ProfilePage = () => {
               <p className="text-gray-600 mb-6">
                 {profile?.email || 'your@email.com'}
               </p>
-              {showEdit && (
+                              {showEdit && (
                 <form onSubmit={handleEditProfile} className="space-y-3">
-                  <input id="avatarInput" type="file" accept="image/*" className="w-full" />
+                  <div className="space-y-2">
+                    <input 
+                      id="avatarInput" 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageSelect}
+                      className="w-full" 
+                    />
+                    {selectedImage && (
+                      <div className="w-20 h-20 mx-auto">
+                        <img 
+                          src={selectedImage} 
+                          alt="Preview" 
+                          className="w-20 h-20 object-cover rounded-full border-2 border-accent" 
+                        />
+                      </div>
+                    )}
+                  </div>
                   <input
                     type="text"
                     defaultValue={profile?.name || ''}
@@ -145,7 +228,7 @@ const ProfilePage = () => {
                     {saving ? 'Saving...' : 'Save Profile'}
                   </button>
                 </form>
-              )}
+                )}
             </div>
           </div>
 
@@ -198,23 +281,20 @@ const ProfilePage = () => {
           <div className="bg-white rounded-2xl shadow-soft p-6">
             <div className="space-y-4">
               <button
-                onClick={() => { setShowEdit((v) => !v); setShowChangePwd(false); }}
+                onClick={() => { 
+                  setShowEdit((v) => !v); 
+                  setShowChangePwd(false); 
+                  if (!showEdit) {
+                    setSelectedImage(null);
+                    setSelectedFile(null);
+                  }
+                }}
                 className="w-full bg-light-gray rounded-xl p-4 text-left hover:bg-gray-200 transition-colors flex items-center justify-between"
               >
                 <span className="font-medium text-primary">Edit Profile</span>
                 <Settings className="w-5 h-5 text-gray-500" />
               </button>
-              
-              {showChangePwd && (
-                <form onSubmit={handleChangePassword} className="space-y-3">
-                  <input id="currentPassword" type="password" placeholder="Current password" className="w-full px-3 py-2 border rounded-xl" />
-                  <input id="newPassword" type="password" placeholder="New password" className="w-full px-3 py-2 border rounded-xl" />
-                  <input id="confirmNewPassword" type="password" placeholder="Confirm new password" className="w-full px-3 py-2 border rounded-xl" />
-                  <button disabled={changingPwd} className="w-full bg-accent text-white py-2 rounded-xl">
-                    <span className="font-medium">{changingPwd ? 'Changing...' : 'Save Password'}</span>
-                  </button>
-                </form>
-              )}
+
 
               <button
                 onClick={() => { setShowChangePwd((v) => !v); setShowEdit(false); }}
@@ -241,7 +321,7 @@ const ProfilePage = () => {
         <div className="space-y-8">
           {/* Main Profile Header for Desktop */}
           <div className="bg-[#4A3A2F] text-white rounded-2xl shadow-lg p-12 text-center">
-            <h1 className="text-4xl font-bold">Your Profile</h1>
+            <h1 className="text-4xl font-bold">Welcome back, {profile?.name || ''}!</h1>
             <p className="text-lg opacity-80 mt-2">Manage your account details and preferences.</p>
           </div>
           
@@ -267,7 +347,24 @@ const ProfilePage = () => {
                 </p>
                 {showEdit && (
                 <form onSubmit={handleEditProfile} className="w-full space-y-4">
-                  <input id="avatarInput" type="file" accept="image/*" className="w-full" />
+                  <div className="space-y-2">
+                    <input 
+                      id="avatarInput" 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageSelect}
+                      className="w-full" 
+                    />
+                    {selectedImage && (
+                      <div className="w-32 h-32 mx-auto">
+                        <img 
+                          src={selectedImage} 
+                          alt="Preview" 
+                          className="w-32 h-32 object-cover rounded-full border-2 border-accent" 
+                        />
+                      </div>
+                    )}
+                  </div>
                   <input
                     type="text"
                     defaultValue={profile?.name || ''}
@@ -284,28 +381,16 @@ const ProfilePage = () => {
                 )}
                 <div className="w-full space-y-4">
                   <button
-                    onClick={() => { setShowEdit((v) => !v); setShowChangePwd(false); }}
+                    onClick={() => { 
+                      setShowEdit((v) => !v);
+                      if (!showEdit) {
+                        setSelectedImage(null);
+                        setSelectedFile(null);
+                      }
+                    }}
                     className="w-full bg-light-gray rounded-xl p-4 text-left hover:bg-gray-200 transition-colors flex items-center justify-between mt-3"
                   >
                     <span className="font-medium text-primary">Edit Profile</span>
-                    <Settings className="w-5 h-5 text-gray-500" />
-                  </button>
-                  {showChangePwd && (
-                    <form onSubmit={handleChangePassword} className="space-y-3">
-                      <input id="currentPassword" type="password" placeholder="Current password" className="w-full px-3 py-2 border rounded-xl" />
-                      <input id="newPassword" type="password" placeholder="New password" className="w-full px-3 py-2 border rounded-xl" />
-                      <input id="confirmNewPassword" type="password" placeholder="Confirm new password" className="w-full px-3 py-2 border rounded-xl" />
-                      <button disabled={changingPwd} className="w-full bg-light-gray rounded-xl p-3 text-left hover:bg-gray-200 transition-colors flex items-center justify-between">
-                        <span className="font-medium text-primary">{changingPwd ? 'Changing...' : 'Save Password'}</span>
-                        <Settings className="w-5 h-5 text-gray-500" />
-                      </button>
-                    </form>
-                  )}
-                  <button
-                    onClick={() => { setShowChangePwd((v) => !v); setShowEdit(false); }}
-                    className="w-full bg-light-gray rounded-xl p-4 text-left hover:bg-gray-200 transition-colors flex items-center justify-between"
-                  >
-                    <span className="font-medium text-primary">Change Password</span>
                     <Settings className="w-5 h-5 text-gray-500" />
                   </button>
                   <button

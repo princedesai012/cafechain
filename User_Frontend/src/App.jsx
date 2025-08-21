@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
@@ -15,8 +15,9 @@ import SignupPage from './pages/SignupPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import WelcomePage from './pages/WelcomePage';
 import ClaimRewardPage from './pages/ClaimRewardPage';
+import NotFoundPage from './pages/NotFoundPage';
 
-// Protected Route component
+// Protected Route
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
@@ -34,11 +35,11 @@ const ProtectedRoute = ({ children }) => {
 
 const Layout = () => {
   const location = useLocation();
-  const { isAuthenticated } = useAuth(); // ✅ correctly placed
+  const { isAuthenticated } = useAuth();
   const [activePage, setActivePage] = useState('home');
   const navigate = useNavigate();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const path = location.pathname;
     if (path === '/home') setActivePage('home');
     else if (path.startsWith('/cafes')) setActivePage('cafes');
@@ -52,22 +53,35 @@ const Layout = () => {
   };
 
   const handleAuthNavigation = (page) => {
-    if (page === 'login') {
-      navigate('/login');
-    } else if (page === 'signup') {
-      navigate('/signup');
-    }
+    if (page === 'login') navigate('/login');
+    else if (page === 'signup') navigate('/signup');
   };
 
   const isAuthPage =
+    location.pathname === '/' ||
     location.pathname === '/login' ||
     location.pathname === '/signup' ||
     location.pathname === '/welcome' ||
     location.pathname === '/verify-email';
 
+  // Determine if current path is one of the app's known routes
+  const isKnownRoute = () => {
+    const p = location.pathname;
+    const known = new Set([
+      '/', '/welcome', '/login', '/signup', '/verify-email',
+      '/home', '/cafes', '/rewards', '/claim-reward', '/leaderboard', '/profile'
+    ]);
+    if (known.has(p)) return true;
+    if (p.startsWith('/cafes/')) return true;
+    return false;
+  };
+
+  const isUnknownRoute = !isKnownRoute();
+  const hideNavbars = isAuthPage || (isUnknownRoute && !isAuthenticated);
+
   return (
     <div className="min-h-screen bg-background">
-      {!isAuthPage && (
+      {!hideNavbars && (
         <>
           <div className="hidden md:block">
             <Navbar onSearch={handleSearch} />
@@ -88,66 +102,19 @@ const Layout = () => {
           <Route path="/verify-email" element={<VerifyEmailPage />} />
 
           {/* Protected routes */}
-          <Route
-            path="/home"
-            element={
-              <ProtectedRoute>
-                <HomePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/cafes"
-            element={
-              <ProtectedRoute>
-                <CafesPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/cafes/:id"
-            element={
-              <ProtectedRoute>
-                <CafeDetailPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/rewards"
-            element={
-              <ProtectedRoute>
-                <RewardsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/claim-reward"
-            element={
-              <ProtectedRoute>
-                <ClaimRewardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/leaderboard"
-            element={
-              <ProtectedRoute>
-                <LeaderboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+          <Route path="/cafes" element={<ProtectedRoute><CafesPage /></ProtectedRoute>} />
+          <Route path="/cafes/:id" element={<ProtectedRoute><CafeDetailPage /></ProtectedRoute>} />
+          <Route path="/rewards" element={<ProtectedRoute><RewardsPage /></ProtectedRoute>} />
+          <Route path="/claim-reward" element={<ProtectedRoute><ClaimRewardPage /></ProtectedRoute>} />
+          <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          {/* Catch-all */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
 
-      {!isAuthPage && isAuthenticated && (
+      {!hideNavbars && isAuthenticated && (
         <div className="md:hidden">
           <BottomNav activePage={activePage} />
         </div>

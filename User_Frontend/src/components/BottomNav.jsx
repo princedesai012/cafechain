@@ -1,9 +1,10 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Home, Coffee, Star, Trophy, User } from 'lucide-react';
 
 const BottomNav = ({ activePage }) => {
   const navItems = [
-    { id: 'home', label: 'Home', icon: Home, path: '/' },
+    { id: 'home', label: 'Home', icon: Home, path: '/home' },
     { id: 'cafes', label: 'Cafes', icon: Coffee, path: '/cafes' },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy, path: '/leaderboard' },
     { id: 'rewards', label: 'Rewards', icon: Star, path: '/rewards' },
@@ -19,9 +20,9 @@ const BottomNav = ({ activePage }) => {
             const isActive = activePage === item.id;
             
             return (
-              <a
+              <Link
                 key={item.id}
-                href={item.path}
+                to={item.path}
                 className={`flex flex-col items-center py-2 px-1 rounded-lg transition-colors ${
                   isActive 
                     ? 'text-accent bg-light-gray' 
@@ -32,7 +33,7 @@ const BottomNav = ({ activePage }) => {
                 <span className={`text-xs font-medium ${isActive ? 'text-accent' : ''}`}>
                   {item.label}
                 </span>
-              </a>
+              </Link>
             );
           })}
         </nav>

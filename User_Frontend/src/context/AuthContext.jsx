@@ -11,13 +11,33 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Always start unauthenticated to force login each time app runs
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userPhone');
-    setIsAuthenticated(false);
-    setUser(null);
-    setLoading(false);
+    // Restore session from localStorage
+    const token = localStorage.getItem('authToken');
+    const userPhone = localStorage.getItem('userPhone');
+    
+    if (token && userPhone) {
+      setIsAuthenticated(true);
+      loadUserProfile(userPhone);
+    } else {
+      setLoading(false);
+    }
   }, []);
+
+  const loadUserProfile = async (phone) => {
+    try {
+      const userData = await getProfile(phone);
+      setUser(userData);
+    } catch (error) {
+      console.error('Failed to load user profile:', error);
+      // Clear invalid session
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userPhone');
+      setIsAuthenticated(false);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = async (phone, password) => {
     try {
@@ -26,7 +46,11 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('authToken', response.token);
         if (response.user?.phone) localStorage.setItem('userPhone', response.user.phone);
         setIsAuthenticated(true);
-        setUser(response.user); // Assuming the response includes user data
+        setUser(response.user);
+        // Ensure profile is synced/validated after login
+        try {
+          await loadUserProfile(response.user?.phone || phone);
+        } catch {}
         return { success: true };
       }
       return { success: false, error: 'Login failed: no token received' };
@@ -56,7 +80,10 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('authToken', response.token);
         if (response.user?.phone) localStorage.setItem('userPhone', response.user.phone);
         setIsAuthenticated(true);
-        setUser(response.user); // Assuming the response includes user data
+        setUser(response.user);
+        try {
+          await loadUserProfile(response.user?.phone || data?.phone);
+        } catch {}
         return { success: true };
       }
       return { success: false, error: 'Email verification failed: no token received' };
@@ -78,6 +105,10 @@ export const AuthProvider = ({ children }) => {
     return { success: true };
   };
 
+  const updateUserData = (newUserData) => {
+    setUser((prevUser) => ({ ...prevUser, ...newUserData }));
+  };
+
   const value = {
     isAuthenticated,
     user,
@@ -86,6 +117,7 @@ export const AuthProvider = ({ children }) => {
     register,
     verifyEmail,
     logout,
+    updateUserData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

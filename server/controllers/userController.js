@@ -2,8 +2,7 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const path = require("path");
-const fs = require("fs");
+const cloudinary = require("../config/cloudinary");
 const Cafe = require("../models/Cafe");
 const VisitLog = require("../models/VisitLog");
 const RewardTransaction = require("../models/RewardTransaction"); 
@@ -100,6 +99,10 @@ exports.logVisit = async (req, res) => {
     const { userPhone, cafeId, amountSpent } = req.body;
 
     try {
+        // Enforce that users can only log their own visits
+        if (!req.user || req.user.phone !== userPhone) {
+            return res.status(403).json({ error: "Unauthorized access" });
+        }
         const user = await User.findOne({ phone: userPhone });
         if (!user) {
             return res.status(404).json({ error: "User not found" });
@@ -184,6 +187,10 @@ exports.logVisit = async (req, res) => {
 exports.getUserProfile = async (req, res) => {
     const { phone } = req.params;
     try {
+        // Enforce that a user can only view their own profile
+        if (!req.user || req.user.phone !== phone) {
+            return res.status(403).json({ error: "Unauthorized access" });
+        }
         const user = await User.findOne({ phone }).select("-password"); // Exclude password
         if (!user) {
             return res.status(404).json({ error: "User not found" });
@@ -195,54 +202,37 @@ exports.getUserProfile = async (req, res) => {
     }
 };
 
+
 exports.updateUserProfile = async (req, res) => {
-    const { phone } = req.params;
-    const { name, email } = req.body;
-
-    if (req.user.phone !== phone) {
-        return res.status(403).json({ error: "Unauthorized access" });
-    }
-
     try {
-        const user = await User.findOne({ phone });
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-
-        // Update user fields if provided
-        if (name) user.name = name;
-        if (email) user.email = email;
-
-        // If an avatar file was uploaded
-        if (req.file) {
-            // Delete previous profile image if exists
-            if (user.profilePic) {
-                const oldImagePath = path.join(__dirname, '..', user.profilePic);
-                if (fs.existsSync(oldImagePath)) {
-                    fs.unlinkSync(oldImagePath);
-                }
-            }
-            // Save a full URL path to serve the image statically
-            user.profilePic = `http://localhost:5000/uploads/avatars/${req.file.filename}`;
-        }
-
-        await user.save();
-        res.status(200).json({ 
-            message: "Profile updated successfully", 
-            user: { 
-                name: user.name, 
-                phone: user.phone, 
-                email: user.email,
-                profilePic: user.profilePic 
-            } 
-        });
-
+      const { phone } = req.params;
+      const updates = { ...req.body };
+  
+      if (!req.user || req.user.phone !== phone) {
+        return res.status(403).json({ message: "Unauthorized access" });
+      }
+  
+      console.log("🔄 Updating profile for phone:", phone);
+  
+      const user = await User.findOneAndUpdate(
+        { phone },
+        updates,
+        { new: true }
+      );
+  
+      if (!user) return res.status(404).json({ message: "User not found" });
+  
+      res.json({
+        message: "Profile updated successfully",
+        user
+      });
     } catch (error) {
-        console.error("Update profile error:", error);
-        res.status(500).json({ error: "Server error" });
+      console.error("❌ Error updating profile:", error);
+      res.status(500).json({ message: "Error updating profile", error });
     }
-};
-
+  }; 
+  
+  
 exports.changePassword = async (req, res) => {
     const { phone } = req.params;
     const { currentPassword, newPassword } = req.body;
