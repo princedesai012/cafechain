@@ -51,10 +51,9 @@ const SignupPage = ({ onNavigate }) => {
     try {
       const result = await register(formData);
       if (result.success && result.requiresEmailVerification) {
-        // Request OTP after successful registration
         await requestEmailOtp({ email: formData.email, phone: formData.phone });
-        setIsVerifying(true);
         setError('');
+        navigate('/verify-email', { state: { email: formData.email, phone: formData.phone } });
       } else {
         setError(result.error || 'Registration failed.');
       }
@@ -79,7 +78,7 @@ const SignupPage = ({ onNavigate }) => {
     try {
       const result = await verifyEmail({ email: formData.email, phone: formData.phone, otp });
       if (result.success) {
-        navigate('/'); // Redirect to home on successful verification
+        navigate('/home');
       } else {
         setError(result.error || 'Email verification failed.');
       }

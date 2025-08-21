@@ -29,6 +29,12 @@ exports.requestEmailOTP = async (req, res) => {
             return res.status(400).json({ error: "Email is already verified." });
         }
 
+        // Prevent using an email that belongs to another user
+        const emailOwner = await User.findOne({ email });
+        if (emailOwner && emailOwner.phone !== phone) {
+            return res.status(400).json({ error: "Email is already in use by another account." });
+        }
+
         // Generate 6-digit OTP
         const otp = otpGenerator.generate(6, {
             upperCaseAlphabets: false,
@@ -98,6 +104,12 @@ exports.verifyEmailOTP = async (req, res) => {
         const user = await User.findOne({ phone });
         if (!user) {
             return res.status(404).json({ error: "User not found." });
+        }
+
+        // Prevent assigning an email that belongs to another user
+        const emailOwner = await User.findOne({ email });
+        if (emailOwner && emailOwner.phone !== phone) {
+            return res.status(400).json({ error: "Email is already in use by another account." });
         }
 
         // Delete the OTP to prevent reuse

@@ -2,6 +2,7 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const cloudinary = require("../config/cloudinary");
 const Cafe = require("../models/Cafe");
 const VisitLog = require("../models/VisitLog");
 const RewardTransaction = require("../models/RewardTransaction"); 
@@ -98,6 +99,10 @@ exports.logVisit = async (req, res) => {
     const { userPhone, cafeId, amountSpent } = req.body;
 
     try {
+        // Enforce that users can only log their own visits
+        if (!req.user || req.user.phone !== userPhone) {
+            return res.status(403).json({ error: "Unauthorized access" });
+        }
         const user = await User.findOne({ phone: userPhone });
         if (!user) {
             return res.status(404).json({ error: "User not found" });
@@ -182,6 +187,10 @@ exports.logVisit = async (req, res) => {
 exports.getUserProfile = async (req, res) => {
     const { phone } = req.params;
     try {
+        // Enforce that a user can only view their own profile
+        if (!req.user || req.user.phone !== phone) {
+            return res.status(403).json({ error: "Unauthorized access" });
+        }
         const user = await User.findOne({ phone }).select("-password"); // Exclude password
         if (!user) {
             return res.status(404).json({ error: "User not found" });
@@ -193,13 +202,52 @@ exports.getUserProfile = async (req, res) => {
     }
 };
 
-exports.updateUserProfile = async (req, res) => {
-    const { phone } = req.params;
-    const { name, profilePic } = req.body;
 
-    // A simple authorization check to ensure the user is updating their own profile
+exports.updateUserProfile = async (req, res) => {
+    try {
+      const { phone } = req.params;
+      const updates = { ...req.body };
+  
+      if (!req.user || req.user.phone !== phone) {
+        return res.status(403).json({ message: "Unauthorized access" });
+      }
+  
+      console.log("🔄 Updating profile for phone:", phone);
+  
+      const user = await User.findOneAndUpdate(
+        { phone },
+        updates,
+        { new: true }
+      );
+  
+      if (!user) return res.status(404).json({ message: "User not found" });
+  
+      res.json({
+        message: "Profile updated successfully",
+        user
+      });
+    } catch (error) {
+      console.error("❌ Error updating profile:", error);
+      res.status(500).json({ message: "Error updating profile", error });
+    }
+  }; 
+  
+  
+exports.changePassword = async (req, res) => {
+    const { phone } = req.params;
+    const { currentPassword, newPassword } = req.body;
+
     if (req.user.phone !== phone) {
         return res.status(403).json({ error: "Unauthorized access" });
+    }
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: "Current and new password are required" });
+    }
+
+    // Password validation
+    if (newPassword.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters long" });
     }
 
     try {
@@ -208,16 +256,30 @@ exports.updateUserProfile = async (req, res) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        // Update fields if they exist in the request body
-        if (name) user.name = name;
-        if (profilePic) user.profilePic = profilePic;
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ error: "Current password is incorrect" });
+        }
 
+        user.password = await bcrypt.hash(newPassword, 10);
         await user.save();
-        res.status(200).json({ message: "Profile updated successfully", user });
-
+        res.status(200).json({ message: "Password updated successfully" });
     } catch (error) {
-        console.error("Update profile error:", error);
+        console.error("Change password error:", error);
         res.status(500).json({ error: "Server error" });
+    }
+};
+
+exports.logout = async (req, res) => {
+    try {
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Lax'
+        });
+        return res.status(200).json({ message: "Logged out successfully" });
+    } catch (error) {
+        return res.status(200).json({ message: "Logged out" });
     }
 };
 

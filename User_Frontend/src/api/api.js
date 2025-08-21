@@ -1,15 +1,8 @@
 // api/api.js
-// This file centralizes all backend API calls
 import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api';
 
-/**
- * Handles network requests, including error checking and token handling.
- * @param {string} endpoint The API endpoint, e.g., '/users/login'
- * @param {object} options Axios options
- * @returns The response data
- */
 const apiClient = async (endpoint, data = {}, options = {}) => {
   const token = localStorage.getItem('authToken');
   const headers = {
@@ -27,6 +20,7 @@ const apiClient = async (endpoint, data = {}, options = {}) => {
       url: `${API_URL}${endpoint}`,
       data: options.method === 'POST' || options.method === 'PUT' ? data : null,
       headers,
+      withCredentials: true,
     });
     return response.data;
   } catch (error) {
@@ -35,25 +29,28 @@ const apiClient = async (endpoint, data = {}, options = {}) => {
   }
 };
 
-export const loginUser = async (phone, password) => {
-  return apiClient('/users/login', { phone, password }, { method: 'POST' });
+// Auth
+export const loginUser = (phone, password) => apiClient('/users/login', { phone, password }, { method: 'POST' });
+export const registerUser = (data) => apiClient('/users/register', data, { method: 'POST' });
+export const requestEmailOtp = (data) => apiClient('/email-otp/request-email-otp', data, { method: 'POST' });
+export const verifyEmailOtp = (data) => apiClient('/email-otp/verify-email-otp', data, { method: 'POST' });
+export const resendEmailOtp = (data) => apiClient('/email-otp/resend-email-otp', data, { method: 'POST' });
+export const logoutUser = () => apiClient('/users/logout', {}, { method: 'POST' });
+
+// Profile
+export const getProfile = (phone) => apiClient(`/users/profile/${phone}`, {}, { method: 'GET' });
+
+export const updateProfile = async (phone, data) => {
+  const token = localStorage.getItem('authToken');
+  const headers = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    'Content-Type': 'application/json',
+  };
+  const response = await axios.put(`${API_URL}/users/profile/${phone}`, data, { headers, withCredentials: true });
+  return response.data;
 };
 
-export const registerUser = async (data) => {
-  return apiClient('/users/register', data, { method: 'POST' });
-};
+export const changePassword = (phone, body) =>
+  apiClient(`/users/profile/${phone}/change-password`, body, { method: 'PUT' });
 
-export const requestEmailOtp = async (data) => {
-  return apiClient('/email-otp/request-email-otp', data, { method: 'POST' });
-};
-
-export const verifyEmailOtp = async (data) => {
-  return apiClient('/email-otp/verify-email-otp', data, { method: 'POST' });
-};
-
-export const resendEmailOtp = async (data) => {
-  return apiClient('/email-otp/resend-email-otp', data, { method: 'POST' });
-};
-
-// You can export the apiClient directly if you want to make other calls
 export default apiClient;

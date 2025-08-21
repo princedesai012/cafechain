@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
@@ -12,10 +12,12 @@ import LeaderboardPage from './pages/LeaderboardPage';
 import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import WelcomePage from './pages/WelcomePage';
 import ClaimRewardPage from './pages/ClaimRewardPage';
+import NotFoundPage from './pages/NotFoundPage';
 
-// Protected Route component
+// Protected Route
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
@@ -24,24 +26,22 @@ const ProtectedRoute = ({ children }) => {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
-  // If not authenticated, redirect to the login page
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If authenticated, render the child components
   return children;
 };
 
 const Layout = () => {
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const [activePage, setActivePage] = useState('home');
-  // Use the useNavigate hook for programmatic navigation
   const navigate = useNavigate();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const path = location.pathname;
-    if (path === '/') setActivePage('home');
+    if (path === '/home') setActivePage('home');
     else if (path.startsWith('/cafes')) setActivePage('cafes');
     else if (path === '/rewards') setActivePage('rewards');
     else if (path === '/leaderboard') setActivePage('leaderboard');
@@ -53,77 +53,68 @@ const Layout = () => {
   };
 
   const handleAuthNavigation = (page) => {
-    // Use the navigate function from react-router-dom
-    if (page === 'login') {
-      navigate('/login');
-    } else if (page === 'signup') {
-      navigate('/signup');
-    }
+    if (page === 'login') navigate('/login');
+    else if (page === 'signup') navigate('/signup');
   };
 
   const isAuthPage =
+    location.pathname === '/' ||
     location.pathname === '/login' ||
     location.pathname === '/signup' ||
-    location.pathname === '/welcome';
+    location.pathname === '/welcome' ||
+    location.pathname === '/verify-email';
+
+  // Determine if current path is one of the app's known routes
+  const isKnownRoute = () => {
+    const p = location.pathname;
+    const known = new Set([
+      '/', '/welcome', '/login', '/signup', '/verify-email',
+      '/home', '/cafes', '/rewards', '/claim-reward', '/leaderboard', '/profile'
+    ]);
+    if (known.has(p)) return true;
+    if (p.startsWith('/cafes/')) return true;
+    return false;
+  };
+
+  const isUnknownRoute = !isKnownRoute();
+  const hideNavbars = isAuthPage || (isUnknownRoute && !isAuthenticated);
 
   return (
     <div className="min-h-screen bg-background">
-      {!isAuthPage && (
-        <div className="hidden md:block">
-          <Navbar onSearch={handleSearch} />
-        </div>
+      {!hideNavbars && (
+        <>
+          <div className="hidden md:block">
+            <Navbar onSearch={handleSearch} />
+          </div>
+          <div className="md:hidden">
+            <MobileNavbar />
+          </div>
+        </>
       )}
-      {!isAuthPage && (
-        <div className="md:hidden">
-          <MobileNavbar />
-        </div>
-      )}
-      <main className={!isAuthPage ? 'pt-0' : ''}>
+
+      <main className="pt-0">
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<WelcomePage />} />
-          <Route path="/cafes" element={<CafesPage />} />
-          <Route path="/cafes/:id" element={<CafeDetailPage />} />
           <Route path="/welcome" element={<WelcomePage />} />
           <Route path="/login" element={<LoginPage onNavigate={handleAuthNavigation} />} />
           <Route path="/signup" element={<SignupPage onNavigate={handleAuthNavigation} />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
 
-          {/* Protected routes wrapped with ProtectedRoute component */}
-          <Route
-            path="/rewards"
-            element={
-              <ProtectedRoute>
-                <RewardsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/claim-reward"
-            element={
-              <ProtectedRoute>
-                <ClaimRewardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/leaderboard"
-            element={
-              <ProtectedRoute>
-                <LeaderboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
+          {/* Protected routes */}
+          <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+          <Route path="/cafes" element={<ProtectedRoute><CafesPage /></ProtectedRoute>} />
+          <Route path="/cafes/:id" element={<ProtectedRoute><CafeDetailPage /></ProtectedRoute>} />
+          <Route path="/rewards" element={<ProtectedRoute><RewardsPage /></ProtectedRoute>} />
+          <Route path="/claim-reward" element={<ProtectedRoute><ClaimRewardPage /></ProtectedRoute>} />
+          <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          {/* Catch-all */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
-      {!isAuthPage && (
+
+      {!hideNavbars && isAuthenticated && (
         <div className="md:hidden">
           <BottomNav activePage={activePage} />
         </div>

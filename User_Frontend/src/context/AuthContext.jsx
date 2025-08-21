@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { loginUser, registerUser, verifyEmailOtp } from '../api/api';
+import { loginUser, registerUser, verifyEmailOtp, logoutUser, getProfile } from '../api/api';
 
 const AuthContext = createContext();
 
@@ -11,31 +11,46 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const token = localStorage.getItem('authToken');
-        if (token) {
-          // You could add a call to a backend endpoint here to verify the token
-          // For now, we'll just assume a token means the user is authenticated
-          setIsAuthenticated(true);
-          // In a real app, you would fetch user data here
-        }
-      } catch (err) {
-        console.error('Failed to check auth status:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkAuthStatus();
+    // Restore session from localStorage
+    const token = localStorage.getItem('authToken');
+    const userPhone = localStorage.getItem('userPhone');
+    
+    if (token && userPhone) {
+      setIsAuthenticated(true);
+      loadUserProfile(userPhone);
+    } else {
+      setLoading(false);
+    }
   }, []);
+
+  const loadUserProfile = async (phone) => {
+    try {
+      const userData = await getProfile(phone);
+      setUser(userData);
+    } catch (error) {
+      console.error('Failed to load user profile:', error);
+      // Clear invalid session
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userPhone');
+      setIsAuthenticated(false);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = async (phone, password) => {
     try {
       const response = await loginUser(phone, password);
       if (response && response.token) {
         localStorage.setItem('authToken', response.token);
+        if (response.user?.phone) localStorage.setItem('userPhone', response.user.phone);
         setIsAuthenticated(true);
-        setUser(response.user); // Assuming the response includes user data
+        setUser(response.user);
+        // Ensure profile is synced/validated after login
+        try {
+          await loadUserProfile(response.user?.phone || phone);
+        } catch {}
         return { success: true };
       }
       return { success: false, error: 'Login failed: no token received' };
@@ -63,8 +78,12 @@ export const AuthProvider = ({ children }) => {
       const response = await verifyEmailOtp(data);
       if (response && response.token) {
         localStorage.setItem('authToken', response.token);
+        if (response.user?.phone) localStorage.setItem('userPhone', response.user.phone);
         setIsAuthenticated(true);
-        setUser(response.user); // Assuming the response includes user data
+        setUser(response.user);
+        try {
+          await loadUserProfile(response.user?.phone || data?.phone);
+        } catch {}
         return { success: true };
       }
       return { success: false, error: 'Email verification failed: no token received' };
@@ -75,10 +94,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await logoutUser();
+    } catch {}
     localStorage.removeItem('authToken');
+    localStorage.removeItem('userPhone');
     setIsAuthenticated(false);
     setUser(null);
+    return { success: true };
+  };
+
+  const updateUserData = (newUserData) => {
+    setUser((prevUser) => ({ ...prevUser, ...newUserData }));
   };
 
   const value = {
@@ -89,6 +117,7 @@ export const AuthProvider = ({ children }) => {
     register,
     verifyEmail,
     logout,
+    updateUserData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

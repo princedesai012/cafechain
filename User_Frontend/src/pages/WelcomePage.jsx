@@ -83,33 +83,17 @@ const WelcomePage = () => {
           {/* Action buttons for mobile. */}
           <div className="space-y-4">
             <button
-              onClick={() => window.location.href = '/signup'}
+              onClick={() => window.location.href = '/login'}
               className="w-full bg-accent text-white py-4 rounded-xl font-semibold text-lg hover:bg-dark-brown transition-colors shadow-soft"
             >
               Get Started
-            </button>
-            <button
-              onClick={() => window.location.href = '/login'}
-              className="w-full bg-white text-dark-brown py-4 rounded-xl font-semibold text-lg hover:bg-light-gray transition-colors border border-light-cream"
-            >
-              I Already Have an Account
-            </button>
-          </div>
-
-          {/* Guest access button. */}
-          <div className="text-center mt-6">
-            <button
-              onClick={() => window.location.href = '/'}
-              className="text-gray-500 hover:text-accent transition-colors text-sm font-medium"
-            >
-              Continue as Guest
             </button>
           </div>
         </div>
       </div>
       
       {/* DESKTOP VIEW - Hidden on smaller screens. */}
-      <div className="hidden md:flex flex-col items-center justify-center p-12">
+      <div className="hidden md:flex flex-col items-center justify-center p-8">
         <div className="md:max-w-4xl md:mx-auto space-y-16 text-center">
           {/* Main welcome message for desktop. */}
           <div className="space-y-6">
@@ -159,22 +143,10 @@ const WelcomePage = () => {
           {/* Action buttons for desktop. */}
           <div className="flex flex-col items-center w-full max-w-sm mx-auto space-y-6">
             <button
-              onClick={() => window.location.href = '/signup'}
+              onClick={() => window.location.href = '/login'}
               className="w-full bg-accent text-white py-4 rounded-xl font-semibold text-lg hover:bg-dark-brown transition-colors shadow-soft"
             >
               Get Started
-            </button>
-            <button
-              onClick={() => window.location.href = '/login'}
-              className="w-full bg-white text-dark-brown py-4 rounded-xl font-semibold text-lg hover:bg-light-gray transition-colors border border-light-cream shadow-soft"
-            >
-              I Already Have an Account
-            </button>
-            <button
-              onClick={() => window.location.href = '/'}
-              className="text-gray-500 hover:text-accent transition-colors text-base font-medium"
-            >
-              Continue as Guest
             </button>
           </div>
         </div>
