@@ -454,3 +454,17 @@ exports.getFavoriteCafes = async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 };
+
+exports.getLeaderboard = async (req, res) => {
+    try {
+        const leaderboard = await User.find({})
+            .select('name xp profilePic') // Select name, xp, and profilePic (for the avatar)
+            .sort({ xp: -1 }) // Sort by XP in descending order
+            .limit(15);      // Limit to the top 15 users
+
+        res.status(200).json(leaderboard);
+    } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        res.status(500).json({ error: "Server error" });
+    }
+};

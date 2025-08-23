@@ -1,4 +1,5 @@
 // api/api.js
+
 import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api';
@@ -39,6 +40,8 @@ export const logoutUser = () => apiClient('/users/logout', {}, { method: 'POST' 
 
 // Profile
 export const getProfile = (phone) => apiClient(`/users/profile/${phone}`, {}, { method: 'GET' });
+export const getLeaderboard = () => apiClient('/users/leaderboard', {}, { method: 'GET' });
+export const getRewardsHistory = (phone) => apiClient(`/users/rewards/${phone}`, {}, { method: 'GET' }); // NEW FUNCTION
 
 export const updateProfile = async (phone, data) => {
   const token = localStorage.getItem('authToken');

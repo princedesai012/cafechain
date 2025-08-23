@@ -1,26 +1,36 @@
-import React from 'react';
-import { Trophy, Medal, Award } from 'lucide-react';
+// pages/LeaderboardPage.jsx (Updated)
 
-// A responsive leaderboard page with a two-column layout on desktop.
+import React, { useState, useEffect } from 'react';
+import { Trophy, Medal, Award } from 'lucide-react';
+import { getLeaderboard } from '../api/api'; // Import the new API function
+
 const LeaderboardPage = () => {
-  // Static user data for the leaderboard.
-  const leaderboardData = [
-    { id: 1, name: "Alex Johnson", xp: 2850, rank: 1, avatar: "AJ" },
-    { id: 2, name: "Sarah Chen", xp: 2720, rank: 2, avatar: "SC" },
-    { id: 3, name: "Mike Rodriguez", xp: 2580, rank: 3, avatar: "MR" },
-    { id: 4, name: "Emma Wilson", xp: 2450, rank: 4, avatar: "EW" },
-    { id: 5, name: "David Kim", xp: 2320, rank: 5, avatar: "DK" },
-    { id: 6, name: "Lisa Thompson", xp: 2180, rank: 6, avatar: "LT" },
-    { id: 7, name: "James Brown", xp: 2050, rank: 7, avatar: "JB" },
-    { id: 8, name: "Maria Garcia", xp: 1920, rank: 8, avatar: "MG" },
-    { id: 9, name: "Robert Lee", xp: 1780, rank: 9, avatar: "RL" },
-    { id: 10, name: "Jennifer Davis", xp: 1650, rank: 10, avatar: "JD" },
-    { id: 11, name: "Thomas Anderson", xp: 1520, rank: 11, avatar: "TA" },
-    { id: 12, name: "Amanda White", xp: 1390, rank: 12, avatar: "AW" },
-    { id: 13, name: "Christopher Taylor", xp: 1260, rank: 13, avatar: "CT" },
-    { id: 14, name: "Nicole Martinez", xp: 1130, rank: 14, avatar: "NM" },
-    { id: 15, name: "Kevin Johnson", xp: 1000, rank: 15, avatar: "KJ" }
-  ];
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const data = await getLeaderboard();
+        // The API should return an array of users sorted by XP.
+        // We can add a rank property to each user object here.
+        const rankedData = data.map((user, index) => ({
+          ...user,
+          rank: index + 1,
+          avatar: user.name ? user.name.split(' ').map(n => n[0]).join('') : '',
+        }));
+        setLeaderboardData(rankedData);
+        setLoading(false);
+      } catch (err) {
+        console.error("Failed to fetch leaderboard:", err);
+        setError("Failed to load leaderboard data. Please try again later.");
+        setLoading(false);
+      }
+    };
+
+    fetchLeaderboard();
+  }, []); // The empty dependency array ensures this runs only once on mount.
 
   // Gets the appropriate rank icon for the top 3 users.
   const getRankIcon = (rank) => {
@@ -49,6 +59,31 @@ const LeaderboardPage = () => {
         return "bg-white";
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <p className="text-lg text-gray-600">Loading leaderboard...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <p className="text-lg text-red-600">{error}</p>
+      </div>
+    );
+  }
+  
+  // If no data is returned.
+  if (leaderboardData.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <p className="text-lg text-gray-600">No leaderboard data available.</p>
+      </div>
+    );
+  }
 
   // Splits the data for the two-column desktop layout.
   const topThree = leaderboardData.slice(0, 3);
@@ -85,7 +120,7 @@ const LeaderboardPage = () => {
           <div className="w-1/3 space-y-6">
             {topThree.map((user) => (
               <div
-                key={user.id}
+                key={user.rank} // Using rank as key is better as it's unique and stable
                 className={`flex flex-col items-center justify-center p-8 rounded-2xl border-4 shadow-xl transform transition-transform duration-300 hover:scale-105 ${getRankColor(user.rank)} text-white`}
               >
                 <div className="mb-4">
@@ -106,7 +141,7 @@ const LeaderboardPage = () => {
             <div className="space-y-4">
               {remainingUsers.map((user) => (
                 <div
-                  key={user.id}
+                  key={user.rank}
                   className={`flex items-center justify-between p-4 rounded-xl border border-gray-200 text-dark-brown transition-transform duration-200 ease-in-out hover:scale-[1.01] hover:shadow-md md:px-6 md:py-5`}
                 >
                   <div className="flex items-center space-x-4">
@@ -140,7 +175,7 @@ const LeaderboardPage = () => {
             <div className="space-y-3">
               {leaderboardData.map((user) => (
                 <div
-                  key={user.id}
+                  key={user.rank}
                   className={`flex items-center justify-between p-4 rounded-xl border transition-transform duration-200 ease-in-out hover:scale-[1.01] ${getRankColor(user.rank)} ${user.rank <= 3 ? 'text-white' : 'text-dark-brown'}`}
                 >
                   <div className="flex items-center space-x-4">

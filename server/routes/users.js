@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { register, login, logVisit, getUserProfile, updateUserProfile, changePassword, logout, getReferralChain, getRewardHistory, getVisitHistory, addFavoriteCafe, getFavoriteCafes } = require("../controllers/userController");
+const { register, login, logVisit, getUserProfile, updateUserProfile, changePassword, logout, getReferralChain, getRewardHistory, getVisitHistory, addFavoriteCafe, getFavoriteCafes, getLeaderboard  } = require("../controllers/userController");
 const { validatePhoneNumber } = require("../middlewares/validate");
 const { authenticateUserJWT } = require("../middlewares/auth");
 const { uploadToCloudinary } = require("../middlewares/cloudinaryUpload");
@@ -20,5 +20,6 @@ router.get("/history/:phone", authenticateUserJWT, getVisitHistory);
 router.get("/rewards/:phone", authenticateUserJWT, getRewardHistory); 
 router.post("/favorites/:phone", authenticateUserJWT, addFavoriteCafe);
 router.get("/favorites/:phone", authenticateUserJWT, getFavoriteCafes);
+router.get("/leaderboard", getLeaderboard); 
 
 module.exports = router;

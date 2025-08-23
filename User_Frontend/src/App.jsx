@@ -1,3 +1,5 @@
+// App.jsx (Corrected and Final)
+
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -16,6 +18,7 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import WelcomePage from './pages/WelcomePage';
 import ClaimRewardPage from './pages/ClaimRewardPage';
 import NotFoundPage from './pages/NotFoundPage';
+import axios from 'axios';
 
 // Protected Route
 const ProtectedRoute = ({ children }) => {
@@ -35,9 +38,20 @@ const ProtectedRoute = ({ children }) => {
 
 const Layout = () => {
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, token } = useAuth(); // <<<--- Get the token from the AuthContext
   const [activePage, setActivePage] = useState('home');
   const navigate = useNavigate();
+
+  // THIS IS THE CRITICAL PART THAT YOU NEED TO ADD
+  // Set the Authorization header for all future Axios requests
+  useEffect(() => {
+    if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+        // If the user logs out or the token is null, remove the header
+        delete axios.defaults.headers.common['Authorization'];
+    }
+  }, [token]);
 
   useEffect(() => {
     const path = location.pathname;
@@ -64,7 +78,6 @@ const Layout = () => {
     location.pathname === '/welcome' ||
     location.pathname === '/verify-email';
 
-  // Determine if current path is one of the app's known routes
   const isKnownRoute = () => {
     const p = location.pathname;
     const known = new Set([
