@@ -8,11 +8,15 @@ const VisitLog = require("../models/VisitLog");
 const RewardTransaction = require("../models/RewardTransaction"); 
 
 const generateReferralCode = () => crypto.randomBytes(3).toString("hex");
+
 // XP System Constants
 const XP_FOR_VISIT = 100;
 const XP_FOR_FIRST_VISIT = 250;
 const XP_FOR_REGISTRATION = 100;
 const XP_FOR_REFERRAL_BONUS = 200;
+// New constant for the bonus XP given to the new user
+const XP_FOR_NEW_USER_REFERRAL = 150; 
+
 
 exports.register = async (req, res) => {
     const { name, phone, password, referralCode } = req.body;
@@ -23,39 +27,48 @@ exports.register = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const securePhoneId = `${phone}-607`; 
+        
+        // Step 1: Initialize new user's XP to the default value
+        let newuserXP = XP_FOR_REGISTRATION;
 
-        const newUser = new User({
-        name,
-        phone,
-        password: hashedPassword,
-        securePhoneId,
-        referralCode: generateReferralCode(),
-        xp: XP_FOR_REGISTRATION,
-        referredBy: null,
-        isEmailVerified: false, 
-    });
-
-    if (referralCode) {
-        const referrer = await User.findOne({ referralCode });
-        if (referrer) {
-            newUser.referredBy = referralCode;
-            referrer.referralChildren.push(phone);
-            referrer.xp += XP_FOR_REFERRAL_BONUS;
-            await referrer.save();
+        // Step 2: Check for and process the referral code
+        if (referralCode) {
+            const referrer = await User.findOne({ referralCode });
+            if (referrer) {
+                // If a referrer is found, update the new user's XP
+                newuserXP = XP_FOR_NEW_USER_REFERRAL;
+                
+                // Update the referrer's XP
+                referrer.referredBy = referralCode;
+                referrer.referralChildren.push(phone);
+                referrer.xp += XP_FOR_REFERRAL_BONUS;
+                await referrer.save();
+            }
         }
-    }
 
-    await newUser.save();
-    
-    res.status(201).json({ 
-        message: "User registered successfully. Please verify your email to continue.",
-        user: {
-            name: newUser.name,
-            phone: newUser.phone,
-            isEmailVerified: newUser.isEmailVerified
-        },
-        requiresEmailVerification: true
-    });
+        // Step 3: Create the new user with the determined XP value
+        const newUser = new User({
+            name,
+            phone,
+            password: hashedPassword,
+            securePhoneId,
+            referralCode: generateReferralCode(),
+            xp: newuserXP, // Use the dynamically set XP value
+            referredBy: referralCode,
+            isEmailVerified: false, 
+        });
+
+        await newUser.save();
+        
+        res.status(201).json({ 
+            message: "User registered successfully. Please verify your email to continue.",
+            user: {
+                name: newUser.name,
+                phone: newUser.phone,
+                isEmailVerified: newUser.isEmailVerified
+            },
+            requiresEmailVerification: true
+        });
 
     } catch (error) {
         res.status(500).json({ error: "Server error" });
