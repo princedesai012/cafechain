@@ -45,11 +45,11 @@ exports.requestEmailOTP = async (req, res) => {
         // Store OTP in database
         await OTP.findOneAndUpdate(
             { email },
-            { 
-                email, 
-                otp, 
+            {
+                email,
+                otp,
                 type: 'email',
-                createdAt: Date.now() 
+                createdAt: Date.now()
             },
             { new: true, upsert: true, setDefaultsOnInsert: true }
         );
@@ -58,28 +58,39 @@ exports.requestEmailOTP = async (req, res) => {
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
-            subject: 'CafeNet Email Verification',
+            subject: 'CafeChain Email Verification',
             html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #333;">Welcome to CafeNet!</h2>
-                    <p>Thank you for registering with CafeNet. Please verify your email address to complete your registration.</p>
-                    <div style="background-color: #f4f4f4; padding: 20px; text-align: center; margin: 20px 0;">
-                        <h3 style="color: #007bff; margin: 0;">Your Verification Code</h3>
-                        <h1 style="color: #333; font-size: 32px; margin: 10px 0;">${otp}</h1>
-                        <p style="color: #666; margin: 0;">This code will expire in 10 minutes.</p>
-                    </div>
-                    <p>If you didn't request this verification, please ignore this email.</p>
-                    <p>Best regards,<br>The CafeNet Team</p>
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+                <h2 style="color: #333; text-align: center;">☕ Welcome to CafeChain! 🎉</h2>
+                <p style="color: #555; font-size: 16px; line-height: 1.6;">
+                    Hey there, coffee lover! We're thrilled to have you join the CafeChain family. Before you can dive into the world of caffeine-powered awesomeness, we just need you to verify your email address. It's quick, we promise!
+                </p>
+                <div style="background-color: #f9f9f9; padding: 20px; text-align: center; margin: 20px 0; border: 1px dashed #ccc; border-radius: 8px;">
+                    <h3 style="color: #007bff; margin: 0;">🚀 Your Super-Secret Verification Code</h3>
+                    <h1 style="color: #333; font-size: 36px; margin: 10px 0;">${otp}</h1>
+                    <p style="color: #666; margin: 0; font-size: 14px;">(Psst... This code will self-destruct in 10 minutes, so don't wait too long!)</p>
                 </div>
+                <p style="color: #555; font-size: 16px; line-height: 1.6;">
+                    If you didn't sign up for CafeChain, no worries—just ignore this email. But if you did, we can't wait to caffeinate your day!
+                </p>
+                <p style="color: #555; font-size: 16px; line-height: 1.6;">
+                    Stay awesome,<br>
+                    <span style="font-weight: bold;">The CafeChain Team ☕</span>
+                </p>
+                <footer style="margin-top: 20px; text-align: center; font-size: 12px; color: #888;">
+                <p>Need help? <a href="mailto:team.cafechain@gmail.com" style="color: #007bff; text-decoration: none;">Contact us</a></p>
+                <p>Powered by Team CafeChain ❤️</p>
+            </footer>
+        </div>
             `
         };
 
         // Send email
         await transporter.sendMail(mailOptions);
 
-        res.status(200).json({ 
+        res.status(200).json({
             message: "Email OTP sent successfully.",
-            email: email 
+            email: email
         });
 
     } catch (error) {
@@ -122,7 +133,7 @@ exports.verifyEmailOTP = async (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign({ phone: user.phone }, process.env.JWT_SECRET, { expiresIn: "7d" });
-        
+
         // Set cookie
         res.cookie("token", token, {
             httpOnly: true,
@@ -130,8 +141,8 @@ exports.verifyEmailOTP = async (req, res) => {
             sameSite: 'Lax'
         });
 
-        res.status(200).json({ 
-            message: "Email verified successfully! Welcome to CafeNet.",
+        res.status(200).json({
+            message: "Email verified successfully! Welcome to CafeChain.",
             user: {
                 name: user.name,
                 phone: user.phone,
@@ -168,11 +179,11 @@ exports.resendEmailOTP = async (req, res) => {
         // Update OTP in database
         await OTP.findOneAndUpdate(
             { email },
-            { 
-                email, 
-                otp, 
+            {
+                email,
+                otp,
                 type: 'email',
-                createdAt: Date.now() 
+                createdAt: Date.now()
             },
             { new: true, upsert: true, setDefaultsOnInsert: true }
         );
@@ -181,27 +192,38 @@ exports.resendEmailOTP = async (req, res) => {
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
-            subject: 'CafeNet Email Verification - New Code',
+            subject: 'CafeChain Email Verification - New Code',
             html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #333;">CafeNet Email Verification</h2>
-                    <p>You requested a new verification code. Here's your new code:</p>
-                    <div style="background-color: #f4f4f4; padding: 20px; text-align: center; margin: 20px 0;">
-                        <h3 style="color: #007bff; margin: 0;">Your New Verification Code</h3>
-                        <h1 style="color: #333; font-size: 32px; margin: 10px 0;">${otp}</h1>
-                        <p style="color: #666; margin: 0;">This code will expire in 10 minutes.</p>
-                    </div>
-                    <p>If you didn't request this code, please ignore this email.</p>
-                    <p>Best regards,<br>The CafeNet Team</p>
-                </div>
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+                <h2 style="color: #333; text-align: center;">☕ CafeChain Email Verification 🚀</h2>
+                <p style="color: #555; font-size: 16px; line-height: 1.6;">
+                    Hello again! We noticed you requested a new verification code. No worries, we’ve got you covered. Here’s your shiny new code:
+                </p>
+                <div style="background-color: #f9f9f9; padding: 20px; text-align: center; margin: 20px 0; border: 1px dashed #ccc; border-radius: 8px;">
+                <h3 style="color: #007bff; margin: 0;">✨ Your New Verification Code ✨</h3>
+                <h1 style="color: #333; font-size: 36px; margin: 10px 0;">${otp}</h1>
+                <p style="color: #666; margin: 0; font-size: 14px;">(Hurry! This code will expire in 10 minutes, so don’t let it slip away!)</p>
+            </div>
+            <p style="color: #555; font-size: 16px; line-height: 1.6;">
+                If you didn’t request this code, don’t worry—just ignore this email. But if you did, let’s get you verified and back to the good stuff!
+            </p>
+            <p style="color: #555; font-size: 16px; line-height: 1.6;">
+                Cheers,<br>
+                <span style="font-weight: bold;">The CafeChain Team ☕</span>
+            </p>
+            <footer style="margin-top: 20px; text-align: center; font-size: 12px; color: #888;">
+            <p>Need help? <a href="mailto:team.cafechain@gmail.com" style="color: #007bff; text-decoration: none;">Contact us</a></p>
+            <p>Powered by Team CafeChain ❤️</p>
+        </footer>
+    </div>
             `
         };
 
         await transporter.sendMail(mailOptions);
 
-        res.status(200).json({ 
+        res.status(200).json({
             message: "New email OTP sent successfully.",
-            email: email 
+            email: email
         });
 
     } catch (error) {
