@@ -1,4 +1,4 @@
-// pages/LeaderboardPage.jsx (Updated)
+// pages/LeaderboardPage.jsx
 
 import React, { useState, useEffect } from 'react';
 import { Trophy, Medal, Award } from 'lucide-react';
@@ -59,6 +59,24 @@ const LeaderboardPage = () => {
         return "bg-white";
     }
   };
+
+  const renderAvatar = (user) => {
+    if (user.profilePic) {
+        return (
+            <img
+                src={user.profilePic}
+                alt={user.name}
+                className="w-full h-full object-cover rounded-full"
+            />
+        );
+    }
+    return (
+        <div className="w-full h-full flex items-center justify-center font-bold text-white text-3xl">
+            {user.avatar}
+        </div>
+    );
+};
+
 
   if (loading) {
     return (
@@ -127,7 +145,7 @@ const LeaderboardPage = () => {
                   {getRankIcon(user.rank)}
                 </div>
                 <div className="w-20 h-20 rounded-full bg-white bg-opacity-30 flex items-center justify-center font-bold text-3xl mb-4">
-                  {user.avatar}
+                  {renderAvatar(user)}
                 </div>
                 <div className="text-2xl font-semibold mb-1">{user.name}</div>
                 <div className="text-4xl font-extrabold mb-1">{user.xp.toLocaleString()}</div>

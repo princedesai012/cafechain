@@ -1,13 +1,13 @@
-// RewardsPage.jsx (Updated)
+// RewardsPage.jsx (Final version with share functionality)
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getProfile, getRewardsHistory } from '../api/api'; // Import getProfile and the new getRewardsHistory function
+import { getProfile, getRewardsHistory } from '../api/api';
 import { ArrowRight, Share2 } from 'lucide-react';
 
 const RewardsPage = () => {
-    const { user, loading: authLoading } = useAuth(); // Get the logged-in user from the context
+    const { user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     const [rewardsData, setRewardsData] = useState(null);
     const [historyData, setHistoryData] = useState([]);
@@ -17,7 +17,7 @@ const RewardsPage = () => {
 
     useEffect(() => {
         const fetchRewardsData = async () => {
-            if (authLoading) return; // Wait for authentication to finish
+            if (authLoading) return;
 
             if (!user || !user.phone) {
                 setError("User not authenticated.");
@@ -26,13 +26,11 @@ const RewardsPage = () => {
             }
 
             try {
-                // Fetch user profile and history data in parallel using the new API functions
                 const [profileRes, historyRes] = await Promise.all([
                     getProfile(user.phone),
                     getRewardsHistory(user.phone)
                 ]);
 
-                // Calculate total points earned from the 'points' array
                 const pointsEarned = profileRes.points.reduce((total, p) => total + p.totalPoints, 0);
 
                 setRewardsData({
@@ -44,7 +42,6 @@ const RewardsPage = () => {
                 
                 setHistoryData(historyRes);
                 setLoading(false);
-
             } catch (err) {
                 console.error("Failed to fetch rewards data:", err);
                 setError("Failed to load rewards data. Please try again.");
@@ -53,12 +50,35 @@ const RewardsPage = () => {
         };
 
         fetchRewardsData();
-    }, [user, authLoading]); // Re-run effect if the user object or auth loading state changes
+    }, [user, authLoading]);
 
-    const handleShareReferral = () => {
-        if (rewardsData) {
-            console.log('Share referral code:', rewardsData.referralCode);
-            // You can add logic here to open a native share dialog or copy to clipboard
+    const handleShareReferral = async () => {
+        if (!rewardsData || !rewardsData.referralCode) {
+            return;
+        }
+
+        const referralCode = rewardsData.referralCode;
+        const shareText = `Hey! Join me on our CafeChain and earn bonus points. Use my referral code: ${referralCode}`;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'Join Our CafeChain Club!',
+                    text: shareText,
+                    url: window.location.origin
+                });
+                console.log('Referral code shared successfully.');
+            } catch (error) {
+                console.error('Error sharing:', error);
+            }
+        } else {
+            try {
+                await navigator.clipboard.writeText(shareText);
+                alert('Referral code copied to clipboard! Share it with your friends.');
+            } catch (error) {
+                console.error('Failed to copy referral code:', error);
+                alert('Failed to copy referral code. Please try again.');
+            }
         }
     };
 
@@ -96,10 +116,8 @@ const RewardsPage = () => {
               .bg-light-gray { background-color: #F8F8F8; }
             `}</style>
             
-            {/* MOBILE LAYOUT (Default) */}
             <div className="block md:hidden">
               <div className="px-4 py-6 space-y-6">
-                {/* Points and Referrals Cards for Mobile */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-4">
                     <div className="bg-white rounded-2xl shadow-soft p-6 text-center">
@@ -117,7 +135,6 @@ const RewardsPage = () => {
                       <div className="text-sm text-gray-600">XP</div>
                     </div>
                   </div>
-                  {/* The 'Referred' card is now the 'Claim Reward' button */}
                   <div
                     onClick={handleClaimReward}
                     className="bg-white rounded-2xl shadow-soft p-6 text-center flex items-center justify-center cursor-pointer transition-transform transform hover:scale-105"
@@ -134,7 +151,6 @@ const RewardsPage = () => {
                   </div>
                 </div>
 
-                {/* Referral Code Section for Mobile */}
                 <div className="bg-white rounded-2xl shadow-soft p-6">
                   <h2 className="text-lg font-semibold text-dark-brown mb-4">
                     Your Referral Code
@@ -157,7 +173,6 @@ const RewardsPage = () => {
                   </div>
                 </div>
 
-                {/* History Section for Mobile */}
                 <div className="bg-white rounded-2xl shadow-soft p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-dark-brown">
@@ -190,16 +205,13 @@ const RewardsPage = () => {
               </div>
             </div>
             
-            {/* DESKTOP LAYOUT */}
             <div className="hidden md:block md:max-w-7xl md:mx-auto md:p-8">
               <div className="space-y-8">
-                {/* Header Section for Desktop */}
                 <div className="bg-dark-brown rounded-2xl p-8 text-white text-center shadow-lg">
                   <h1 className="text-4xl font-bold mb-2">Your Rewards</h1>
                   <p className="text-lg opacity-90">Track your points history and see how you’ve earned and redeemed.</p>
                 </div>
 
-                {/* Points and Referrals Cards for Desktop */}
                 <div className="grid grid-cols-3 gap-6">
                   <div className="bg-white rounded-2xl shadow-soft p-8 text-center flex flex-col justify-center">
                     <div className="text-base text-gray-600 mb-2">Total Points Balance</div>
@@ -213,7 +225,6 @@ const RewardsPage = () => {
                       {rewardsData.xpPoints}
                     </div>
                   </div>
-                  {/* The 'Referred' card is now the 'Claim Reward' button */}
                   <div
                     onClick={handleClaimReward}
                     className="bg-white rounded-2xl shadow-soft p-8 text-center flex flex-col justify-center cursor-pointer transition-transform transform hover:scale-105"
@@ -228,7 +239,6 @@ const RewardsPage = () => {
                   </div>
                 </div>
 
-                {/* Referral Code Section for Desktop */}
                 <div className="bg-white rounded-2xl shadow-soft p-6 flex items-center justify-between">
                   <div className="flex-1">
                     <h2 className="text-xl font-semibold text-dark-brown mb-2">
@@ -251,7 +261,6 @@ const RewardsPage = () => {
                   </button>
                 </div>
 
-                {/* History Section for Desktop */}
                 <div className="bg-white rounded-2xl shadow-soft p-6">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-semibold text-dark-brown">
@@ -266,7 +275,6 @@ const RewardsPage = () => {
                     </button>
                   </div>
                   
-                  {/* History Table for Desktop */}
                   <div className="space-y-4">
                     {displayedHistory.map((item) => (
                       <div key={item._id} className="grid grid-cols-4 items-center p-4 bg-light-gray rounded-xl text-dark-brown">
