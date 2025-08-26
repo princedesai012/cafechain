@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const connectDB = require("./config/db"); 
 const userRoutes = require("./routes/users");
@@ -7,6 +8,7 @@ const cors = require("cors");
 const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 5000;
+const forgotPasswordRoutes = require("./routes/forgotPasswordRoutes");
 
 // Increase payload size limits for image uploads
 app.use((req, res, next) => {
@@ -27,6 +29,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use("/api/users", userRoutes);
 app.use("/api/email-otp", emailOtpRoutes);
+
+app.use("/api/forgot-password", forgotPasswordRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
