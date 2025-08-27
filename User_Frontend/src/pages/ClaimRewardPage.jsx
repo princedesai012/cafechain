@@ -1,240 +1,307 @@
-// ClaimRewardPage.jsx (Corrected for Bottom Navbar)
+// ClaimRewardPage.jsx (New UI + Backend Integrated + Cafe Dropdown)
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, UploadCloud, FileText, Coffee, Hash, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  UploadCloud,
+  FileText,
+  Coffee,
+  Hash,
+  CheckCircle,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
 
 const ClaimRewardPage = () => {
-    const navigate = useNavigate();
-    const [cafeName, setCafeName] = useState('');
-    const [amount, setAmount] = useState('');
-    const [invoice, setInvoice] = useState(null);
-    const [fileError, setFileError] = useState('');
-    const [submitMessage, setSubmitMessage] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
+  const navigate = useNavigate();
 
-    // Animation variants for a staggered form reveal
-    const formContainerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1,
-            },
-        },
-    };
+  const [cafes, setCafes] = useState([]);
+  const [cafeId, setCafeId] = useState("");
+  const [amount, setAmount] = useState("");
+  const [invoice, setInvoice] = useState(null);
+  const [fileError, setFileError] = useState("");
+  const [submitMessage, setSubmitMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-    const formItemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                type: 'spring',
-                stiffness: 100,
-            },
-        },
-    };
+  // ✅ Fetch cafes from backend
+  useEffect(() => {
+    const fetchCafes = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/rewards/cafes", {
+          withCredentials: true,
+        });
+        setCafes(res.data);
+      } catch (err) {
+        console.error("Failed to fetch cafes:", err);
+      }
+    };
+    fetchCafes();
+  }, []);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        if (!invoice) {
-            setSubmitMessage('Please upload a valid invoice file.');
-            setIsSuccess(false);
-            return;
-        }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-        setIsSubmitting(true);
-        setSubmitMessage('');
-        setIsSuccess(false);
+    if (!invoice) {
+      setSubmitMessage("Please upload a valid invoice file.");
+      setIsSuccess(false);
+      return;
+    }
 
-        try {
-            const formData = new FormData();
-            formData.append('cafeName', cafeName);
-            formData.append('amount', amount);
-            formData.append('invoice', invoice);
-            
-            await new Promise(resolve => setTimeout(resolve, 1500)); 
+    setIsSubmitting(true);
+    setSubmitMessage("");
+    setIsSuccess(false);
 
-            setSubmitMessage('Your points are on their way! They will be credited to your account within 24 hours.');
-            setIsSuccess(true);
-            
-            setCafeName('');
-            setAmount('');
-            setInvoice(null);
-            document.getElementById('invoice-upload').value = null;
-        } catch (error) {
-            console.error("Failed to submit claim:", error);
-            setSubmitMessage('Oops! Something went wrong. Please try again.');
-            setIsSuccess(false);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+    try {
+      const formData = new FormData();
+      formData.append("cafeId", cafeId);
+      formData.append("amount", amount);
+      formData.append("invoice", invoice);
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+      const res = await axios.post(
+        "http://localhost:5000/api/rewards/claim",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true,
+        }
+      );
 
-        const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-        const allowedExtensions = /(\.jpg|\.jpeg|\.png|\.pdf)$/i;
+      setSubmitMessage(res.data.message || "✅ Claim submitted successfully!");
+      setIsSuccess(true);
 
-        if (allowedTypes.includes(file.type) && allowedExtensions.test(file.name)) {
-            setInvoice(file);
-            setFileError('');
-        } else {
-            setInvoice(null);
-            setFileError('Invalid file type. Please upload a JPG, PNG, or PDF.');
-            e.target.value = null;
-        }
-    };
+      // reset
+      setCafeId("");
+      setAmount("");
+      setInvoice(null);
+      document.getElementById("invoice-upload").value = null;
+    } catch (error) {
+      console.error("Failed to submit claim:", error);
+      setSubmitMessage("Oops! Something went wrong. Please try again.");
+      setIsSuccess(false);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-    const handleAmountChange = (e) => {
-        const value = e.target.value;
-        if (/^\d*$/.test(value)) {
-            setAmount(value);
-        }
-    };
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-    return (
-        // =================================================================
-        // FIX: Added pb-24 to create space for the bottom navigation bar
-        // =================================================================
-        <div className="min-h-screen bg-white text-[#4A3A2F] font-sans pb-24">
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Page Header */}
-                <motion.header 
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="flex items-center justify-between mb-8"
-                >
-                    <button 
-                        onClick={() => navigate(-1)}
-                        className="flex items-center gap-2 text-gray-500 hover:text-[#4A3A2F] transition-colors"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                        <span className="font-semibold">Back</span>
-                    </button>
-                </motion.header>
+    const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+    const allowedExtensions = /(\.jpg|\.jpeg|\.png|\.pdf)$/i;
 
-                <main>
-                    <div className="text-center mb-10">
-                        <h1 className="text-3xl md:text-4xl font-bold mb-2">Claim Your Points</h1>
-                        <p className="text-base md:text-lg text-gray-500">
-                            Upload your cafe invoice to earn points for your visit.
-                        </p>
-                    </div>
+    if (allowedTypes.includes(file.type) && allowedExtensions.test(file.name)) {
+      setInvoice(file);
+      setFileError("");
+    } else {
+      setInvoice(null);
+      setFileError("Invalid file type. Please upload a JPG, PNG, or PDF.");
+      e.target.value = null;
+    }
+  };
 
-                    <div className="bg-stone-50 rounded-2xl p-4 md:p-8 shadow-sm border border-stone-200">
-                        <form onSubmit={handleSubmit}>
-                            <motion.div
-                                className="space-y-6"
-                                variants={formContainerVariants}
-                                initial="hidden"
-                                animate="visible"
-                            >
-                                {/* Cafe Name Input */}
-                                <motion.div variants={formItemVariants}>
-                                    <label htmlFor="cafeName" className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Cafe Name
-                                    </label>
-                                    <div className="relative">
-                                        <Coffee className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                        <input
-                                            type="text" id="cafeName" value={cafeName}
-                                            onChange={(e) => setCafeName(e.target.value)}
-                                            placeholder="e.g., The Daily Grind" required
-                                            className="w-full pl-12 pr-4 py-3 border border-stone-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#4A3A2F] transition"
-                                        />
-                                    </div>
-                                </motion.div>
+  const handleAmountChange = (e) => {
+    const value = e.target.value;
+    if (/^\d*$/.test(value)) {
+      setAmount(value);
+    }
+  };
 
-                                {/* Amount Input */}
-                                <motion.div variants={formItemVariants}>
-                                    <label htmlFor="amount" className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Invoice Amount
-                                    </label>
-                                    <div className="relative">
-                                        <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                        <input
-                                            type="text"
-                                            inputMode="decimal"
-                                            id="amount" value={amount}
-                                            onChange={handleAmountChange}
-                                            placeholder="Enter total amount" required
-                                            className="w-full pl-12 pr-4 py-3 border border-stone-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#4A3A2F] transition"
-                                        />
-                                    </div>
-                                </motion.div>
+  // Animation variants
+  const formContainerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  };
 
-                                {/* Invoice Upload */}
-                                <motion.div variants={formItemVariants}>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Upload Invoice
-                                    </label>
-                                    <label htmlFor="invoice-upload" className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-2xl bg-white cursor-pointer transition-colors hover:border-[#4A3A2F] hover:bg-stone-100 ${fileError ? 'border-red-500' : 'border-stone-300'}`}>
-                                        {invoice ? (
-                                            <div className="flex items-center gap-3 text-[#4A3A2F] p-4 w-full">
-                                                <FileText className="w-8 h-8 flex-shrink-0"/>
-                                                <div className='text-left min-w-0'> 
-                                                    <span className="font-semibold block truncate">{invoice.name}</span>
-                                                    <span className="block text-sm text-gray-500">Click to change file</span>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="text-center text-gray-400">
-                                                <UploadCloud className="w-10 h-10 mx-auto mb-2" />
-                                                <span className="font-semibold text-gray-600">Click to upload</span>
-                                                <p className="text-xs">PNG, JPG or PDF</p>
-                                            </div>
-                                        )}
-                                    </label>
-                                    <input
-                                        id="invoice-upload" type="file"
-                                        accept=".pdf,.png,.jpg,.jpeg" onChange={handleFileChange}
-                                        className="hidden"
-                                    />
-                                    {fileError && <p className="text-sm text-red-600 mt-2">{fileError}</p>}
-                                </motion.div>
+  const formItemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring", stiffness: 100 },
+    },
+  };
 
-                                {/* Submit button */}
-                                <motion.div variants={formItemVariants}>
-                                    <button
-                                        type="submit" disabled={isSubmitting}
-                                        className="w-full p-4 bg-[#4A3A2F] text-white font-bold rounded-xl hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                    >
-                                        {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
-                                        {isSubmitting ? 'Submitting...' : 'Claim Points'}
-                                    </button>
-                                 </motion.div>
-                            </motion.div>
-                        </form>
-                        
-                        {/* Submission message */}
-                        <AnimatePresence>
-                            {submitMessage && (
-                                <motion.div 
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    className={`mt-6 p-4 rounded-xl text-center font-semibold flex items-center justify-center gap-3 ${
-                                        isSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                                    }`}
-                                >
-                                    {isSuccess ? <CheckCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
-                                    <span>{submitMessage}</span>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-               </main>
-            </div>
-        </div>
-    );
+  return (
+    <div className="min-h-screen bg-white text-[#4A3A2F] font-sans pb-24">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page Header */}
+        <motion.header
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center justify-between mb-8"
+        >
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-gray-500 hover:text-[#4A3A2F] transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="font-semibold">Back</span>
+          </button>
+        </motion.header>
+
+        <main>
+          <div className="text-center mb-10">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">
+              Claim Your Points
+            </h1>
+            <p className="text-base md:text-lg text-gray-500">
+              Upload your cafe invoice to earn points for your visit.
+            </p>
+          </div>
+
+          <div className="bg-stone-50 rounded-2xl p-4 md:p-8 shadow-sm border border-stone-200">
+            <form onSubmit={handleSubmit}>
+              <motion.div
+                className="space-y-6"
+                variants={formContainerVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                {/* Cafe Dropdown */}
+                <motion.div variants={formItemVariants}>
+                  <label
+                    htmlFor="cafe"
+                    className="block text-sm font-semibold text-gray-700 mb-2"
+                  >
+                    Select Cafe
+                  </label>
+                  <div className="relative">
+                    <Coffee className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <select
+                      id="cafe"
+                      value={cafeId}
+                      onChange={(e) => setCafeId(e.target.value)}
+                      required
+                      className="w-full pl-12 pr-4 py-3 border border-stone-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#4A3A2F] transition"
+                    >
+                      <option value="">Select a cafe</option>
+                      {cafes.map((cafe) => (
+                        <option key={cafe._id} value={cafe._id}>
+                          {cafe.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </motion.div>
+
+                {/* Amount Input */}
+                <motion.div variants={formItemVariants}>
+                  <label
+                    htmlFor="amount"
+                    className="block text-sm font-semibold text-gray-700 mb-2"
+                  >
+                    Invoice Amount
+                  </label>
+                  <div className="relative">
+                    <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      id="amount"
+                      value={amount}
+                      onChange={handleAmountChange}
+                      placeholder="Enter total amount"
+                      required
+                      className="w-full pl-12 pr-4 py-3 border border-stone-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#4A3A2F] transition"
+                    />
+                  </div>
+                </motion.div>
+
+                {/* Invoice Upload */}
+                <motion.div variants={formItemVariants}>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Upload Invoice
+                  </label>
+                  <label
+                    htmlFor="invoice-upload"
+                    className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-2xl bg-white cursor-pointer transition-colors hover:border-[#4A3A2F] hover:bg-stone-100 ${
+                      fileError ? "border-red-500" : "border-stone-300"
+                    }`}
+                  >
+                    {invoice ? (
+                      <div className="flex items-center gap-3 text-[#4A3A2F] p-4 w-full">
+                        <FileText className="w-8 h-8 flex-shrink-0" />
+                        <div className="text-left min-w-0">
+                          <span className="font-semibold block truncate">
+                            {invoice.name}
+                          </span>
+                          <span className="block text-sm text-gray-500">
+                            Click to change file
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center text-gray-400">
+                        <UploadCloud className="w-10 h-10 mx-auto mb-2" />
+                        <span className="font-semibold text-gray-600">
+                          Click to upload
+                        </span>
+                        <p className="text-xs">PNG, JPG or PDF</p>
+                      </div>
+                    )}
+                  </label>
+                  <input
+                    id="invoice-upload"
+                    type="file"
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    required
+                  />
+                  {fileError && (
+                    <p className="text-sm text-red-600 mt-2">{fileError}</p>
+                  )}
+                </motion.div>
+
+                {/* Submit button */}
+                <motion.div variants={formItemVariants}>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full p-4 bg-[#4A3A2F] text-white font-bold rounded-xl hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting && (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    )}
+                    {isSubmitting ? "Submitting..." : "Claim Points"}
+                  </button>
+                </motion.div>
+              </motion.div>
+            </form>
+
+            {/* Submission message */}
+            <AnimatePresence>
+              {submitMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className={`mt-6 p-4 rounded-xl text-center font-semibold flex items-center justify-center gap-3 ${
+                    isSuccess
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {isSuccess ? (
+                    <CheckCircle className="w-5 h-5" />
+                  ) : (
+                    <AlertTriangle className="w-5 h-5" />
+                  )}
+                  <span>{submitMessage}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 };
 
 export default ClaimRewardPage;

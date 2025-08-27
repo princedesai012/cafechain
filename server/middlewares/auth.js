@@ -21,11 +21,23 @@ exports.authenticateUserJWT = (req, res, next) => {
         return res.status(401).json({ error: "Access denied. No token provided." });
     }
 
+    // try {
+    //     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    //     req.user = decoded; // The decoded payload contains the user's phone number
+    //     next();
+    // } catch (error) {
+    //     res.status(401).json({ error: "Invalid or expired token." });
+    // }
+    
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // The decoded payload contains the user's phone number
+    
+        // ✅ attach the whole decoded payload, including _id
+        req.user = { _id: decoded.id, phone: decoded.phone };
+    
         next();
     } catch (error) {
-        res.status(401).json({ error: "Invalid or expired token." });
+        return res.status(401).json({ error: "Invalid or expired token." });
     }
+    
 };
