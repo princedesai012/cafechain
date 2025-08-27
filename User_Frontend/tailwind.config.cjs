@@ -27,8 +27,33 @@ module.exports = {
       },
       boxShadow: {
         'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-      }
+      },
+      keyframes: {
+        typing: {
+          '0%': { width: '0ch' },
+          '50%': { width: '100%' },
+          '100%': { width: '0ch' },
+        },
+        blink: {
+          '0%, 100%': { borderColor: 'transparent' },
+          '50%': { borderColor: '#fff' },
+        },
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        bounceSlow: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+      },
+      animation: {
+        typing: 'typing 10s steps(30) infinite',
+        blink: 'blink 1s step-end infinite',
+        fadeInUp: 'fadeInUp 1s ease-out',
+        bounceSlow: 'bounceSlow 3s infinite',
+      },
     },
   },
   plugins: [],
-} 
+};

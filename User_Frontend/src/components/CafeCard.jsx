@@ -45,12 +45,6 @@ const CafeCard = ({ cafe, onClick }) => {
             </span>
           ))}
         </div>
-
-        {/* Rating at the bottom */}
-        <div className="mt-auto flex items-center text-sm">
-          <Star className="w-4 h-4 text-yellow-400 mr-1" />
-          <span className="text-gray-600">{cafe.rating}</span>
-        </div>
       </div>
     </div>
   );

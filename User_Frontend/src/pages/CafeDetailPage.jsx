@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Phone, Clock, Heart, Star, ArrowLeft } from 'lucide-react';
+import { MapPin, Phone, Clock, Heart, ArrowLeft } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 const cafes = [
@@ -61,20 +61,19 @@ const CafeDetailPage = () => {
         }
       `}</style>
 
+      {/* --- Simple Back Button for all screen sizes --- */}
+      <div className="px-4 pt-4 md:max-w-7xl md:mx-auto md:px-8">
+        <button
+            onClick={handleBack}
+            className="text-base font-semibold text-gray-600 hover:text-dark-brown transition-colors"
+        >
+            &larr; Back
+        </button>
+      </div>
+
+
       {/* MOBILE LAYOUT */}
       <div className="block md:hidden">
-        <div className="bg-white shadow-soft px-4 py-3">
-          <div className="flex items-center">
-            <button
-              onClick={handleBack}
-              className="p-2 rounded-lg hover:bg-light-gray transition-colors mr-3"
-            >
-              <ArrowLeft className="w-5 h-5 text-dark-brown" />
-            </button>
-            <span className="text-sm text-gray-600">cafe/{cafe.name.toLowerCase().replace(/\s+/g, '')}</span>
-          </div>
-        </div>
-
         <div className="px-4 py-6 space-y-6">
           <div className="bg-light-gray rounded-2xl h-48 flex items-center justify-center overflow-hidden">
             <img
@@ -85,7 +84,7 @@ const CafeDetailPage = () => {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-end">
             <button
               onClick={toggleLike}
               className={`p-3 rounded-xl transition-colors ${
@@ -94,27 +93,22 @@ const CafeDetailPage = () => {
             >
               <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
             </button>
-           
-            <div className="flex items-center space-x-2">
-              <Star className="w-5 h-5 text-yellow-400 fill-current" />
-              <span className="text-sm text-gray-600">Rating</span>
-            </div>
           </div>
 
           <div className="bg-white rounded-2xl shadow-soft p-6 space-y-4">
             <h1 className="text-2xl font-bold text-dark-brown">{cafe.name}</h1>
-           
+            
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <MapPin className="w-5 h-5 text-gray-500" />
                 <span className="text-gray-700">{cafe.location}</span>
               </div>
-             
+              
               <div className="flex items-center space-x-3">
                 <Phone className="w-5 h-5 text-gray-500" />
                 <span className="text-gray-700">9316294843</span>
               </div>
-             
+              
               <div className="flex items-center space-x-3">
                 <Clock className="w-5 h-5 text-gray-500" />
                 <span className="text-gray-700">Open 12:00 PM to 12:00 AM</span>
@@ -136,34 +130,13 @@ const CafeDetailPage = () => {
                 )}
               </div>
             </div>
-
-            <div>
-              <h3 className="font-semibold text-dark-brown mb-2">User Feedback</h3>
-              <div className="bg-light-gray rounded-xl p-4">
-                <p className="text-gray-700 text-sm">
-                  "very good awwww cute cafe !!!"
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
-     
+      
       {/* DESKTOP LAYOUT */}
       <div className="hidden md:block">
-        <div className="md:max-w-7xl md:mx-auto md:p-8 space-y-8">
-          <div className="bg-white shadow-soft px-4 py-3 rounded-2xl">
-            <div className="flex items-center">
-              <button
-                onClick={handleBack}
-                className="p-2 rounded-lg hover:bg-light-gray transition-colors mr-3"
-              >
-                <ArrowLeft className="w-5 h-5 text-dark-brown" />
-              </button>
-              <span className="text-sm text-gray-600">cafe/{cafe.name.toLowerCase().replace(/\s+/g, '')}</span>
-            </div>
-          </div>
-
+        <div className="md:max-w-7xl md:mx-auto md:px-8 md:py-8">
           <div className="grid grid-cols-2 gap-8 items-start bg-white p-8 rounded-2xl shadow-soft">
             <div className="bg-light-gray rounded-2xl h-96 flex items-center justify-center overflow-hidden">
               <img
@@ -177,31 +150,27 @@ const CafeDetailPage = () => {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold text-dark-brown">{cafe.name}</h1>
-                <div className="flex items-center space-x-2">
-                  <Star className="w-6 h-6 text-yellow-400 fill-current" />
-                  <span className="text-lg text-gray-600">Rating</span>
-                  <button
-                    onClick={toggleLike}
-                    className={`p-2 rounded-lg transition-colors ${
-                      isLiked ? 'bg-red-50 text-red-500' : 'bg-light-gray text-gray-500 hover:text-red-500'
-                    }`}
-                  >
-                    <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
-                  </button>
-                </div>
+                <button
+                  onClick={toggleLike}
+                  className={`p-2 rounded-lg transition-colors ${
+                    isLiked ? 'bg-red-50 text-red-500' : 'bg-light-gray text-gray-500 hover:text-red-500'
+                  }`}
+                >
+                  <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
+                </button>
               </div>
-             
+              
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <MapPin className="w-6 h-6 text-gray-500" />
                   <span className="text-lg text-gray-700">{cafe.location}</span>
                 </div>
-               
+                
                 <div className="flex items-center space-x-3">
                   <Phone className="w-6 h-6 text-gray-500" />
                   <span className="text-lg text-gray-700">9316294843</span>
                 </div>
-               
+                
                 <div className="flex items-center space-x-3">
                   <Clock className="w-6 h-6 text-gray-500" />
                   <span className="text-lg text-gray-700">Open 12:00 PM to 12:00 AM</span>
