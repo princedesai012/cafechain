@@ -1,228 +1,258 @@
-// pages/LeaderboardPage.jsx
-
-import React, { useState, useEffect } from 'react';
-import { Trophy, Medal, Award } from 'lucide-react';
-import { getLeaderboard } from '../api/api'; // Import the new API function
+import React, { useState, useEffect } from "react";
+import { Trophy, Medal, Award } from "lucide-react";
+import { motion } from "framer-motion";
+import { getLeaderboard } from "../api/api";
+import Loader from "../components/Loader";
 
 const LeaderboardPage = () => {
-  const [leaderboardData, setLeaderboardData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        const data = await getLeaderboard();
-        // The API should return an array of users sorted by XP.
-        // We can add a rank property to each user object here.
-        const rankedData = data.map((user, index) => ({
-          ...user,
-          rank: index + 1,
-          avatar: user.name ? user.name.split(' ').map(n => n[0]).join('') : '',
-        }));
-        setLeaderboardData(rankedData);
-        setLoading(false);
-      } catch (err) {
-        console.error("Failed to fetch leaderboard:", err);
-        setError("Failed to load leaderboard data. Please try again later.");
-        setLoading(false);
-      }
-    };
+  const currentUser = { name: 'You', xp: 8750, rank: 5, profilePic: 'https://i.pravatar.cc/150?u=currentuser' };
 
-    fetchLeaderboard();
-  }, []); // The empty dependency array ensures this runs only once on mount.
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const [data] = await Promise.all([
+          getLeaderboard(),
+          new Promise(resolve => setTimeout(resolve, 500))
+        ]);
 
-  // Gets the appropriate rank icon for the top 3 users.
-  const getRankIcon = (rank) => {
-    switch (rank) {
-      case 1:
-        return <Trophy className="w-6 h-6 text-yellow-500" />;
-      case 2:
-        return <Medal className="w-6 h-6 text-gray-400" />;
-      case 3:
-        return <Award className="w-6 h-6 text-amber-600" />;
-      default:
-        return <span className="text-lg font-bold text-gray-400">{rank}</span>;
-    }
-  };
+        const rankedData = data.map((user, index) => ({
+          ...user,
+          rank: index + 1,
+          avatar: user.name
+            ? user.name.split(" ").map((n) => n[0]).join("")
+            : "",
+        }));
+        setLeaderboardData(rankedData);
+      } catch (err) {
+        console.error("Failed to fetch leaderboard:", err);
+        setError("Failed to load leaderboard data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLeaderboard();
+  }, []);
 
-  // Applies a gradient background for the top 3 users.
-  const getRankColor = (rank) => {
-    switch (rank) {
-      case 1:
-        return "bg-gradient-to-r from-yellow-400 to-yellow-600";
-      case 2:
-        return "bg-gradient-to-r from-gray-300 to-gray-500";
-      case 3:
-        return "bg-gradient-to-r from-amber-500 to-amber-700";
-      default:
-        return "bg-white";
-    }
-  };
+  // --- Animation Variants ---
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
 
-  const renderAvatar = (user) => {
-    if (user.profilePic) {
-        return (
-            <img
-                src={user.profilePic}
-                alt={user.name}
-                className="w-full h-full object-cover rounded-full"
-            />
-        );
-    }
-    return (
-        <div className="w-full h-full flex items-center justify-center font-bold text-white text-3xl">
-            {user.avatar}
-        </div>
-    );
-};
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+  };
+  
+  // --- Helper Functions ---
+  const getRankIcon = (rank) => {
+    switch (rank) {
+      case 1:
+        return <Trophy className="w-6 h-6 text-yellow-500 drop-shadow-glow animate-pulse" />;
+      case 2:
+        return <Medal className="w-6 h-6 text-gray-500 drop-shadow-glow animate-pulse" />;
+      case 3:
+        return <Award className="w-6 h-6 text-amber-600 drop-shadow-glow animate-pulse" />;
+      default:
+        return <span className="text-lg font-bold text-gray-500">{rank}</span>;
+    }
+  };
 
+  const getPodiumColor = (rank) => {
+    switch (rank) {
+      case 1:
+        return "bg-gradient-to-b from-yellow-300 to-yellow-500 text-gray-900";
+      case 2:
+        return "bg-gradient-to-b from-gray-200 to-gray-400 text-gray-900";
+      case 3:
+        return "bg-gradient-to-b from-amber-300 to-amber-500 text-gray-900";
+      default:
+        return "bg-white shadow-sm text-gray-800";
+    }
+  };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <p className="text-lg text-gray-600">Loading leaderboard...</p>
-      </div>
-    );
-  }
+  const renderAvatar = (user, size = "w-full h-full") => {
+    if (user.profilePic) {
+      return (
+        <img
+          src={user.profilePic}
+          alt={user.name}
+          className={`${size} object-cover rounded-full border-2 border-gray-300 shadow-md`}
+        />
+      );
+    }
+    return (
+      <div className={`${size} flex items-center justify-center font-bold text-gray-700 bg-gray-200 rounded-full`}>
+        {user.avatar}
+      </div>
+    );
+  };
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <p className="text-lg text-red-600">{error}</p>
-      </div>
-    );
-  }
-  
-  // If no data is returned.
-  if (leaderboardData.length === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <p className="text-lg text-gray-600">No leaderboard data available.</p>
-      </div>
-    );
-  }
+  // --- RENDER STATES ---
+  if (loading) {
+    return <Loader />;
+  }
 
-  // Splits the data for the two-column desktop layout.
-  const topThree = leaderboardData.slice(0, 3);
-  const remainingUsers = leaderboardData.slice(3);
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#ffffff]">
+        <p className="text-lg text-red-600">{error}</p>
+      </div>
+    );
+  }
 
-  return (
-    // Main responsive container with a centered layout.
-    <div className="pb-20 md:pb-0 md:bg-gray-50 md:p-8 font-['Inter']">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-        .shadow-soft {
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        .text-dark-brown {
-          color: #4A3A2F;
-        }
-        .bg-accent {
-          background-color: #6D4C41;
-        }
-      `}</style>
-      
-      <div className="px-4 py-6 space-y-6 md:max-w-7xl md:mx-auto md:space-y-8 md:px-8">
-        
-        {/* Centered header for all screen sizes. */}
-        <div className="bg-gradient-to-br from-accent to-dark-brown rounded-2xl p-6 text-white text-center md:p-10 md:max-w-4xl md:mx-auto md:w-full shadow-lg">
-          <h1 className="text-2xl font-bold mb-2 md:text-4xl">Leaderboard</h1>
-          <p className="text-sm opacity-90 md:text-lg">Top 15 Coffee Enthusiasts</p>
-        </div>
+  // --- DATA SPLIT ---
+  const topThree = leaderboardData.slice(0, 3);
+  const remainingUsers = leaderboardData.slice(3);
 
-        {/* Desktop-only layout: a two-column flex container. */}
-        <div className="hidden md:flex md:space-x-8">
-          
-          {/* Left column for the top 3 users. */}
-          <div className="w-1/3 space-y-6">
-            {topThree.map((user) => (
-              <div
-                key={user.rank} // Using rank as key is better as it's unique and stable
-                className={`flex flex-col items-center justify-center p-8 rounded-2xl border-4 shadow-xl transform transition-transform duration-300 hover:scale-105 ${getRankColor(user.rank)} text-white`}
-              >
-                <div className="mb-4">
-                  {getRankIcon(user.rank)}
-                </div>
-                <div className="w-20 h-20 rounded-full bg-white bg-opacity-30 flex items-center justify-center font-bold text-3xl mb-4">
-                  {renderAvatar(user)}
-                </div>
-                <div className="text-2xl font-semibold mb-1">{user.name}</div>
-                <div className="text-4xl font-extrabold mb-1">{user.xp.toLocaleString()}</div>
-                <div className="text-sm opacity-80">XP Points</div>
-              </div>
-            ))}
-          </div>
+  const podiumOrder = [];
+  if (topThree[1]) podiumOrder.push(topThree[1]);
+  if (topThree[0]) podiumOrder.push(topThree[0]);
+  if (topThree[2]) podiumOrder.push(topThree[2]);
 
-          {/* Right column for remaining users (ranks 4-15). */}
-          <div className="w-2/3 bg-white rounded-2xl shadow-soft p-6">
-            <div className="space-y-4">
-              {remainingUsers.map((user) => (
-                <div
-                  key={user.rank}
-                  className={`flex items-center justify-between p-4 rounded-xl border border-gray-200 text-dark-brown transition-transform duration-200 ease-in-out hover:scale-[1.01] hover:shadow-md md:px-6 md:py-5`}
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12">
-                      <span className="text-lg font-bold text-gray-400">{user.rank}</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-white font-bold text-sm md:w-12 md:h-12 md:text-base">
-                        {user.avatar}
-                      </div>
-                      <div>
-                        <div className="font-semibold md:text-lg">{user.name}</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold md:text-2xl">{user.xp.toLocaleString()}</div>
-                    <div className={`text-xs text-gray-600 md:text-sm`}>
-                      XP Points
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+  return (
+    // =================================================================
+    // FIX: Added pb-24 to create space for the bottom navigation bar
+    // =================================================================
+    <div className="min-h-screen bg-[#ffffff] text-gray-900 font-['Inter'] p-6 md:p-10 pb-24 overflow-hidden">
+      <style>{`.drop-shadow-glow { filter: drop-shadow(0 0 8px rgba(0,0,0,0.1)); }`}</style>
 
-        {/* Mobile-only layout: a single list. */}
-        <div className="block md:hidden">
-          <div className="bg-white rounded-2xl shadow-soft p-6">
-            <div className="space-y-3">
-              {leaderboardData.map((user) => (
-                <div
-                  key={user.rank}
-                  className={`flex items-center justify-between p-4 rounded-xl border transition-transform duration-200 ease-in-out hover:scale-[1.01] ${getRankColor(user.rank)} ${user.rank <= 3 ? 'text-white' : 'text-dark-brown'}`}
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white bg-opacity-20">
-                      {getRankIcon(user.rank)}
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-white font-bold text-sm">
-                        {user.avatar}
-                      </div>
-                      <div>
-                        <div className="font-semibold">{user.name}</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold">{user.xp.toLocaleString()}</div>
-                    <div className={`text-xs ${user.rank <= 3 ? 'opacity-80' : 'text-gray-600'}`}>
-                      XP Points
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+      {/* Header */}
+      <motion.div
+        className="text-center mb-10"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-3xl md:text-5xl font-bold mb-2 drop-shadow-glow">Leaderboard</h1>
+        <p className="text-gray-600 text-lg">Top 15 Coffee Enthusiasts</p>
+      </motion.div>
+
+      {/* Desktop Podium */}
+      {podiumOrder.length > 0 && (
+        <motion.div
+          className="hidden md:flex justify-center items-end space-x-6 mb-12"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          {podiumOrder.map((user) => (
+            <motion.div
+              key={user.rank}
+              variants={itemVariants}
+              whileHover={{ scale: 1.05, y: -5 }}
+              transition={{ type: "spring", stiffness: 200 }}
+              className={`flex flex-col items-center justify-center rounded-2xl shadow-xl p-6 md:p-8 ${getPodiumColor(user.rank)} relative overflow-hidden w-48 md:w-60`}
+              style={{ transform: user.rank === 1 ? "translateY(-30px)" : "translateY(-15px)" }}
+            >
+              <div className="absolute top-2 right-2">{getRankIcon(user.rank)}</div>
+              <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4 shadow-inner">{renderAvatar(user)}</div>
+              <h2 className="font-bold text-xl mb-1 truncate max-w-[150px] text-center">{user.name}</h2>
+              <p className="text-2xl font-extrabold drop-shadow-glow">{user.xp.toLocaleString()}</p>
+              <p className="text-sm opacity-80">XP</p>
+            </motion.div>
+          ))}
+        </motion.div>
+      )}
+      
+      {/* Mobile Podium */}
+      {topThree.length > 0 && (
+        <motion.div
+          className="flex md:hidden justify-between items-end mb-8 relative w-full max-w-sm mx-auto"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          {topThree.map((user) => (
+            <motion.div
+              key={user.rank}
+              variants={itemVariants}
+              whileHover={{ scale: 1.15, rotate: 2 }}
+              className="flex flex-col items-center w-1/3 relative"
+            >
+              <motion.div
+                animate={{ boxShadow: ["0 0 0px rgba(0,0,0,0.1)", "0 0 20px rgba(0,0,0,0.2)", "0 0 0px rgba(0,0,0,0.1)"] }}
+                transition={{ repeat: Infinity, duration: 2 }}
+                className={`w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-2 border-2 border-gray-300 ${getPodiumColor(user.rank)}`}
+              >
+                {renderAvatar(user, "w-full h-full")}
+              </motion.div>
+              <div className="text-sm font-semibold truncate max-w-[90px] text-center text-gray-800">{user.name}</div>
+              <div className="text-xs text-gray-500">{user.xp.toLocaleString()} XP</div>
+              <div className="mt-1">{getRankIcon(user.rank)}</div>
+            </motion.div>
+          ))}
+        </motion.div>
+      )}
+
+      {/* Your Rank Card */}
+      <motion.div
+        className="bg-gray-100 p-4 md:p-5 rounded-2xl border border-gray-200 shadow-lg mb-8 text-gray-800"
+        variants={itemVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.5 }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-300">
+              <img src={currentUser.profilePic} alt={currentUser.name} className="w-full h-full object-cover" />
+            </div>
+            <span className="font-semibold">{currentUser.name}</span>
+          </div>
+          <div className="text-right">
+            <div className="text-lg font-bold">{currentUser.xp.toLocaleString()}</div>
+            <div className="text-xs text-gray-500">XP</div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Remaining Users */}
+      <motion.div
+        className="bg-gray-100 rounded-2xl shadow-lg p-6 md:p-8"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+      >
+        <div className="space-y-4">
+          {remainingUsers.map((user) => (
+            <motion.div
+              key={user.rank}
+              variants={itemVariants}
+              whileHover={{ scale: 1.02, x: 5 }}
+              className="flex items-center justify-between p-4 md:p-5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-800"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="text-gray-500 w-8">{user.rank}</div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 font-bold text-sm">
+                    {renderAvatar(user, "w-10 h-10")}
+                  </div>
+                  <span className="font-semibold">{user.name}</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold">{user.xp.toLocaleString()}</div>
+                <div className="text-xs text-gray-500">XP</div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+    </div>
+  );
 };
 
 export default LeaderboardPage;

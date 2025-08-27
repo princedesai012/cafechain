@@ -1,10 +1,26 @@
-// RewardsPage.jsx (Final version with share functionality)
+// RewardsPage.jsx (Redesigned with original backend functionality)
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; 
 import { useAuth } from '../context/AuthContext';
 import { getProfile, getRewardsHistory } from '../api/api';
-import { ArrowRight, Share2 } from 'lucide-react';
+import { Share2, Award, Users, Star, ChevronDown, Copy, Check, UploadCloud } from 'lucide-react'; 
+import { motion, AnimatePresence } from 'framer-motion';
+import Loader from '../components/Loader'; // 1. Loader component imported
+
+// A reusable card component for displaying key stats.
+const StatCard = ({ icon, title, value, onClick }) => (
+    <motion.div
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.98 }}
+        className="rounded-2xl p-6 text-center shadow-sm flex flex-col items-center justify-center transition-all cursor-pointer bg-stone-50 border border-stone-200"
+        onClick={onClick}
+    >
+        <div className="mb-3 text-[#4A3A2F]">{icon}</div>
+        <p className="text-3xl lg:text-4xl font-extrabold text-[#4A3A2F]">{value}</p>
+        <p className="text-sm font-semibold mt-1 text-gray-600">{title}</p>
+    </motion.div>
+);
 
 const RewardsPage = () => {
     const { user, loading: authLoading } = useAuth();
@@ -14,6 +30,7 @@ const RewardsPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showAllHistory, setShowAllHistory] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         const fetchRewardsData = async () => {
@@ -26,9 +43,11 @@ const RewardsPage = () => {
             }
 
             try {
+                // Use a timeout to ensure the loader is visible for a minimum duration
                 const [profileRes, historyRes] = await Promise.all([
                     getProfile(user.phone),
-                    getRewardsHistory(user.phone)
+                    getRewardsHistory(user.phone),
+                    new Promise(resolve => setTimeout(resolve, 1000)) // Min 1s load time
                 ]);
 
                 const pointsEarned = profileRes.points.reduce((total, p) => total + p.totalPoints, 0);
@@ -40,263 +59,155 @@ const RewardsPage = () => {
                     referralCode: profileRes.referralCode
                 });
                 
-                setHistoryData(historyRes);
-                setLoading(false);
+                setHistoryData(historyRes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
             } catch (err) {
                 console.error("Failed to fetch rewards data:", err);
                 setError("Failed to load rewards data. Please try again.");
+            } finally {
                 setLoading(false);
             }
         };
 
         fetchRewardsData();
     }, [user, authLoading]);
+    
+    // Animation Variants for scroll-triggered animations
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+    };
 
     const handleShareReferral = async () => {
-        if (!rewardsData || !rewardsData.referralCode) {
-            return;
-        }
-
-        const referralCode = rewardsData.referralCode;
-        const shareText = `Hey! Join me on our CafeChain and earn bonus points. Use my referral code: ${referralCode}`;
-
+        if (!rewardsData?.referralCode) return;
+        const shareText = `Hey! Join me on CafeChain and earn bonus points. Use my referral code: ${rewardsData.referralCode}`;
         if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: 'Join Our CafeChain Club!',
-                    text: shareText,
-                    url: window.location.origin
-                });
-                console.log('Referral code shared successfully.');
-            } catch (error) {
-                console.error('Error sharing:', error);
-            }
+            await navigator.share({ title: 'Join Our CafeChain Club!', text: shareText, url: window.location.origin }).catch(console.error);
         } else {
-            try {
-                await navigator.clipboard.writeText(shareText);
-                alert('Referral code copied to clipboard! Share it with your friends.');
-            } catch (error) {
-                console.error('Failed to copy referral code:', error);
-                alert('Failed to copy referral code. Please try again.');
-            }
+            await navigator.clipboard.writeText(shareText).catch(console.error);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
         }
     };
 
-    const handleViewAllHistory = () => {
-        setShowAllHistory(!showAllHistory);
-    };
-
-    const handleClaimReward = () => {
-        navigate('/claim-reward');
-    };
-
-    const displayedHistory = showAllHistory ? historyData : historyData.slice(0, 2);
+    const handleClaimReward = () => navigate('/claim-reward');
+    const displayedHistory = showAllHistory ? historyData : historyData.slice(0, 3);
 
     if (loading) {
-        return <div className="text-center mt-10">Loading rewards...</div>;
+        return <Loader />; // 2. Using the Loader component
     }
 
     if (error) {
-        return <div className="text-center mt-10 text-red-600">{error}</div>;
+        return <div className="flex items-center justify-center h-screen text-lg font-semibold text-red-600">{error}</div>;
     }
 
     if (!rewardsData) {
-        return <div className="text-center mt-10">No rewards data available.</div>;
+        return <div className="flex items-center justify-center h-screen text-lg font-semibold text-gray-500">No rewards data available.</div>;
     }
 
     return (
-        <div className="pb-20 font-['Inter'] md:bg-gray-100 md:pb-0">
-            <style>{`
-              @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-              .shadow-soft { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
-              .bg-accent { background-color: #6D4C41; }
-              .text-accent { color: #6D4C41; }
-              .bg-dark-brown { background-color: #4A3A2F; }
-              .text-dark-brown { color: #4A3A2F; }
-              .bg-light-gray { background-color: #F8F8F8; }
-            `}</style>
-            
-            <div className="block md:hidden">
-              <div className="px-4 py-6 space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-4">
-                    <div className="bg-white rounded-2xl shadow-soft p-6 text-center">
-                      <div className="text-sm text-gray-600 mb-1">Points you earn</div>
-                      <div className="text-3xl font-bold text-accent mb-1">
-                        {rewardsData.pointsEarned}
-                      </div>
-                      <div className="text-sm text-gray-600">Points</div>
-                    </div>
-                    <div className="bg-white rounded-2xl shadow-soft p-6 text-center">
-                      <div className="text-sm text-gray-600 mb-1">XP points</div>
-                      <div className="text-3xl font-bold text-accent mb-1">
-                        {rewardsData.xpPoints}
-                      </div>
-                      <div className="text-sm text-gray-600">XP</div>
-                    </div>
-                  </div>
-                  <div
-                    onClick={handleClaimReward}
-                    className="bg-white rounded-2xl shadow-soft p-6 text-center flex items-center justify-center cursor-pointer transition-transform transform hover:scale-105"
-                  >
-                    <div className="text-dark-brown">
-                      <div className="text-sm text-gray-600 mb-1">Referred</div>
-                      <div className="text-3xl font-bold text-accent mb-1">
-                        {rewardsData.referredCount}
-                      </div>
-                      <button className="text-sm font-semibold text-accent mt-2 hover:underline">
-                        Claim Reward
-                      </button>
-                    </div>
-                  </div>
-                </div>
+        <div className="min-h-screen bg-white text-[#4A3A2F] font-sans pb-24">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Page Header */}
+                <motion.div 
+                    initial={{ opacity: 0, y: -20 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    transition={{ duration: 0.5 }}
+                    className="mb-10 text-center"
+                >
+                    <h1 className="text-3xl md:text-4xl font-bold mb-2">Your Rewards Dashboard</h1>
+                    <p className="text-base md:text-lg text-gray-500">Track your points, referrals, and claim amazing rewards.</p>
+                </motion.div>
 
-                <div className="bg-white rounded-2xl shadow-soft p-6">
-                  <h2 className="text-lg font-semibold text-dark-brown mb-4">
-                    Your Referral Code
-                  </h2>
-                  <div className="flex items-center justify-between p-4 bg-light-gray rounded-xl">
-                    <div>
-                      <div className="text-2xl font-bold text-accent">
-                        {rewardsData.referralCode}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        Share with friends to earn bonus points
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleShareReferral}
-                      className="p-3 bg-accent text-white rounded-xl hover:bg-dark-brown transition-colors"
-                    >
-                      <Share2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
+                {/* Stats Grid - Now with scroll-triggered staggered animation */}
+                <motion.div 
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10"
+                    variants={containerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.2 }}
+                >
+                    <motion.div variants={itemVariants}>
+                        <StatCard icon={<UploadCloud size={32} />} title="Claim Reward" value="Claim" onClick={handleClaimReward} />
+                    </motion.div>
+                    <motion.div variants={itemVariants}>
+                        <StatCard icon={<Star size={32} />} title="Total Points" value={rewardsData.pointsEarned} />
+                    </motion.div>
+                    <motion.div variants={itemVariants}>
+                        <StatCard icon={<Award size={32} />} title="XP Points" value={rewardsData.xpPoints} />
+                    </motion.div>
+                    <motion.div variants={itemVariants}>
+                        <StatCard icon={<Users size={32} />} title="Total Referrals" value={rewardsData.referredCount} />
+                    </motion.div>
+                </motion.div>
 
-                <div className="bg-white rounded-2xl shadow-soft p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-dark-brown">
-                      History
-                    </h2>
-                    <button
-                      onClick={handleViewAllHistory}
-                      className="text-sm text-accent hover:text-dark-brown transition-colors flex items-center"
-                    >
-                      {showAllHistory ? 'view less' : 'view all'}
-                      <ArrowRight className={`w-4 h-4 ml-1 transition-transform ${showAllHistory ? 'rotate-90' : ''}`} />
-                    </button>
-                  </div>
-                  <div className="space-y-3">
-                    {displayedHistory.map((item) => (
-                      <div key={item._id} className="flex items-center justify-between p-3 bg-light-gray rounded-xl">
-                        <div>
-                          <div className="font-medium text-dark-brown">{item.description}</div>
-                          <div className="text-sm text-gray-600">{item.cafeId?.name || 'N/A'}</div>
+                {/* Referral Code Section - Now with scroll-triggered animation */}
+                <motion.div 
+                    variants={itemVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.3 }}
+                    className="bg-stone-50 rounded-2xl p-6 md:p-8 shadow-sm border border-stone-200 mb-10"
+                >
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div className="text-center md:text-left">
+                            <h2 className="text-xl font-bold mb-1">Share & Earn More</h2>
+                            <p className="text-gray-500">Share your unique code with friends to earn bonus points together!</p>
                         </div>
-                        <div className={`font-semibold ${
-                          item.points > 0 ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {item.points > 0 ? '+' : ''}{item.points}
+                        <div className="flex items-center gap-2 bg-white border-2 border-dashed border-stone-300 rounded-lg p-3 w-full md:w-auto">
+                           <span className="font-mono text-lg font-bold text-[#4A3A2F] flex-grow text-center">{rewardsData.referralCode}</span>
+                           <button onClick={handleShareReferral} className="p-3 bg-[#4A3A2F] text-white rounded-lg hover:bg-opacity-90 transition-all flex items-center justify-center w-12 h-12">
+                               <AnimatePresence mode="wait">
+                                   <motion.div key={copied ? 'check' : 'copy'} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.5 }}>
+                                       {copied ? <Check size={20} /> : <Copy size={20} />}
+                                   </motion.div>
+                               </AnimatePresence>
+                           </button>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                    </div>
+                </motion.div>
+
+                {/* History Section - Now with scroll-triggered animation */}
+                <motion.div 
+                    variants={containerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="bg-stone-50 rounded-2xl p-6 md:p-8 shadow-sm border border-stone-200"
+                >
+                    <motion.h2 variants={itemVariants} className="text-xl font-bold mb-6">Recent Activity</motion.h2>
+                    {displayedHistory.length > 0 ? (
+                        <div className="space-y-4">
+                            {displayedHistory.map((item) => (
+                                <motion.div variants={itemVariants} key={item._id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-stone-200">
+                                    <div>
+                                        <p className="font-semibold">{item.description}</p>
+                                        <p className="text-sm text-gray-500">{item.cafeId?.name || 'General'} &bull; {new Date(item.timestamp).toLocaleDateString()}</p>
+                                    </div>
+                                    <p className={`font-bold text-lg ${item.points >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {item.points >= 0 ? `+${item.points}` : item.points}
+                                    </p>
+                                </motion.div>
+                            ))}
+                        </div>
+                    ) : (
+                        <motion.p variants={itemVariants} className="text-center text-gray-500 py-8">No activity history yet.</motion.p>
+                    )}
+                    {historyData.length > 3 && (
+                        <motion.div variants={itemVariants} className="text-center mt-6">
+                            <button onClick={() => setShowAllHistory(!showAllHistory)} className="font-semibold text-[#4A3A2F] hover:underline flex items-center gap-1 mx-auto">
+                                {showAllHistory ? 'Show Less' : 'Show All Activity'}
+                                <ChevronDown className={`w-5 h-5 transition-transform ${showAllHistory ? 'rotate-180' : ''}`} />
+                            </button>
+                        </motion.div>
+                    )}
+                </motion.div>
             </div>
-            
-            <div className="hidden md:block md:max-w-7xl md:mx-auto md:p-8">
-              <div className="space-y-8">
-                <div className="bg-dark-brown rounded-2xl p-8 text-white text-center shadow-lg">
-                  <h1 className="text-4xl font-bold mb-2">Your Rewards</h1>
-                  <p className="text-lg opacity-90">Track your points history and see how you’ve earned and redeemed.</p>
-                </div>
-
-                <div className="grid grid-cols-3 gap-6">
-                  <div className="bg-white rounded-2xl shadow-soft p-8 text-center flex flex-col justify-center">
-                    <div className="text-base text-gray-600 mb-2">Total Points Balance</div>
-                    <div className="text-5xl font-bold text-accent">
-                      {rewardsData.pointsEarned}
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-2xl shadow-soft p-8 text-center flex flex-col justify-center">
-                    <div className="text-base text-gray-600 mb-2">Total XP</div>
-                    <div className="text-5xl font-bold text-accent">
-                      {rewardsData.xpPoints}
-                    </div>
-                  </div>
-                  <div
-                    onClick={handleClaimReward}
-                    className="bg-white rounded-2xl shadow-soft p-8 text-center flex flex-col justify-center cursor-pointer transition-transform transform hover:scale-105"
-                  >
-                    <div className="text-base text-gray-600 mb-2">Total Referrals</div>
-                    <div className="text-5xl font-bold text-accent">
-                      {rewardsData.referredCount}
-                    </div>
-                    <button className="text-base font-semibold text-accent mt-4 hover:underline">
-                      Claim Reward
-                    </button>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-2xl shadow-soft p-6 flex items-center justify-between">
-                  <div className="flex-1">
-                    <h2 className="text-xl font-semibold text-dark-brown mb-2">
-                      Your Unique Referral Code
-                    </h2>
-                    <div className="flex items-center space-x-4 p-4 bg-light-gray rounded-xl">
-                      <div className="text-3xl font-bold text-accent">
-                        {rewardsData.referralCode}
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        Share this code with your friends to earn bonuses.
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleShareReferral}
-                    className="p-4 bg-accent text-white rounded-xl hover:bg-dark-brown transition-colors ml-6"
-                  >
-                    <Share2 className="w-6 h-6" />
-                  </button>
-                </div>
-
-                <div className="bg-white rounded-2xl shadow-soft p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-dark-brown">
-                      Redemption History
-                    </h2>
-                    <button
-                      onClick={handleViewAllHistory}
-                      className="text-base text-accent hover:text-dark-brown transition-colors flex items-center"
-                    >
-                      {showAllHistory ? 'View Less' : 'View All'}
-                      <ArrowRight className={`w-5 h-5 ml-2 transition-transform ${showAllHistory ? 'rotate-90' : ''}`} />
-                    </button>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {displayedHistory.map((item) => (
-                      <div key={item._id} className="grid grid-cols-4 items-center p-4 bg-light-gray rounded-xl text-dark-brown">
-                        <div className="col-span-2">
-                          <div className="font-medium">{item.description}</div>
-                          <div className="text-sm text-gray-600">{item.cafeId?.name || 'N/A'}</div>
-                        </div>
-                        <div className={`text-center font-semibold ${
-                          item.points > 0 ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {item.points > 0 ? '+' : ''}{item.points}
-                        </div>
-                        <div className="text-right text-sm text-gray-500">
-                          {new Date(item.timestamp).toLocaleDateString()}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        </div>
     );
 };
 
