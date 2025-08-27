@@ -17,6 +17,9 @@ import SignupPage from './pages/SignupPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import WelcomePage from './pages/WelcomePage';
 import ClaimRewardPage from './pages/ClaimRewardPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import VerifyOTPPage from './pages/VerifyOTPPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import NotFoundPage from './pages/NotFoundPage';
 import axios from 'axios';
 
@@ -82,6 +85,7 @@ const Layout = () => {
     const p = location.pathname;
     const known = new Set([
       '/', '/welcome', '/login', '/signup', '/verify-email',
+      '/forgot-password', '/verify-otp', '/reset-password',
       '/home', '/cafes', '/rewards', '/claim-reward', '/leaderboard', '/profile'
     ]);
     if (known.has(p)) return true;
@@ -113,6 +117,11 @@ const Layout = () => {
           <Route path="/login" element={<LoginPage onNavigate={handleAuthNavigation} />} />
           <Route path="/signup" element={<SignupPage onNavigate={handleAuthNavigation} />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
+
+          {/* Forgot Password Flow */}
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/verify-otp" element={<VerifyOTPPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           {/* Protected routes */}
           <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
