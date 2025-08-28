@@ -85,7 +85,12 @@ exports.login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ error: "Incorrect password" });
 
-        const token = jwt.sign({ phone: user.phone }, process.env.JWT_SECRET, { expiresIn: "7d" });
+        const token = jwt.sign(
+            { id: user._id, phone: user.phone }, // now includes _id
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+            
         res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -457,14 +462,24 @@ exports.getFavoriteCafes = async (req, res) => {
 
 exports.getLeaderboard = async (req, res) => {
     try {
-        const leaderboard = await User.find({})
-            .select('name xp profilePic') // Select name, xp, and profilePic (for the avatar)
-            .sort({ xp: -1 }) // Sort by XP in descending order
-            .limit(15);      // Limit to the top 15 users
-
-        res.status(200).json(leaderboard);
+      const leaderboard = await User.find({})
+        .select('name xp profilePic')
+        .sort({ xp: -1 })
+        .limit(15);
+  
+      let currentUser = null;
+      if (req.user) {
+        const user = await User.findById(req.user.id).select('name xp profilePic');
+        if (user) {
+          // find user’s rank among all users
+          const rank = await User.countDocuments({ xp: { $gt: user.xp } }) + 1;
+          currentUser = { ...user.toObject(), rank };
+        }
+      }
+  
+      res.status(200).json({ leaderboard, currentUser });
     } catch (error) {
-        console.error('Error fetching leaderboard:', error);
-        res.status(500).json({ error: "Server error" });
+      console.error('Error fetching leaderboard:', error);
+      res.status(500).json({ error: "Server error" });
     }
-};
+};  

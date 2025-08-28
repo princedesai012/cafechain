@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from 'framer-motion';
-import Loader from "../components/Loader"; // Loader component imported
+import { useAuth } from "../context/AuthContext";
+import { getProfile, getRewardsHistory } from "../api/api";
+import Loader from "../components/Loader";
 
 //==================================================================
 // 1. Integrated AnimatedSubtitle for the Hero Section
@@ -13,7 +15,7 @@ const AnimatedHeaderSubtitle = ({ lines }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       setLineIndex((prevIndex) => (prevIndex + 1) % lines.length);
-    }, 5000); // Change line every 5 seconds
+    }, 5000);
     return () => clearInterval(interval);
   }, [lines.length]);
 
@@ -54,24 +56,48 @@ const AnimatedHeaderSubtitle = ({ lines }) => {
 // 2. Main HomePage Component
 //==================================================================
 const HomePage = () => {
-  // Added loading state
+  const { user, loading: authLoading } = useAuth();
+  const [points, setPoints] = useState(0);
+  const [activities, setActivities] = useState([]); // New state for activities
   const [loading, setLoading] = useState(true);
 
-  // Simulate loading time
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1500); // Page will show loader for 1.5 seconds
-    return () => clearTimeout(timer);
-  }, []);
+    const fetchData = async () => {
+      if (authLoading || !user) {
+        setLoading(false);
+        return;
+      }
 
-  // Example data
-  const points = 1800;
-  const activities = [
-    { name: "Cafe Soul", desc: "Visit reward", points: "+50", time: "2 hours ago" },
-    { name: "Brew & Bean", desc: "Referral bonus", points: "+75", time: "1 day ago" },
-    { name: "The Daily Grind", desc: "Check-in bonus", points: "+25", time: "3 days ago" },
-  ];
+      try {
+        // Fetch user profile and points
+        const profileRes = await getProfile(user.phone);
+        if (profileRes && profileRes.xp !== undefined) {
+          setPoints(profileRes.xp);
+        }
+
+        // Fetch recent activities
+        const activitiesRes = await getRewardsHistory(user.phone);
+        if (activitiesRes && Array.isArray(activitiesRes)) {
+          // Format the fetched data to match your component's structure
+          const formattedActivities = activitiesRes.slice(0, 4).map(activity => ({
+            name: activity.cafeName || "Unknown Cafe",
+            desc: activity.rewardType || "Reward",
+            points: `+${activity.xp || 0}`,
+            time: new Date(activity.date).toLocaleDateString() // Or format as "X hours ago"
+          }));
+          setActivities(formattedActivities);
+        }
+      } catch (err) {
+        console.error("Failed to fetch data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user, authLoading]);
+
+  // Example data (for other sections)
   const cafes = [
     { id: 1, name: "The Cafe de meet", desc: "Downtown, City Center", img: "/assets/Images/cafe1-a.jpg", specialty: "Artisan Coffee" },
     { id: 2, name: "Cafe Soul", desc: "Arts District", img: "/assets/Images/cafe2-a.jpg", specialty: "Local Roasts" },
@@ -110,7 +136,7 @@ const HomePage = () => {
       {/* 1. Hero Section */} 
       <section className="relative py-24 bg-gradient-to-br from-[#4A3A2F] via-[#3B2D25] to-[#2A1F18] overflow-hidden">
         <div className="absolute top-0 left-0 w-40 h-40 bg-amber-500 opacity-20 rounded-full -translate-x-1/2 -translate-y-1/2 blur-2xl"></div>
-        <div className="absolute bottom-0 right-0 w-72 h-72 bg-yellow-400 opacity-10 rounded-full translate-x-1/3 translate-y-1/3 blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-72 h-72 bg-yellow-400 opacity-10 rounded-full translate-x-1/3 -translate-y-1/3 blur-3xl"></div>
         <div className="relative max-w-7xl mx-auto px-4 text-center">
           <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 drop-shadow-lg">CafeChain</h1>
           <AnimatedHeaderSubtitle lines={animatedMessages} />
@@ -121,7 +147,7 @@ const HomePage = () => {
               <div className="relative flex items-center">
                 <div className="relative w-24 h-24 bg-gray-100 flex items-center justify-center rounded-2xl mr-6 border border-gray-200"><span className="text-4xl">☕</span></div>
                 <div className="flex-1 text-left">
-                  <p className="text-sm font-medium text-gray-500">CashPoints Balance</p>
+                  <p className="text-sm font-medium text-gray-500">Your XP</p>
                   <h2 className="text-5xl font-extrabold mt-1 text-[#4a3a2f]">{points.toLocaleString()}</h2>
                 </div>
               </div>
@@ -225,19 +251,23 @@ const HomePage = () => {
           <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
             <div className="flex items-center justify-between mb-8"><h2 className="text-3xl font-bold" style={{ color: "#4A3A2F" }}>Recent Activity</h2><Link to="/rewards" className="text-white px-6 py-3 rounded-full font-semibold hover:opacity-90 transition-all shadow-lg" style={{ backgroundColor: "#4A3A2F" }}>View All Activity</Link></div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {activities.map((activity, i) => (
-                <div key={i} className="flex items-center justify-between p-6 bg-gray-50 rounded-2xl border hover:shadow-lg transition-all hover:bg-gray-100">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-md" style={{ backgroundColor: "#4A3A2F" }}><span className="text-white">☕</span></div>
-                    <div>
-                      <p className="font-semibold text-lg" style={{ color: "#4A3A2F" }}>{activity.name}</p>
-                      <p className="text-gray-600">{activity.desc}</p>
-                      <p className="text-sm text-gray-500">{activity.time}</p>
+              {activities.length > 0 ? (
+                activities.map((activity, i) => (
+                  <div key={i} className="flex items-center justify-between p-6 bg-gray-50 rounded-2xl border hover:shadow-lg transition-all hover:bg-gray-100">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-md" style={{ backgroundColor: "#4A3A2F" }}><span className="text-white">☕</span></div>
+                      <div>
+                        <p className="font-semibold text-lg" style={{ color: "#4A3A2F" }}>{activity.name}</p>
+                        <p className="text-gray-600">{activity.desc}</p>
+                        <p className="text-sm text-gray-500">{activity.time}</p>
+                      </div>
                     </div>
+                    <div className="text-right"><div className="font-bold text-green-600 text-xl bg-green-100 px-3 py-1 rounded-full">{activity.points}</div></div>
                   </div>
-                  <div className="text-right"><div className="font-bold text-green-600 text-xl bg-green-100 px-3 py-1 rounded-full">{activity.points}</div></div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-gray-500 text-center col-span-2">No recent activity found.</p>
+              )}
             </div>
           </div>
         </div>

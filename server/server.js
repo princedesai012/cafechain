@@ -9,6 +9,9 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 5000;
 const forgotPasswordRoutes = require("./routes/forgotPasswordRoutes");
+const rewardRoutes = require("./routes/rewardRoutes");
+const cafeRoutes = require("./routes/cafeRoutes");
+const { authenticateUserJWT } = require("./middlewares/auth");
 
 // Increase payload size limits for image uploads
 app.use((req, res, next) => {
@@ -29,6 +32,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use("/api/users", userRoutes);
 app.use("/api/email-otp", emailOtpRoutes);
+// app.use("/api/rewards", rewardRoutes);
+app.use("/api/rewards", authenticateUserJWT, rewardRoutes);
+app.use("/api/cafes", cafeRoutes);
 
 app.use("/api/forgot-password", forgotPasswordRoutes);
 
