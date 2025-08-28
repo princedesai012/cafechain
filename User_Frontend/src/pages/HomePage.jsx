@@ -8,6 +8,7 @@ import Loader from "../components/Loader"; // Loader component imported
 //==================================================================
 const AnimatedHeaderSubtitle = ({ lines }) => {
   const [lineIndex, setLineIndex] = useState(0);
+  
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -148,7 +149,7 @@ const HomePage = () => {
               <Link to="/cafes" className="block bg-amber-50 rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-all hover:scale-105 cursor-pointer border-2 border-amber-100 h-full"><div className="text-5xl mb-4">🔍</div><h3 className="font-bold text-lg mb-2" style={{ color: "#4A3A2F" }}>Find Cafes</h3><p className="text-gray-600 text-sm">Discover nearby partner locations</p></Link>
             </motion.div>
             <motion.div variants={cardVariants}>
-              <Link to="/rewards" className="block bg-green-50 rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-all hover:scale-105 cursor-pointer border-2 border-green-100 h-full"><div className="text-5xl mb-4">❤️</div><h3 className="font-bold text-lg mb-2" style={{ color: "#4A3A2F" }}>Wishlist</h3><p className="text-gray-600 text-sm">Your Favourite cafe`s</p></Link>
+              <Link to="/cafes" className="block bg-green-50 rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-all hover:scale-105 cursor-pointer border-2 border-green-100 h-full"><div className="text-5xl mb-4">❤️</div><h3 className="font-bold text-lg mb-2" style={{ color: "#4A3A2F" }}>Wishlist</h3><p className="text-gray-600 text-sm">Your Favourite cafe`s</p></Link>
             </motion.div>
             <motion.div variants={cardVariants}>
               <Link to="/rewards" className="block bg-blue-50 rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-all hover:scale-105 cursor-pointer border-2 border-blue-100 h-full"><div className="text-5xl mb-4">👥</div><h3 className="font-bold text-lg mb-2" style={{ color: "#4A3A2F" }}>Invite Friends</h3><p className="text-gray-600 text-sm">Share and earn bonus points</p></Link>

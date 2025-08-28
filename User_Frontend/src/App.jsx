@@ -22,6 +22,7 @@ import VerifyOTPPage from './pages/VerifyOTPPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import NotFoundPage from './pages/NotFoundPage';
 import axios from 'axios';
+import InvoiceHistoryPage from "./pages/InvoiceHistoryPage";
 
 // Protected Route
 const ProtectedRoute = ({ children }) => {
@@ -131,6 +132,7 @@ const Layout = () => {
           <Route path="/claim-reward" element={<ProtectedRoute><ClaimRewardPage /></ProtectedRoute>} />
           <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/history/visits" element={<InvoiceHistoryPage />} />
           {/* Catch-all */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

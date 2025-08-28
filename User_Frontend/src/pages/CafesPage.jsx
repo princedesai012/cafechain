@@ -92,7 +92,7 @@ const CafesPage = () => {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    if (tab === 'near') {
+    if (tab === 'favourite') {
       setFilteredCafes(cafes.slice(0, 2));
     } else {
       setFilteredCafes(cafes);
@@ -130,7 +130,7 @@ const CafesPage = () => {
             <button onClick={() => handleTabChange('all')} className="relative flex-1 py-3 px-4 rounded-full text-sm md:text-base font-medium z-10 transition-colors">
               All Cafes
             </button>
-            <button onClick={() => handleTabChange('near')} className="relative flex-1 py-3 px-4 rounded-full text-sm md:text-base font-medium z-10 transition-colors">
+            <button onClick={() => handleTabChange('favourite')} className="relative flex-1 py-3 px-4 rounded-full text-sm md:text-base font-medium z-10 transition-colors">
               Favourite
             </button>
             <motion.div
@@ -138,7 +138,7 @@ const CafesPage = () => {
               initial={false}
               animate={{
                 left: activeTab === 'all' ? '4px' : '50%',
-                right: activeTab === 'near' ? '4px' : '50%',
+                right: activeTab === 'favourite' ? '4px' : '50%',
               }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             />
@@ -180,8 +180,8 @@ const CafesPage = () => {
                 No Cafes Found
               </h3>
               <p className="text-gray-500">
-                {activeTab === 'near'
-                  ? 'We couldn\'t find any cafes nearby. Try expanding your search!'
+                {activeTab === 'favourite'
+                  ? 'You haven\'t added any favourites yet!'
                   : 'Check back later for new and exciting cafes.'}
               </p>
             </motion.div>

@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Settings, LogOut, ArrowRight, User, Shield, Camera, X, Award, History, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getProfile, updateProfile, changePassword } from '../api/api';
+import { Link } from "react-router-dom";
+import Loader from "../components/Loader";  // ✅ loader import
 
 const ProfilePage = () => {
     const { user: authUser, logout, updateUserData } = useAuth();
@@ -17,8 +19,10 @@ const ProfilePage = () => {
     const [success, setSuccess] = useState('');
     const [selectedImage, setSelectedImage] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [loading, setLoading] = useState(true); // ✅ new loader state
 
     useEffect(() => {
+        const timer = setTimeout(() => setLoading(false), 1000); // ✅ ensure loader visible at least 1s
         const load = async () => {
             try {
                 setError('');
@@ -31,7 +35,17 @@ const ProfilePage = () => {
             }
         };
         load();
+        return () => clearTimeout(timer);
     }, [authUser]);
+
+    // ✅ Show loader while loading
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <Loader />
+            </div>
+        );
+    }
 
     const handleEditProfile = async (e) => {
         e.preventDefault();
@@ -222,14 +236,11 @@ const ProfilePage = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                    {/* Responsive font size */}
                     <h1 className="text-3xl md:text-4xl font-bold mb-2">Profile</h1>
-                    
                 </motion.div>
 
-                {/* Main responsive grid: 1 column on mobile, 3 on large screens */}
                 <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left Column (Profile & Actions) */}
+                    {/* Left Column */}
                     <motion.div 
                         className="lg:col-span-1 space-y-8"
                         initial={{ opacity: 0, x: -20 }}
@@ -248,20 +259,17 @@ const ProfilePage = () => {
                             <p className="text-gray-500">{profile?.email || 'your@email.com'}</p>
                             <p className="mt-1 text-sm text-gray-400">Joined on: {new Date(profile?.createdAt).toLocaleDateString()}</p>
                         </div>
-
-                        
                     </motion.div>
 
-                    {/* Right Column (Stats & Links) */}
+                    {/* Right Column */}
                     <motion.div 
                         className="lg:col-span-2 space-y-8"
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.4 }}
                     >
-                         <div className="bg-stone-50 rounded-2xl p-6 shadow-sm border border-stone-200">
+                        <div className="bg-stone-50 rounded-2xl p-6 shadow-sm border border-stone-200">
                             <h3 className="text-lg font-bold mb-4">Your Stats</h3>
-                            {/* Responsive stat grid: 1 col on mobile, 2 on small screens+ */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="bg-white p-6 rounded-lg border border-stone-200 text-center">
                                     <Award className="w-8 h-8 mx-auto text-[#4a3a2f] mb-2" />
@@ -279,13 +287,13 @@ const ProfilePage = () => {
                         <div className="bg-stone-50 rounded-2xl p-6 shadow-sm border border-stone-200">
                             <h3 className="text-lg font-bold mb-4">Quick Links</h3>
                             <div className="space-y-3">
-                                <a href="/history/visits" className="group flex items-center justify-between p-4 rounded-lg bg-white hover:bg-[#4a3a2f] hover:text-white transition-colors border border-stone-200">
+                                <Link to="/history/visits" className="group flex items-center justify-between p-4 rounded-lg bg-white hover:bg-[#4a3a2f] hover:text-white transition-colors border border-stone-200">
                                     <div>
-                                        <div className="font-semibold">Visit History</div>
+                                        <div className="font-semibold">Invoice History</div>
                                         <p className="text-sm text-gray-500 group-hover:text-stone-300">Review your past cafe check-ins.</p>
                                     </div>
                                     <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-white" />
-                                </a>
+                                </Link>
                                 <a href="/history/points" className="group flex items-center justify-between p-4 rounded-lg bg-white hover:bg-[#4a3a2f] hover:text-white transition-colors border border-stone-200">
                                     <div>
                                         <div className="font-semibold">Points History</div>

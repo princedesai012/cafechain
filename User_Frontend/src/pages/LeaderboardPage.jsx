@@ -167,20 +167,20 @@ const LeaderboardPage = () => {
       
       {/* Mobile Podium */}
       {topThree.length > 0 && (
-        <motion.div
-          className="flex md:hidden justify-between items-end mb-8 relative w-full max-w-sm mx-auto"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-        >
-          {topThree.map((user) => (
-            <motion.div
-              key={user.rank}
-              variants={itemVariants}
-              whileHover={{ scale: 1.15, rotate: 2 }}
-              className="flex flex-col items-center w-1/3 relative"
-            >
+        <motion.div
+          className="flex md:hidden justify-between items-end mb-8 relative w-full max-w-sm mx-auto"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          {[topThree[1], topThree[0], topThree[2]].filter(Boolean).map((user) => (
+            <motion.div
+              key={user.rank}
+              variants={itemVariants}
+              whileHover={{ scale: 1.15, rotate: 2 }}
+              className="flex flex-col items-center w-1/3 relative"
+            >
               <motion.div
                 animate={{ boxShadow: ["0 0 0px rgba(0,0,0,0.1)", "0 0 20px rgba(0,0,0,0.2)", "0 0 0px rgba(0,0,0,0.1)"] }}
                 transition={{ repeat: Infinity, duration: 2 }}

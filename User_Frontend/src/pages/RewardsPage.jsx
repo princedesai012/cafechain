@@ -147,6 +147,7 @@ const RewardsPage = () => {
 
                 {/* Referral Code Section - Now with scroll-triggered animation */}
                 <motion.div 
+                    id="referral-section"  
                     variants={itemVariants}
                     initial="hidden"
                     whileInView="visible"
