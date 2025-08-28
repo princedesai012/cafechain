@@ -9,6 +9,7 @@
     "framer-motion": "^10.18.0",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.263.1",
+    "node-cron": "^4.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.45.4",
