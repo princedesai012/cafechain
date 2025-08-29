@@ -287,7 +287,7 @@ const ProfilePage = () => {
                         <div className="bg-stone-50 rounded-2xl p-6 shadow-sm border border-stone-200">
                             <h3 className="text-lg font-bold mb-4">Quick Links</h3>
                             <div className="space-y-3">
-                                <Link to="/history/visits" className="group flex items-center justify-between p-4 rounded-lg bg-white hover:bg-[#4a3a2f] hover:text-white transition-colors border border-stone-200">
+                                <Link to="/invoice-history" className="group flex items-center justify-between p-4 rounded-lg bg-white hover:bg-[#4a3a2f] hover:text-white transition-colors border border-stone-200">
                                     <div>
                                         <div className="font-semibold">Invoice History</div>
                                         <p className="text-sm text-gray-500 group-hover:text-stone-300">Review your past cafe check-ins.</p>
