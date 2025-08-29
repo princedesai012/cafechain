@@ -1,20 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { Coffee } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import CafeCard from '../components/CafeCard';
-import Loader from '../components/Loader'; // 1. Loader component imported
+import React, { useState, useEffect } from "react";
+import { Coffee } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import CafeCard from "../components/CafeCard";
+import Loader from "../components/Loader";
+import axios from "axios";
 
-//==================================================================
-// 1. Integrated AnimatedSubtitle Component
-//==================================================================
+// 🔹 Animated subtitle component
 const AnimatedSubtitle = ({ lines }) => {
   const [lineIndex, setLineIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setLineIndex((prevIndex) => (prevIndex + 1) % lines.length);
-    }, 5000); 
+    }, 5000);
     return () => clearInterval(interval);
   }, [lines.length]);
 
@@ -25,8 +24,16 @@ const AnimatedSubtitle = ({ lines }) => {
 
   const charVariants = {
     initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0, transition: { type: 'spring', damping: 12, stiffness: 200 } },
-    exit: { opacity: 0, y: -20, transition: { ease: 'easeInOut', duration: 0.3 } },
+    animate: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring", damping: 12, stiffness: 200 },
+    },
+    exit: {
+      opacity: 0,
+      y: -20,
+      transition: { ease: "easeInOut", duration: 0.3 },
+    },
   };
 
   return (
@@ -40,9 +47,13 @@ const AnimatedSubtitle = ({ lines }) => {
           animate="animate"
           exit="exit"
         >
-          {lines[lineIndex].split('').map((char, index) => (
-            <motion.span key={index} variants={charVariants} style={{ display: 'inline-block' }}>
-              {char === ' ' ? '\u00A0' : char}
+          {lines[lineIndex].split("").map((char, index) => (
+            <motion.span
+              key={index}
+              variants={charVariants}
+              style={{ display: "inline-block" }}
+            >
+              {char === " " ? "\u00A0" : char}
             </motion.span>
           ))}
         </motion.p>
@@ -51,16 +62,7 @@ const AnimatedSubtitle = ({ lines }) => {
   );
 };
 
-
-//==================================================================
-// 2. Main CafesPage Component
-//==================================================================
-const cafes = [
-  { id: 1, name: "The Grind House", location: "123 Coffee St, Brewville", features: ["Free WiFi", "Good for work", "Artisanal"] },
-  { id: 2, name: "Cafe Soul", location: "456 Bean Ave, Latte City", features: ["Live music", "Cozy atmosphere"] },
-  { id: 3, name: "Brew & Bean", location: "789 Espresso Rd, Roast Town", features: ["Outdoor seating", "Pet-friendly"] },
-];
-
+// 🔹 Framer Motion animations
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -68,42 +70,65 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } },
+  visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } },
 };
 
 const CafesPage = () => {
-  const [activeTab, setActiveTab] = useState('all');
-  const [filteredCafes, setFilteredCafes] = useState(cafes);
-  const [loading, setLoading] = useState(true); // 2. Added loading state
+  const [activeTab, setActiveTab] = useState("all");
+  const [cafes, setCafes] = useState([]);
+  const [filteredCafes, setFilteredCafes] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // 3. Added useEffect to simulate loading
+  // ✅ Fetch cafes from backend
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const fetchCafes = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/cafes", {
+          withCredentials: true,
+        });
+        setCafes(res.data);
+        setFilteredCafes(res.data);
+      } catch (error) {
+        console.error("Failed to fetch cafes:", error);
+      } finally {
         setLoading(false);
-    }, 1500); // Load for 1.5 seconds
-    return () => clearTimeout(timer);
+      }
+    };
+    fetchCafes();
   }, []);
 
   const subtitleLines = [
     "Explore our curated collection of unique cafes.",
-    "Your next favorite spot is just a scroll away."
+    "Your next favorite spot is just a scroll away.",
   ];
 
+  // ✅ Tab switching logic
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    if (tab === 'favourite') {
-      setFilteredCafes(cafes.slice(0, 2));
+
+    if (tab === "favourite") {
+      const favourites = JSON.parse(localStorage.getItem("favourites")) || [];
+      const favCafes = cafes.filter((cafe) => favourites.includes(cafe._id));
+      setFilteredCafes(favCafes);
     } else {
       setFilteredCafes(cafes);
     }
   };
 
+  // ✅ Keep favourites in sync if cafes change
+  useEffect(() => {
+    if (activeTab === "favourite") {
+      const favourites = JSON.parse(localStorage.getItem("favourites")) || [];
+      const favCafes = cafes.filter((cafe) => favourites.includes(cafe._id));
+      setFilteredCafes(favCafes);
+    }
+  }, [activeTab, cafes]);
+
   const handleCafeClick = (cafe) => {
-    navigate(`/cafes/${cafe.id}`);
+    navigate(`/cafes/${cafe._id}`); // use MongoDB _id
   };
 
-  // 4. Conditional rendering for the loader
   if (loading) {
     return <Loader />;
   }
@@ -111,7 +136,7 @@ const CafesPage = () => {
   return (
     <div className="w-full min-h-screen bg-white flex flex-col items-center pb-24 text-[#4a3a2f]">
       <div className="w-full max-w-7xl px-4 py-6">
-        {/* Unified Header */}
+        {/* Header */}
         <motion.div
           className="text-center my-8 md:my-12"
           initial={{ opacity: 0, y: -20 }}
@@ -124,28 +149,38 @@ const CafesPage = () => {
           <AnimatedSubtitle lines={subtitleLines} />
         </motion.div>
 
-        {/* Tab Navigation */}
+        {/* Tabs */}
         <div className="flex justify-center w-full mb-8 md:mb-12">
           <div className="relative flex bg-gray-100 rounded-full p-1 w-full max-w-xs">
-            <button onClick={() => handleTabChange('all')} className="relative flex-1 py-3 px-4 rounded-full text-sm md:text-base font-medium z-10 transition-colors">
+            <button
+              onClick={() => handleTabChange("all")}
+              className={`relative flex-1 py-3 px-4 rounded-full text-sm md:text-base font-medium z-10 transition-colors ${
+                activeTab === "all" ? "text-[#4a3a2f]" : "text-gray-500"
+              }`}
+            >
               All Cafes
             </button>
-            <button onClick={() => handleTabChange('favourite')} className="relative flex-1 py-3 px-4 rounded-full text-sm md:text-base font-medium z-10 transition-colors">
+            <button
+              onClick={() => handleTabChange("favourite")}
+              className={`relative flex-1 py-3 px-4 rounded-full text-sm md:text-base font-medium z-10 transition-colors ${
+                activeTab === "favourite" ? "text-[#4a3a2f]" : "text-gray-500"
+              }`}
+            >
               Favourite
             </button>
             <motion.div
               className="absolute top-1 bottom-1 h-auto bg-white rounded-full shadow-md"
               initial={false}
               animate={{
-                left: activeTab === 'all' ? '4px' : '50%',
-                right: activeTab === 'favourite' ? '4px' : '50%',
+                left: activeTab === "all" ? "4px" : "50%",
+                right: activeTab === "favourite" ? "4px" : "50%",
               }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
             />
           </div>
         </div>
 
-        {/* Cafe Cards Grid */}
+        {/* Cafe cards */}
         <AnimatePresence mode="wait">
           {filteredCafes.length > 0 ? (
             <motion.div
@@ -156,11 +191,8 @@ const CafesPage = () => {
               animate="visible"
             >
               {filteredCafes.map((cafe) => (
-                <motion.div key={cafe.id} variants={itemVariants}>
-                  <CafeCard
-                    cafe={cafe}
-                    onClick={() => handleCafeClick(cafe)}
-                  />
+                <motion.div key={cafe._id} variants={itemVariants}>
+                  <CafeCard cafe={cafe} onClick={() => handleCafeClick(cafe)} />
                 </motion.div>
               ))}
             </motion.div>
@@ -180,9 +212,9 @@ const CafesPage = () => {
                 No Cafes Found
               </h3>
               <p className="text-gray-500">
-                {activeTab === 'favourite'
-                  ? 'You haven\'t added any favourites yet!'
-                  : 'Check back later for new and exciting cafes.'}
+                {activeTab === "favourite"
+                  ? "You haven't added any favourites yet!"
+                  : "Check back later for new and exciting cafes."}
               </p>
             </motion.div>
           )}

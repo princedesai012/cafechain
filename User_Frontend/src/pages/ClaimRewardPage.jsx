@@ -1,5 +1,4 @@
-// ClaimRewardPage.jsx (New UI + Backend Integrated + Cafe Dropdown)
-
+// src/pages/ClaimRewardPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -11,6 +10,7 @@ import {
   CheckCircle,
   AlertTriangle,
   Loader2,
+  History,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
@@ -27,14 +27,14 @@ const ClaimRewardPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // ✅ Fetch cafes from backend
+  // ✅ Fetch cafes from backend (rewards router)
   useEffect(() => {
     const fetchCafes = async () => {
       try {
         const res = await axios.get("http://localhost:5000/api/rewards/cafes", {
           withCredentials: true,
         });
-        setCafes(res.data);
+        setCafes(res.data || []);
       } catch (err) {
         console.error("Failed to fetch cafes:", err);
       }
@@ -45,6 +45,16 @@ const ClaimRewardPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!cafeId) {
+      setSubmitMessage("Please select a cafe.");
+      setIsSuccess(false);
+      return;
+    }
+    if (!amount || Number(amount) <= 0) {
+      setSubmitMessage("Please enter a valid amount.");
+      setIsSuccess(false);
+      return;
+    }
     if (!invoice) {
       setSubmitMessage("Please upload a valid invoice file.");
       setIsSuccess(false);
@@ -70,17 +80,23 @@ const ClaimRewardPage = () => {
         }
       );
 
-      setSubmitMessage(res.data.message || "✅ Claim submitted successfully!");
+      setSubmitMessage(
+        res?.data?.message || "✅ Claim submitted successfully!"
+      );
       setIsSuccess(true);
 
       // reset
       setCafeId("");
       setAmount("");
       setInvoice(null);
-      document.getElementById("invoice-upload").value = null;
+      const input = document.getElementById("invoice-upload");
+      if (input) input.value = null;
     } catch (error) {
       console.error("Failed to submit claim:", error);
-      setSubmitMessage("Oops! Something went wrong. Please try again.");
+      const msg =
+        error?.response?.data?.error ||
+        "Oops! Something went wrong. Please try again.";
+      setSubmitMessage(msg);
       setIsSuccess(false);
     } finally {
       setIsSubmitting(false);
@@ -88,7 +104,7 @@ const ClaimRewardPage = () => {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
 
     const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
@@ -106,6 +122,7 @@ const ClaimRewardPage = () => {
 
   const handleAmountChange = (e) => {
     const value = e.target.value;
+    // allow only digits (you can switch to decimal if you prefer)
     if (/^\d*$/.test(value)) {
       setAmount(value);
     }
@@ -142,6 +159,15 @@ const ClaimRewardPage = () => {
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="font-semibold">Back</span>
+          </button>
+
+          <button
+            onClick={() => navigate("/invoice-history")}
+            className="flex items-center gap-2 text-[#4A3A2F] px-3 py-2 rounded-xl border border-stone-300 hover:bg-stone-100 transition"
+            title="View your uploaded invoices"
+          >
+            <History className="w-5 h-5" />
+            <span className="font-semibold hidden sm:inline">View History</span>
           </button>
         </motion.header>
 
@@ -202,7 +228,7 @@ const ClaimRewardPage = () => {
                     <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="text"
-                      inputMode="decimal"
+                      inputMode="numeric"
                       id="amount"
                       value={amount}
                       onChange={handleAmountChange}

@@ -132,7 +132,7 @@ const Layout = () => {
           <Route path="/claim-reward" element={<ProtectedRoute><ClaimRewardPage /></ProtectedRoute>} />
           <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          <Route path="/history/visits" element={<InvoiceHistoryPage />} />
+          <Route path="/invoice-history" element={<InvoiceHistoryPage />} />
           {/* Catch-all */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
