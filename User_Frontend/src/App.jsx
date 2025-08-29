@@ -101,7 +101,7 @@ const Layout = () => {
     <div className="min-h-screen bg-background">
       {!hideNavbars && (
         <>
-          <div className="hidden md:block">
+          <div className="hidden md:block sticky top-0 z-50">
             <Navbar onSearch={handleSearch} />
           </div>
           <div className="md:hidden">
