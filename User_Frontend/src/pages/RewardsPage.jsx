@@ -81,6 +81,16 @@ const RewardsPage = () => {
                 }, 100); 
             }
         }
+
+        if (!loading && location.hash === '#recent-activity') {
+            const element = document.getElementById('recent-activity');
+            if (element) {
+                // Use a slight delay to ensure the DOM has been updated with data
+                setTimeout(() => {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100); 
+            }
+        }
     }, [loading, location.hash]);
 
 
@@ -193,7 +203,7 @@ const RewardsPage = () => {
                     viewport={{ once: true, amount: 0.1 }}
                     className="bg-stone-50 rounded-2xl p-6 md:p-8 shadow-sm border border-stone-200"
                 >
-                    <motion.h2 variants={itemVariants} className="text-xl font-bold mb-6">Recent Activity</motion.h2>
+                    <motion.h2 id="recent-activity" variants={itemVariants} className="text-xl font-bold mb-6">Recent Activity</motion.h2>
                     {displayedHistory.length > 0 ? (
                         <div className="space-y-4">
                             {displayedHistory.map((item) => (

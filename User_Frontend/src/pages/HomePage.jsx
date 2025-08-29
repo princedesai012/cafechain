@@ -253,7 +253,7 @@ const HomePage = () => {
       >
         <div className="max-w-7xl mx-auto px-4">
           <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
-            <div className="flex items-center justify-between mb-8"><h2 className="text-3xl font-bold" style={{ color: "#4A3A2F" }}>Recent Activity</h2><Link to="/rewards" className="text-white px-6 py-3 rounded-full font-semibold hover:opacity-90 transition-all shadow-lg" style={{ backgroundColor: "#4A3A2F" }}>View All Activity</Link></div>
+            <div className="flex items-center justify-between mb-8"><h2 className="text-3xl font-bold" style={{ color: "#4A3A2F" }}>Recent Activity</h2><Link to="/rewards#recent-activity" className="text-white px-6 py-3 rounded-full font-semibold hover:opacity-90 transition-all shadow-lg" style={{ backgroundColor: "#4A3A2F" }}>View All Activity</Link></div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {activities.length > 0 ? (
                 activities.map((activity, i) => (
