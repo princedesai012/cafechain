@@ -1,5 +1,4 @@
 // api/api.js
-
 import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api';
@@ -52,6 +51,30 @@ export const updateProfile = async (phone, data) => {
   const response = await axios.put(`${API_URL}/users/profile/${phone}`, data, { headers, withCredentials: true });
   return response.data;
 };
+
+// Cafes
+export const getCafes = () => apiClient('/cafes', {}, { method: 'GET' });
+export const getCafeById = (id) => apiClient(`/cafes/${id}`, {}, { method: 'GET' });
+
+// Get cafes available for claiming rewards
+export const getRewardCafes = () =>
+  apiClient("/rewards/cafes", {}, { method: "GET", withCredentials: true });
+
+// Submit a reward claim
+export const claimReward = (formData) =>
+  apiClient("/rewards/claim", formData, {
+    method: "POST",
+    headers: { "Content-Type": "multipart/form-data" },
+    withCredentials: true,
+});
+
+// Invoices
+export const getInvoiceHistory = () =>
+  apiClient("/rewards/invoice-history", {}, { method: "GET", withCredentials: true });
+
+// Send OTP for forgot password
+export const sendForgotPasswordOTP = (mobile) =>
+  apiClient("/forgot-password/send-otp", { mobile }, { method: "POST" });
 
 export const changePassword = (phone, body) =>
   apiClient(`/users/profile/${phone}/change-password`, body, { method: 'PUT' });

@@ -245,7 +245,7 @@ exports.updateUserProfile = async (req, res) => {
         user
       });
     } catch (error) {
-      console.error("❌ Error updating profile:", error);
+      console.error("Error updating profile:", error);
       res.status(500).json({ message: "Error updating profile", error });
     }
   }; 

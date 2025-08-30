@@ -48,12 +48,12 @@ const uploadToCloudinary = async (req, res, next) => {
 
       // Delete old image if exists
       if (user && user.profilePicId) {
-        console.log("🗑️ Deleting old profile image:", user.profilePicId);
+        console.log("Deleting old profile image:", user.profilePicId);
         await cloudinary.uploader.destroy(user.profilePicId);
       }
 
       // Upload new one
-      console.log("📤 Uploading new profile image...");
+      console.log("Uploading new profile image...");
       const result = await cloudinary.uploader.upload(req.body.profilePic, {
         folder: "Cafechain/User Profile",
         transformation: [
@@ -70,7 +70,7 @@ const uploadToCloudinary = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error("❌ Cloudinary upload error:", error);
+    console.error("Cloudinary upload error:", error);
     return res.status(500).json({ message: "Failed to upload image to Cloudinary" });
   }
 };

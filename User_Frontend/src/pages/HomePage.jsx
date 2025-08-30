@@ -2,10 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
-import { getProfile, getRewardsHistory } from "../api/api";
+import { getProfile, getInvoiceHistory, getCafes } from "../api/api";
 import Loader from "../components/Loader";
 import CafeCard from "../components/CafeCard";
-import axios from "axios";
 
 // ============================================================
 // Animated Subtitle for Hero
@@ -89,26 +88,28 @@ const HomePage = () => {
           setPoints(profileRes.xp);
         }
 
-        // ✅ Rewards history (Recent Activity)
-        const rewardsRes = await getRewardsHistory(user.phone);
-        if (Array.isArray(rewardsRes)) {
-          const formatted = rewardsRes.slice(0, 4).map((activity) => ({
-            name: activity.cafeName || "Unknown Cafe",
-            desc: activity.rewardType || "Reward",
-            points: `+${activity.xp || 0}`,
-            time: new Date(activity.date).toLocaleDateString(),
-          }));
+        // ✅ Invoice history (Recent Activity)
+        const invoiceRes = await getInvoiceHistory();
+        if (Array.isArray(invoiceRes)) {
+          const formatted = invoiceRes
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .slice(0, 4)
+            .map((inv) => ({
+              ...inv, // keep original data (cafe, status, invoiceUrl, etc.)
+              points: `₹${Number(inv.amount || 0).toLocaleString("en-IN")}`,
+              time: new Date(inv.createdAt).toLocaleDateString("en-IN"),
+            }));
           setActivities(formatted);
         }
 
         // ✅ Fetch 3 random cafes
-        const cafeRes = await axios.get("http://localhost:5000/api/cafes");
-        if (Array.isArray(cafeRes.data)) {
-          const random = cafeRes.data.sort(() => 0.5 - Math.random()).slice(0, 3);
+        const cafeRes = await getCafes();
+        if (Array.isArray(cafeRes)) {
+          const random = cafeRes.sort(() => 0.5 - Math.random()).slice(0, 3);
           setCafes(random);
         }
       } catch (err) {
-        console.error("Failed to fetch data:", err);
+        console.error("Failed to fetch data:", err.message);
       } finally {
         setLoading(false);
       }
@@ -241,39 +242,111 @@ const HomePage = () => {
       </motion.section>
 
       {/* === Recent Activity === */}
-      <motion.section className="py-16 bg-gray-50" variants={sectionVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+      <motion.section
+        className="py-16 bg-gray-50"
+        variants={sectionVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
         <div className="max-w-7xl mx-auto px-4">
           <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-3xl font-bold">Recent Activity</h2>
-              <Link to="/rewards#recent-activity" className="px-6 py-3 bg-[#4A3A2F] text-white rounded-full font-semibold shadow-lg">View All Activity</Link>
+              <Link
+                to="/rewards#recent-activity"
+                className="px-6 py-3 bg-[#4A3A2F] text-white rounded-full font-semibold shadow-lg"
+              >
+                View All Activity
+              </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {activities.length > 0 ? (
-                activities.map((activity, i) => (
-                  <div key={i} className="flex items-center justify-between p-6 bg-gray-50 rounded-2xl border hover:shadow-lg transition-all hover:bg-gray-100">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-md" style={{ backgroundColor: "#4A3A2F" }}>
-                        <span className="text-white">☕</span>
+
+            {activities.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {activities.map((c, index) => (
+                  <motion.div
+                    key={c._id || index}
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.06 }}
+                    whileHover={{
+                      scale: 1.02,
+                      boxShadow: "0px 10px 25px rgba(0,0,0,0.12)",
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                    className="p-5 border rounded-xl bg-white shadow-sm hover:shadow-md transition-all"
+                  >
+                    {/* Top row: Cafe + Date + Status + View */}
+                    <div className="flex items-start justify-between">
+                      <div className="min-w-0">
+                        <div className="font-bold text-lg text-[#4a3a2f] truncate">
+                          {c?.cafe?.name || "Cafe"}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Uploaded on {c?.time}
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-lg">{activity.name}</p>
-                        <p className="text-gray-600">{activity.desc}</p>
-                        <p className="text-sm text-gray-500">{activity.time}</p>
+
+                      <div className="flex items-center gap-3">
+                        {/* Status Badge */}
+                        <div
+                          className={`px-3 py-1 text-sm font-semibold rounded-full ${
+                            c?.status === "approved"
+                              ? "bg-green-100 text-green-700"
+                              : c?.status === "rejected"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {c?.status?.charAt(0).toUpperCase() + c?.status?.slice(1) || "Pending"}
+                        </div>
+
+                        {/* View Invoice Button */}
+                        {c?.invoiceUrl && (
+                          <Link
+                            to={c.invoiceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M14 3h7m0 0v7m0-7L10 14m-4 7h7a2 2 0 002-2v-7"
+                              />
+                            </svg>
+                            View
+                          </Link>
+                        )}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-bold text-green-600 text-xl bg-green-100 px-3 py-1 rounded-full">{activity.points}</div>
+
+                    {/* Amount */}
+                    <div className="mt-3 text-sm text-gray-600">
+                      Amount:{" "}
+                      <span className="font-semibold text-[#4a3a2f]">
+                        {c?.points}
+                      </span>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-center col-span-2">No recent activity found.</p>
-              )}
-            </div>
+                  </motion.div>
+                ))}
+
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center">No recent activity found.</p>
+            )}
           </div>
         </div>
       </motion.section>
+
 
       {/* === Final Call to Action === */}
       <motion.section className="py-20" style={{ backgroundColor: "#4A3A2F" }} variants={sectionVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>

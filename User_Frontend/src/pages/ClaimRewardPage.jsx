@@ -13,7 +13,7 @@ import {
   History,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import { getRewardCafes, claimReward } from "../api/api";
 
 const ClaimRewardPage = () => {
   const navigate = useNavigate();
@@ -27,14 +27,12 @@ const ClaimRewardPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // ✅ Fetch cafes from backend (rewards router)
+  // Fetch cafes from backend (rewards router)
   useEffect(() => {
     const fetchCafes = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/rewards/cafes", {
-          withCredentials: true,
-        });
-        setCafes(res.data || []);
+        const data = await getRewardCafes(); // cleaner
+        setCafes(data || []);
       } catch (err) {
         console.error("Failed to fetch cafes:", err);
       }
@@ -70,27 +68,13 @@ const ClaimRewardPage = () => {
       formData.append("cafeId", cafeId);
       formData.append("amount", amount);
       formData.append("invoice", invoice);
-
-      const res = await axios.post(
-        "http://localhost:5000/api/rewards/claim",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true,
-        }
-      );
-
-      setSubmitMessage(
-        res?.data?.message || "✅ Claim submitted successfully!"
-      );
+    
+      const res = await claimReward(formData); // use api helper
+    
+      setSubmitMessage(res?.message || "Claim submitted successfully!");
       setIsSuccess(true);
-
-      // reset
-      setCafeId("");
-      setAmount("");
-      setInvoice(null);
-      const input = document.getElementById("invoice-upload");
-      if (input) input.value = null;
+    
+      // reset...
     } catch (error) {
       console.error("Failed to submit claim:", error);
       const msg =

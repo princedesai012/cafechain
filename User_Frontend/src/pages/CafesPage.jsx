@@ -4,9 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import CafeCard from "../components/CafeCard";
 import Loader from "../components/Loader";
-import axios from "axios";
+import { getCafes } from "../api/api";
 
-// 🔹 Animated subtitle component
+// Animated subtitle component
 const AnimatedSubtitle = ({ lines }) => {
   const [lineIndex, setLineIndex] = useState(0);
 
@@ -80,15 +80,13 @@ const CafesPage = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // ✅ Fetch cafes from backend
+  // Fetch cafes from backend
   useEffect(() => {
     const fetchCafes = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/cafes", {
-          withCredentials: true,
-        });
-        setCafes(res.data);
-        setFilteredCafes(res.data);
+        const data = await getCafes(); // API call through apiClient
+        setCafes(data);
+        setFilteredCafes(data);
       } catch (error) {
         console.error("Failed to fetch cafes:", error);
       } finally {
@@ -96,14 +94,14 @@ const CafesPage = () => {
       }
     };
     fetchCafes();
-  }, []);
+  }, []);  
 
   const subtitleLines = [
     "Explore our curated collection of unique cafes.",
     "Your next favorite spot is just a scroll away.",
   ];
 
-  // ✅ Tab switching logic
+  // Tab switching logic
   const handleTabChange = (tab) => {
     setActiveTab(tab);
 
@@ -116,7 +114,7 @@ const CafesPage = () => {
     }
   };
 
-  // ✅ Keep favourites in sync if cafes change
+  // Keep favourites in sync if cafes change
   useEffect(() => {
     if (activeTab === "favourite") {
       const favourites = JSON.parse(localStorage.getItem("favourites")) || [];

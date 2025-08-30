@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom'; 
 import { useAuth } from '../context/AuthContext';
-import { getProfile, getRewardsHistory } from '../api/api';
+// import { getProfile, getRewardsHistory } from '../api/api';
+import { getProfile, getInvoiceHistory } from '../api/api';
+import { FileText, ExternalLink } from 'lucide-react'; // already had some icons
 import { Share2, Award, Users, Star, ChevronDown, Copy, Check, UploadCloud } from 'lucide-react'; 
 import { motion, AnimatePresence } from 'framer-motion';
 import Loader from '../components/Loader'; // 1. Loader component imported
@@ -44,11 +46,11 @@ const RewardsPage = () => {
                 return;
             }
             try {
-                const [profileRes, historyRes] = await Promise.all([
-                    getProfile(user.phone),
-                    getRewardsHistory(user.phone),
-                    new Promise(resolve => setTimeout(resolve, 1000)) // Min 1s load time
-                ]);
+                const [profileRes, invoiceRes] = await Promise.all([
+                    getProfile(user.phone),
+                    getInvoiceHistory(),
+                    new Promise(resolve => setTimeout(resolve, 1000)) // Min 1s load time
+                ]);
                 const pointsEarned = profileRes.points.reduce((total, p) => total + p.totalPoints, 0);
                 setRewardsData({
                     pointsEarned: pointsEarned,
@@ -56,8 +58,7 @@ const RewardsPage = () => {
                     referredCount: profileRes.referralChildren.length,
                     referralCode: profileRes.referralCode
                 });
-                
-                setHistoryData(historyRes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
+                setHistoryData(invoiceRes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
             } catch (err) {
                 console.error("Failed to fetch rewards data:", err);
                 setError("Failed to load rewards data. Please try again.");
@@ -204,23 +205,51 @@ const RewardsPage = () => {
                     className="bg-stone-50 rounded-2xl p-6 md:p-8 shadow-sm border border-stone-200"
                 >
                     <motion.h2 id="recent-activity" variants={itemVariants} className="text-xl font-bold mb-6">Recent Activity</motion.h2>
-                    {displayedHistory.length > 0 ? (
-                        <div className="space-y-4">
-                            {displayedHistory.map((item) => (
-                                <motion.div variants={itemVariants} key={item._id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-stone-200">
-                                    <div>
-                                        <p className="font-semibold">{item.description}</p>
-                                        <p className="text-sm text-gray-500">{item.cafeId?.name || 'General'} &bull; {new Date(item.timestamp).toLocaleDateString()}</p>
-                                    </div>
-                                    <p className={`font-bold text-lg ${item.points >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        {item.points >= 0 ? `+${item.points}` : item.points}
-                                    </p>
-                                </motion.div>
-                            ))}
-                        </div>
-                    ) : (
-                        <motion.p variants={itemVariants} className="text-center text-gray-500 py-8">No activity history yet.</motion.p>
-                    )}
+                    {displayedHistory.length > 0 ? (
+                        <div className="space-y-4">
+                            {displayedHistory.map((c) => (
+                                <motion.div 
+                                    variants={itemVariants} 
+                                    key={c._id} 
+                                    className="p-4 bg-white rounded-lg border border-stone-200 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                                >
+                                    <div className="flex-1">
+                                        <p className="font-semibold text-[#4a3a2f]">{c?.cafe?.name || "Cafe"}</p>
+                                        <p className="text-sm text-gray-500">
+                                            Uploaded on {new Date(c.createdAt).toLocaleDateString("en-IN")}
+                                        </p>
+                                        <p className="text-sm mt-1">
+                                            Amount: <span className="font-semibold">₹{Number(c.amount || 0).toLocaleString("en-IN")}</span>
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span
+                                            className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                                                c.status === "approved" ? "bg-green-100 text-green-700"
+                                                : c.status === "rejected" ? "bg-red-100 text-red-700"
+                                                : "bg-yellow-100 text-yellow-700"
+                                            }`}
+                                        >
+                                            {c.status?.charAt(0).toUpperCase() + c.status?.slice(1) || "Pending"}
+                                        </span>
+                                        {c.invoiceUrl && (
+                                            <a 
+                                                href={c.invoiceUrl} 
+                                                target="_blank" 
+                                                rel="noreferrer"
+                                                className="inline-flex items-center gap-1 text-sm font-semibold text-[#4a3a2f] px-3 py-1 border rounded-lg hover:bg-stone-100 transition"
+                                            >
+                                                <ExternalLink className="w-4 h-4" />
+                                                View
+                                            </a>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    ) : (
+                        <motion.p variants={itemVariants} className="text-center text-gray-500 py-8">No invoice activity yet.</motion.p>
+                    )}
                     {historyData.length > 3 && (
                         <motion.div variants={itemVariants} className="text-center mt-6">
                             <button onClick={() => setShowAllHistory(!showAllHistory)} className="font-semibold text-[#4A3A2F] hover:underline flex items-center gap-1 mx-auto">

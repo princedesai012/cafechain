@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { MapPin, Phone, Clock, Heart } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { getCafeById } from "../api/api";
 
 const CafeDetailPage = () => {
   const { id } = useParams();
@@ -9,26 +9,26 @@ const CafeDetailPage = () => {
   const [cafe, setCafe] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
 
-  // ✅ Fetch cafe details
+  // Fetch cafe details
   useEffect(() => {
     const fetchCafe = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/cafes/${id}`);
-        setCafe(res.data);
-
-        // ✅ Check if already in favourites
+        const data = await getCafeById(id);  // use helper
+        setCafe(data);
+  
+        // Check if already in favourites
         const favs = JSON.parse(localStorage.getItem("favourites")) || [];
-        setIsLiked(favs.includes(res.data._id));
+        setIsLiked(favs.includes(data._id));
       } catch (error) {
         console.error("Error fetching cafe:", error);
       }
     };
     fetchCafe();
-  }, [id]);
+  }, [id]);  
 
   const handleBack = () => navigate("/cafes");
 
-  // ✅ Add/Remove from favourites
+  // Add/Remove from favourites
   const toggleLike = () => {
     let favourites = JSON.parse(localStorage.getItem("favourites")) || [];
 
@@ -111,7 +111,7 @@ const CafeDetailPage = () => {
               </div>
             </div>
 
-            {/* ✅ Tags from DB */}
+            {/* Tags from DB */}
             <div>
               <h3 className="font-semibold text-dark-brown mb-2">Tags</h3>
               <div className="flex flex-wrap gap-2">
@@ -186,7 +186,7 @@ const CafeDetailPage = () => {
                 </div>
               </div>
 
-              {/* ✅ Tags */}
+              {/* Tags */}
               <div>
                 <h3 className="font-semibold text-dark-brown mb-2 text-xl">
                   Tags
