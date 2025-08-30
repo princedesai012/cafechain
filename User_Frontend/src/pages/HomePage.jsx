@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { getProfile, getInvoiceHistory, getCafes } from "../api/api";
 import Loader from "../components/Loader";
 import CafeCard from "../components/CafeCard";
+import { Search, Heart, Users, Gift } from "lucide-react";
 
 // ============================================================
 // Animated Subtitle for Hero
@@ -82,27 +83,27 @@ const HomePage = () => {
       }
 
       try {
-        // ✅ Profile (XP / points)
+        // Fetch Profile for points
         const profileRes = await getProfile(user.phone);
         if (profileRes?.xp !== undefined) {
           setPoints(profileRes.xp);
         }
 
-        // ✅ Invoice history (Recent Activity)
+        // Fetch Invoice history for Recent Activity
         const invoiceRes = await getInvoiceHistory();
         if (Array.isArray(invoiceRes)) {
           const formatted = invoiceRes
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-            .slice(0, 4)
+            .slice(0, 3) 
             .map((inv) => ({
-              ...inv, // keep original data (cafe, status, invoiceUrl, etc.)
+              ...inv,
               points: `₹${Number(inv.amount || 0).toLocaleString("en-IN")}`,
               time: new Date(inv.createdAt).toLocaleDateString("en-IN"),
             }));
           setActivities(formatted);
         }
 
-        // ✅ Fetch 3 random cafes
+        // Fetch 3 random cafes
         const cafeRes = await getCafes();
         if (Array.isArray(cafeRes)) {
           const random = cafeRes.sort(() => 0.5 - Math.random()).slice(0, 3);
@@ -118,6 +119,29 @@ const HomePage = () => {
     fetchData();
   }, [user, authLoading]);
 
+  const quickActions = [
+    {
+      icon: <Search className="w-10 h-10 mx-auto mb-4 text-[#4A3A2F]" strokeWidth={1.5} />,
+      title: "Find Cafes",
+      link: "/cafes",
+    },
+    {
+      icon: <Heart className="w-10 h-10 mx-auto mb-4 text-[#4A3A2F]" strokeWidth={1.5} />,
+      title: "Wishlist",
+      link: "/cafes",
+    },
+    {
+      icon: <Users className="w-10 h-10 mx-auto mb-4 text-[#4A3A2F]" strokeWidth={1.5} />,
+      title: "Invite Friends",
+      link: "/rewards#referral-section",
+    },
+    {
+      icon: <Gift className="w-10 h-10 mx-auto mb-4 text-[#4A3A2F]" strokeWidth={1.5} />,
+      title: "Redeem",
+      link: "/claim-reward",
+    },
+  ];
+
   const workflowSteps = [
     { title: "Join & Check-In", desc: "Sign up and check in at partner cafes to start collecting CashPoints.", icon: "🏪" },
     { title: "Refer & Earn", desc: "Share your referral code. You and your friends earn bonus points.", icon: "👥" },
@@ -125,7 +149,7 @@ const HomePage = () => {
   ];
 
   const animatedMessages = [
-    "Discover amazing cafes",
+    "Discover amazing cafes in Vadodara",
     "Earn rewards with every sip",
     "Your loyalty, rewarded.",
   ];
@@ -146,7 +170,7 @@ const HomePage = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white text-[#4A3A2F]">
       {/* === Hero Section === */}
       <section className="relative py-24 bg-gradient-to-br from-[#4A3A2F] via-[#3B2D25] to-[#2A1F18]">
         <div className="relative max-w-7xl mx-auto px-4 text-center">
@@ -159,7 +183,7 @@ const HomePage = () => {
                 <div className="w-24 h-24 bg-gray-100 flex items-center justify-center rounded-2xl mr-6">
                   <span className="text-4xl">☕</span>
                 </div>
-                <div>
+                <div className="text-left">
                   <p className="text-sm text-gray-500">Your XP</p>
                   <h2 className="text-5xl font-extrabold">{points.toLocaleString()}</h2>
                 </div>
@@ -168,8 +192,15 @@ const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto">
-            <Link to="/cafes" className="bg-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-50 shadow-lg">🔍 Find Cafes</Link>
-            <Link to="/claim-reward" className="bg-amber-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-amber-700 shadow-lg">💰 Redeem Rewards</Link>
+            {/* ✅ THESE ARE THE CHANGED LINES */}
+            <Link to="/cafes" className="flex items-center justify-center gap-2 bg-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-50 shadow-lg transition-colors">
+                <span>🔍</span>
+                <span>Find Cafes</span>
+            </Link>
+            <Link to="/claim-reward" className="flex items-center justify-center gap-2 bg-amber-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-amber-700 shadow-lg transition-colors">
+                <span>💰</span>
+                <span>Redeem Rewards</span>
+            </Link>
           </div>
         </div>
       </section>
@@ -179,16 +210,11 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-12">What would you like to do today?</h2>
           <motion.div className="grid grid-cols-2 md:grid-cols-4 gap-6" variants={cardContainerVariants}>
-            {[
-              { icon: "🔍", title: "Find Cafes", link: "/cafes" },
-              { icon: "❤️", title: "Wishlist", link: "/cafes" },
-              { icon: "👥", title: "Invite Friends", link: "/rewards#referral-section" },
-              { icon: "🎁", title: "Redeem", link: "/claim-reward" },
-            ].map((action, idx) => (
+            {quickActions.map((action, idx) => (
               <motion.div key={idx} variants={cardVariants}>
-                <Link to={action.link} className="block bg-amber-50 rounded-2xl p-8 text-center shadow-lg hover:scale-105">
-                  <div className="text-5xl mb-2">{action.icon}</div>
-                  <h3 className="font-bold">{action.title}</h3>
+                <Link to={action.link} className="block bg-gray-50 border border-gray-200 rounded-2xl p-8 text-center shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 h-full">
+                  {action.icon}
+                  <h3 className="font-bold text-lg">{action.title}</h3>
                 </Link>
               </motion.div>
             ))}
@@ -206,7 +232,7 @@ const HomePage = () => {
           <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-12" variants={cardContainerVariants}>
             {workflowSteps.map((step, idx) => (
               <motion.div key={idx} className="text-center" variants={cardVariants}>
-                <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center text-4xl shadow-xl" style={{ backgroundColor: "#4A3A2F" }}>
+                <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center text-4xl shadow-xl bg-[#4A3A2F]">
                   <span className="text-white">{step.icon}</span>
                 </div>
                 <h3 className="text-2xl font-bold mb-4">{step.title}</h3>
@@ -217,12 +243,12 @@ const HomePage = () => {
         </div>
       </motion.section>
 
-      {/* === Featured Cafes (fetched from backend) === */}
+      {/* === Featured Cafes === */}
       <motion.section className="py-20 bg-white" variants={sectionVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-6">Featured Partner Cafes</h2>
-            <p className="text-xl text-gray-600">Discover amazing coffee experiences near you</p>
+            <p className="text-xl text-gray-600">Discover amazing coffee experiences in Vadodara</p>
           </div>
           <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-8" variants={cardContainerVariants}>
             {cafes.length > 0 ? (
@@ -232,11 +258,11 @@ const HomePage = () => {
                 </motion.div>
               ))
             ) : (
-              <p className="text-gray-500 text-center col-span-3">No cafes available</p>
+              <p className="text-gray-500 text-center col-span-3">No cafes available at the moment.</p>
             )}
           </motion.div>
-          <div className="text-center mt-10">
-            <Link to="/cafes" className="px-8 py-4 bg-amber-600 text-white rounded-xl font-semibold hover:bg-amber-700 shadow-lg">See All Cafes</Link>
+          <div className="text-center mt-12">
+            <Link to="/cafes" className="px-8 py-4 bg-amber-600 text-white rounded-xl font-semibold hover:bg-amber-700 shadow-lg text-lg">See All Cafes</Link>
           </div>
         </div>
       </motion.section>
@@ -251,11 +277,11 @@ const HomePage = () => {
       >
         <div className="max-w-7xl mx-auto px-4">
           <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-wrap items-center justify-between mb-8 gap-4">
               <h2 className="text-3xl font-bold">Recent Activity</h2>
               <Link
-                to="/rewards#recent-activity"
-                className="px-6 py-3 bg-[#4A3A2F] text-white rounded-full font-semibold shadow-lg"
+                to="/invoice-history"
+                className="px-6 py-3 bg-[#4A3A2F] text-white rounded-full font-semibold shadow-lg hover:bg-opacity-90 transition-colors"
               >
                 View All Activity
               </Link>
@@ -263,99 +289,72 @@ const HomePage = () => {
 
             {activities.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {activities.map((c, index) => (
+                {activities.map((activity, index) => (
                   <motion.div
-                    key={c._id || index}
-                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.06 }}
-                    whileHover={{
-                      scale: 1.02,
-                      boxShadow: "0px 10px 25px rgba(0,0,0,0.12)",
-                    }}
-                    whileTap={{ scale: 0.98 }}
-                    className="p-5 border rounded-xl bg-white shadow-sm hover:shadow-md transition-all"
+                    key={activity._id || index}
+                    variants={cardVariants}
+                    initial="hidden"
+                    animate="visible"
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    className="p-5 border rounded-xl bg-white shadow-sm"
                   >
-                    {/* Top row: Cafe + Date + Status + View */}
                     <div className="flex items-start justify-between">
                       <div className="min-w-0">
                         <div className="font-bold text-lg text-[#4a3a2f] truncate">
-                          {c?.cafe?.name || "Cafe"}
+                          {activity?.cafe?.name || "A Cafe"}
                         </div>
                         <div className="text-sm text-gray-500">
-                          Uploaded on {c?.time}
+                          {activity?.time}
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-3">
-                        {/* Status Badge */}
-                        <div
-                          className={`px-3 py-1 text-sm font-semibold rounded-full ${
-                            c?.status === "approved"
-                              ? "bg-green-100 text-green-700"
-                              : c?.status === "rejected"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
-                        >
-                          {c?.status?.charAt(0).toUpperCase() + c?.status?.slice(1) || "Pending"}
-                        </div>
-
-                        {/* View Invoice Button */}
-                        {c?.invoiceUrl && (
-                          <Link
-                            to={c.invoiceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-4 w-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M14 3h7m0 0v7m0-7L10 14m-4 7h7a2 2 0 002-2v-7"
-                              />
-                            </svg>
-                            View
-                          </Link>
-                        )}
+                      <div
+                        className={`px-3 py-1 text-xs font-semibold rounded-full capitalize ${
+                          activity?.status === "approved"
+                            ? "bg-green-100 text-green-700"
+                            : activity?.status === "rejected"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        {activity?.status || "Pending"}
                       </div>
                     </div>
-
-                    {/* Amount */}
-                    <div className="mt-3 text-sm text-gray-600">
-                      Amount:{" "}
-                      <span className="font-semibold text-[#4a3a2f]">
-                        {c?.points}
-                      </span>
+                    <div className="mt-4 flex items-center justify-between">
+                       <div className="text-sm text-gray-600">
+                         Amount:{" "}
+                         <span className="font-semibold text-lg text-[#4a3a2f]">
+                           {activity?.points}
+                         </span>
+                       </div>
+                       {activity?.invoiceUrl && (
+                         <a
+                           href={activity.invoiceUrl}
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="text-sm font-semibold text-amber-600 hover:underline"
+                         >
+                           View Invoice
+                         </a>
+                       )}
                     </div>
                   </motion.div>
                 ))}
-
               </div>
             ) : (
-              <p className="text-gray-500 text-center">No recent activity found.</p>
+              <p className="text-gray-500 text-center py-8">No recent activity found. Check in at a cafe to get started!</p>
             )}
           </div>
         </div>
       </motion.section>
 
-
       {/* === Final Call to Action === */}
-      <motion.section className="py-20" style={{ backgroundColor: "#4A3A2F" }} variants={sectionVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+      <motion.section className="py-20 bg-[#4A3A2F]" variants={sectionVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-5xl font-bold text-white mb-6">Ready to Start Earning?</h2>
-          <p className="text-xl text-amber-200 mb-12">Join CashPoints today and transform every coffee purchase into valuable rewards</p>
+          <p className="text-xl text-amber-200 mb-12">Join CafeChain today and transform every coffee purchase into valuable rewards.</p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Link to="/cafes" className="bg-white px-12 py-5 rounded-2xl font-bold text-xl hover:bg-gray-100 shadow-xl text-[#4A3A2F]">🚀 Explore Cafes</Link>
-            <Link to="/rewards" className="bg-amber-600 text-white px-12 py-5 rounded-2xl font-bold text-xl hover:bg-amber-700 shadow-xl">📱 Redeem Points</Link>
+            <Link to="/cafes" className="bg-white px-12 py-5 rounded-2xl font-bold text-xl hover:bg-gray-100 shadow-xl text-[#4A3A2F] transition-transform hover:scale-105">🚀 Explore Cafes</Link>
+            <Link to="/rewards" className="bg-amber-600 text-white px-12 py-5 rounded-2xl font-bold text-xl hover:bg-amber-700 shadow-xl transition-transform hover:scale-105">📱 Redeem Points</Link>
           </div>
         </div>
       </motion.section>

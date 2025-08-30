@@ -294,13 +294,7 @@ const ProfilePage = () => {
                                     </div>
                                     <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-white" />
                                 </Link>
-                                <a href="/history/points" className="group flex items-center justify-between p-4 rounded-lg bg-white hover:bg-[#4a3a2f] hover:text-white transition-colors border border-stone-200">
-                                    <div>
-                                        <div className="font-semibold">Points History</div>
-                                        <p className="text-sm text-gray-500 group-hover:text-stone-300">Track all your earned and spent points.</p>
-                                    </div>
-                                    <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-white" />
-                                </a>
+                            
                                 <a href="/refer" className="group flex items-center justify-between p-4 rounded-lg bg-white hover:bg-[#4a3a2f] hover:text-white transition-colors border border-stone-200">
                                     <div>
                                         <div className="font-semibold">Refer & Earn</div>
@@ -321,13 +315,7 @@ const ProfilePage = () => {
                                     </div>
                                     <ArrowRight className="w-5 h-5 text-gray-400" />
                                 </button>
-                                <button onClick={() => setShowChangePwd(true)} className="w-full flex items-center justify-between text-left p-4 rounded-lg hover:bg-stone-200 transition-colors">
-                                    <div className="flex items-center space-x-3">
-                                        <Shield className="w-5 h-5 text-gray-500" />
-                                        <span className="font-semibold">Change Password</span>
-                                    </div>
-                                    <ArrowRight className="w-5 h-5 text-gray-400" />
-                                </button>
+                              
                                 <button onClick={handleLogout} className="w-full flex items-center space-x-3 text-left p-4 rounded-lg text-red-600 hover:bg-red-50 transition-colors">
                                     <LogOut className="w-5 h-5" />
                                     <span className="font-semibold">Logout</span>
