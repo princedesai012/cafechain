@@ -4,7 +4,7 @@ const OTP = require("../models/OTP");
 const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 
-// ✅ configure transporter (use your Gmail / SMTP service)
+// configure transporter (use your Gmail / SMTP service)
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -34,7 +34,7 @@ exports.sendOtp = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    // ✅ send email with OTP
+    // send email with OTP
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: user.email, // send to registered email

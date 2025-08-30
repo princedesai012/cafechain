@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { ArrowLeft, FileText, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import axios from "axios";
+import { getInvoiceHistory } from "../api/api";
 import Loader from "../components/Loader";
 
 const statusStyles = {
@@ -35,16 +35,11 @@ const InvoiceHistoryPage = () => {
       setLoading(true);
       setError("");
       try {
-        const res = await axios.get(
-          "http://localhost:5000/api/rewards/history",
-          { withCredentials: true }
-        );
-        setClaims(res.data || []);
+        const data = await getInvoiceHistory();   // using apiClient wrapper
+        setClaims(data || []);
       } catch (e) {
         console.error("History fetch error:", e);
-        setError(
-          e?.response?.data?.error || "Failed to load invoice history."
-        );
+        setError(e?.message || "Failed to load invoice history.");
       } finally {
         setLoading(false);
       }

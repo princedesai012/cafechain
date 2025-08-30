@@ -1,67 +1,74 @@
-// controllers/rewardController.js
 const Cafe = require("../models/Cafe");
-const RewardTransaction = require("../models/RewardTransaction");
-const User = require("../models/User");
+const RewardClaim = require("../models/RewardClaim");
 const cloudinary = require("../config/cloudinary");
 
+// Claim Reward
 exports.claimReward = async (req, res) => {
   try {
     const { cafeId, amount } = req.body;
-    const userId = req.user._id; // from auth middleware
+    const userId = req.user?._id; // from auth middleware
 
-    // Validate cafe
-    const cafe = await Cafe.findById(cafeId);
-    if (!cafe) return res.status(404).json({ error: "Cafe not found" });
-
-    // Handle invoice upload
-    let invoiceUrl = null;
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "invoices",
-      });
-      invoiceUrl = result.secure_url;
+    if (!cafeId) {
+      return res.status(400).json({ error: "Cafe is required" });
+    }
+    if (!amount || Number(amount) <= 0) {
+      return res.status(400).json({ error: "Valid amount is required" });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: "Invoice file is required" });
     }
 
-    // Calculate points (simple example)
-    const points = Math.floor(amount / 500) * 50;
+    // Validate cafe exists
+    const cafeExists = await Cafe.exists({ _id: cafeId });
+    if (!cafeExists) {
+      return res.status(404).json({ error: "Cafe not found" });
+    }
 
-    // Save Reward Transaction
-    const reward = new RewardTransaction({
-      userId,
-      cafeId,
-      type: "earn",
-      points,
-      description: "Reward claim from invoice",
+    const newClaim = new RewardClaim({
+      user: userId || null, // allow null if no auth (dev mode)
+      cafe: cafeId,
+      amount: Number(amount),
+      invoiceUrl: req.file.path, // multer-storage-cloudinary sets this
     });
-    await reward.save();
 
-    // Update user's points
-    const user = await User.findById(userId);
-    const existingCafePoints = user.points.find(p => p.cafeId.equals(cafeId));
-    if (existingCafePoints) {
-      existingCafePoints.totalPoints += points;
-    } else {
-      user.points.push({ cafeId, totalPoints: points });
-    }
-    await user.save();
+    await newClaim.save();
 
-    res.status(201).json({
-      message: "Reward claim successful",
-      points,
-      invoiceUrl,
+    res.json({
+      message: "Your points are on their way! Credited within 24h.",
+      claimId: newClaim._id,
+      invoiceUrl: newClaim.invoiceUrl,
+      status: newClaim.status,
     });
   } catch (err) {
-    console.error("Claim Reward Error:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error("Claim error:", err);
+    res.status(500).json({ error: "Failed to submit claim" });
   }
 };
 
-// Get all cafes (for dropdown)
+// Get cafes for dropdown
 exports.getCafes = async (req, res) => {
   try {
-    const cafes = await Cafe.find().select("name _id");
-    res.status(200).json(cafes);
+    const cafes = await Cafe.find({}, "name _id").sort({ name: 1 });
+    res.json(cafes);
   } catch (err) {
-    res.status(500).json({ error: "Server error" });
+    console.error("Cafes fetch error:", err);
+    res.status(500).json({ error: "Server error fetching cafes" });
+  }
+};
+
+// Get user’s claim history
+exports.getHistory = async (req, res) => {
+  try {
+    const userId = req.user?._id;
+    const query = userId ? { user: userId } : {}; // return all if no auth (dev mode)
+
+    const claims = await RewardClaim.find(query)
+      .populate("cafe", "name")
+      .sort({ createdAt: -1 });
+
+    res.json(claims);
+  } catch (err) {
+    console.error("History error:", err);
+    res.status(500).json({ error: "Failed to fetch history" });
   }
 };

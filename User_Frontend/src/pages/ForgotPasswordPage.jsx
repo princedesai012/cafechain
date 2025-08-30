@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { sendForgotPasswordOTP } from "../api/api";
 
 const ForgotPasswordPage = () => {
   const [phone, setPhone] = useState('');
@@ -10,25 +10,25 @@ const ForgotPasswordPage = () => {
 
   const handleSendOTP = async () => {
     if (!phone || phone.length !== 10) {
-      setError('Enter a valid 10-digit mobile number');
+      setError("Enter a valid 10-digit mobile number");
       return;
     }
-
+  
     setLoading(true);
-    setError('');
-
+    setError("");
+  
     try {
-      const res = await axios.post('http://localhost:5000/api/forgot-password/send-otp', { mobile: phone });
-      if (res.data.success) { 
-        navigate('/verify-otp', { state: { mobile: phone } });
+      const res = await sendForgotPasswordOTP(phone); // api helper
+      if (res.success) {
+        navigate("/verify-otp", { state: { mobile: phone } });
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send OTP');
-      if(err.response?.status === 404) setPhone('');
+      setError(err?.message || "Failed to send OTP"); // apiClient already normalizes error
+      if (err.status === 404) setPhone("");
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   return (
     <div className="min-h-screen flex items-center justify-center">

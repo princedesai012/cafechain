@@ -39,5 +39,4 @@ exports.authenticateUserJWT = (req, res, next) => {
     } catch (error) {
         return res.status(401).json({ error: "Invalid or expired token." });
     }
-    
 };
