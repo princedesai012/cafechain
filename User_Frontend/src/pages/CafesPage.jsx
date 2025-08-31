@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Coffee } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import CafeCard from "../components/CafeCard";
 import Loader from "../components/Loader";
 import { getCafes } from "../api/api";
 
-// Animated subtitle component
 const AnimatedSubtitle = ({ lines }) => {
   const [lineIndex, setLineIndex] = useState(0);
 
@@ -62,7 +61,6 @@ const AnimatedSubtitle = ({ lines }) => {
   );
 };
 
-// 🔹 Framer Motion animations
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -74,19 +72,18 @@ const itemVariants = {
 };
 
 const CafesPage = () => {
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("all");
   const [cafes, setCafes] = useState([]);
   const [filteredCafes, setFilteredCafes] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Fetch cafes from backend
   useEffect(() => {
     const fetchCafes = async () => {
       try {
-        const data = await getCafes(); // API call through apiClient
+        const data = await getCafes();
         setCafes(data);
-        setFilteredCafes(data);
       } catch (error) {
         console.error("Failed to fetch cafes:", error);
       } finally {
@@ -94,14 +91,30 @@ const CafesPage = () => {
       }
     };
     fetchCafes();
-  }, []);  
+  }, []);
+
+  useEffect(() => {
+    const searchQuery = searchParams.get("search") || "";
+    const lowerCaseQuery = searchQuery.toLowerCase();
+
+    let cafesToFilter = cafes;
+    if (activeTab === "favourite") {
+      const favourites = JSON.parse(localStorage.getItem("favourites")) || [];
+      cafesToFilter = cafes.filter((cafe) => favourites.includes(cafe._id));
+    }
+
+    const searchFiltered = cafesToFilter.filter((cafe) =>
+      cafe.name.toLowerCase().includes(lowerCaseQuery) ||
+      cafe.address.toLowerCase().includes(lowerCaseQuery)
+    );
+    setFilteredCafes(searchFiltered);
+  }, [cafes, activeTab, searchParams]);
 
   const subtitleLines = [
     "Explore our curated collection of unique cafes.",
     "Your next favorite spot is just a scroll away.",
   ];
 
-  // Tab switching logic
   const handleTabChange = (tab) => {
     setActiveTab(tab);
 
@@ -124,7 +137,7 @@ const CafesPage = () => {
   }, [activeTab, cafes]);
 
   const handleCafeClick = (cafe) => {
-    navigate(`/cafes/${cafe._id}`); // use MongoDB _id
+    navigate(`/cafes/${cafe._id}`);
   };
 
   if (loading) {
@@ -134,7 +147,6 @@ const CafesPage = () => {
   return (
     <div className="w-full min-h-screen bg-white flex flex-col items-center pb-24 text-[#4a3a2f]">
       <div className="w-full max-w-7xl px-4 py-6">
-        {/* Header */}
         <motion.div
           className="text-center my-8 md:my-12"
           initial={{ opacity: 0, y: -20 }}
@@ -147,7 +159,6 @@ const CafesPage = () => {
           <AnimatedSubtitle lines={subtitleLines} />
         </motion.div>
 
-        {/* Tabs */}
         <div className="flex justify-center w-full mb-8 md:mb-12">
           <div className="relative flex bg-gray-100 rounded-full p-1 w-full max-w-xs">
             <button
@@ -178,11 +189,10 @@ const CafesPage = () => {
           </div>
         </div>
 
-        {/* Cafe cards */}
         <AnimatePresence mode="wait">
           {filteredCafes.length > 0 ? (
             <motion.div
-              key={activeTab}
+              key={activeTab + searchParams.get("search")}
               className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8"
               variants={containerVariants}
               initial="hidden"
