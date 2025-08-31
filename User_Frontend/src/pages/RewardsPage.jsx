@@ -207,45 +207,44 @@ const RewardsPage = () => {
                     <motion.h2 id="recent-activity" variants={itemVariants} className="text-xl font-bold mb-6">Recent Activity</motion.h2>
                     {displayedHistory.length > 0 ? (
                         <div className="space-y-4">
-                            {displayedHistory.map((c) => (
-                                <motion.div 
-                                    variants={itemVariants} 
-                                    key={c._id} 
-                                    className="p-4 bg-white rounded-lg border border-stone-200 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-                                >
-                                    <div className="flex-1">
-                                        <p className="font-semibold text-[#4a3a2f]">{c?.cafe?.name || "Cafe"}</p>
-                                        <p className="text-sm text-gray-500">
-                                            Uploaded on {new Date(c.createdAt).toLocaleDateString("en-IN")}
-                                        </p>
-                                        <p className="text-sm mt-1">
-                                            Amount: <span className="font-semibold">₹{Number(c.amount || 0).toLocaleString("en-IN")}</span>
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <span
-                                            className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                                                c.status === "approved" ? "bg-green-100 text-green-700"
-                                                : c.status === "rejected" ? "bg-red-100 text-red-700"
-                                                : "bg-yellow-100 text-yellow-700"
-                                            }`}
-                                        >
-                                            {c.status?.charAt(0).toUpperCase() + c.status?.slice(1) || "Pending"}
-                                        </span>
-                                        {c.invoiceUrl && (
-                                            <a 
-                                                href={c.invoiceUrl} 
-                                                target="_blank" 
-                                                rel="noreferrer"
-                                                className="inline-flex items-center gap-1 text-sm font-semibold text-[#4a3a2f] px-3 py-1 border rounded-lg hover:bg-stone-100 transition"
+                            <AnimatePresence initial={false}>
+                                {displayedHistory.map((c) => (
+                                    <motion.div key={c._id} variants={itemVariants} initial="hidden" animate="visible" exit="hidden"
+                                    className="p-4 bg-white rounded-lg border border-stone-200 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-[#4a3a2f]">{c?.cafe?.name || "Cafe"}</p>
+                                            <p className="text-sm text-gray-500">
+                                                Uploaded on {new Date(c.createdAt).toLocaleDateString("en-IN")}
+                                            </p>
+                                            <p className="text-sm mt-1">
+                                                Amount: <span className="font-semibold">₹{Number(c.amount || 0).toLocaleString("en-IN")}</span>
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span
+                                                className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                                                    c.status === "approved" ? "bg-green-100 text-green-700"
+                                                    : c.status === "rejected" ? "bg-red-100 text-red-700"
+                                                    : "bg-yellow-100 text-yellow-700"
+                                                }`}
                                             >
-                                                <ExternalLink className="w-4 h-4" />
-                                                View
-                                            </a>
-                                        )}
-                                    </div>
-                                </motion.div>
-                            ))}
+                                                {c.status?.charAt(0).toUpperCase() + c.status?.slice(1) || "Pending"}
+                                            </span>
+                                            {c.invoiceUrl && (
+                                                <a 
+                                                    href={c.invoiceUrl} 
+                                                    target="_blank" 
+                                                    rel="noreferrer"
+                                                    className="inline-flex items-center gap-2 text-sm font-semibold text-[#4a3a2f] px-3 py-2 rounded-xl border border-stone-300 hover:bg-stone-100 transition"
+                                                >
+                                                    <ExternalLink className="w-4 h-4" />
+                                                    View Invoice
+                                                </a>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
                         </div>
                     ) : (
                         <motion.p variants={itemVariants} className="text-center text-gray-500 py-8">No invoice activity yet.</motion.p>

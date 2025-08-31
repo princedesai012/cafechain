@@ -259,6 +259,13 @@ const LeaderboardPage = () => {
         </motion.div>
       )}
 
+      {/* Announcement Banner */}
+      <div className="bg-[#4A3A2F] text-white px-4 py-3 rounded-xl mb-6 text-center shadow-md">
+        📢 <span className="font-semibold">Next Week Special:</span> 
+        Top 3 users’ points will increase by 
+        <span className="text-yellow-300 font-bold"> 1.5x</span>!
+      </div>
+
       {currentUser && (
         <motion.div
           className="bg-gray-100 p-4 md:p-5 rounded-2xl border border-gray-200 shadow-lg mb-8 text-gray-800"

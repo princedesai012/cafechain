@@ -23,7 +23,7 @@ exports.register = async (req, res) => {
 
     try {
         const existingUser = await User.findOne({ phone });
-        if (existingUser) return res.status(400).json({ error: "Phone already registered" });
+        if (existingUser) return res.status(400).json({ getCafePointserror: "Phone already registered" });
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const securePhoneId = `${phone}-607`; 
@@ -44,7 +44,7 @@ exports.register = async (req, res) => {
                 referrer.xp += XP_FOR_REFERRAL_BONUS;
                 await referrer.save();
             }
-        }
+        }       
 
         // Step 3: Create the new user with the determined XP value
         const newUser = new User({
@@ -112,37 +112,50 @@ const getCafePoints = (user, cafeId) => {
     return cafePoints;
 };
 
-
 exports.logVisit = async (req, res) => {
     const { userPhone, cafeId, amountSpent } = req.body;
 
     try {
-        // Enforce that users can only log their own visits
+        // Ensure user can only log their own visits
         if (!req.user || req.user.phone !== userPhone) {
             return res.status(403).json({ error: "Unauthorized access" });
         }
+
         const user = await User.findOne({ phone: userPhone });
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
+        if (!user) return res.status(404).json({ error: "User not found" });
 
         const cafe = await Cafe.findById(cafeId);
-        if (!cafe) {
-            return res.status(404).json({ error: "Cafe not found" });
-        }
+        if (!cafe) return res.status(404).json({ error: "Cafe not found" });
 
-        const hasVisitedCafe = user.visitLogs.some(log => log.cafeId.equals(cafeId));
+        const hasVisitedCafe = await VisitLog.exists({ userId: user._id, cafeId });
 
-        let pointsEarned = Math.floor(amountSpent / 500) * 50;
+        // calculate base points
+        let pointsEarned = Math.floor(amountSpent / 10);
+
+        // apply multiplier if user is in top 3
         if (user.hasMultiplier) {
-            pointsEarned = Math.floor(pointsEarned * 1.5);
+        pointsEarned = Math.floor(pointsEarned * 1.5);
         }
-        const cafePoints = getCafePoints(user, cafeId);
-        cafePoints.totalPoints += pointsEarned;
 
-        let xpEarned = hasVisitedCafe ? XP_FOR_VISIT : XP_FOR_FIRST_VISIT;
+        // --- XP logic ---
+        let xpEarned = pointsEarned * 2;
         user.xp += xpEarned;
 
+        // check if user already has this cafe in points[]
+        const cafeIndex = user.points.findIndex(
+        (p) => p.cafeId.toString() === cafeId.toString()
+        );
+
+        if (cafeIndex >= 0) {
+        // update existing entry
+        user.points[cafeIndex].totalPoints += pointsEarned;
+        } else {
+        // add new cafe entry
+        user.points.push({ cafeId, totalPoints: pointsEarned });
+        }
+
+
+        // --- Save visit log ---
         const newVisitLog = new VisitLog({
             userId: user._id,
             cafeId: cafe._id,
@@ -153,7 +166,7 @@ exports.logVisit = async (req, res) => {
         await newVisitLog.save();
         user.visitLogs.push(newVisitLog._id);
 
-        // --- CREATE REWARD TRANSACTION ENTRY for points earned ---
+        // --- Save reward transaction ---
         const newRewardTransaction = new RewardTransaction({
             userId: user._id,
             cafeId: cafe._id,
@@ -164,35 +177,36 @@ exports.logVisit = async (req, res) => {
         await newRewardTransaction.save();
         user.rewardLogs.push(newRewardTransaction._id);
 
-        // --- REFERRAL BONUS LOGIC ---
+        // --- Referral bonus (only first visit of referred user) ---
         if (user.referredBy && !hasVisitedCafe) {
             const referrer = await User.findOne({ referralCode: user.referredBy });
             if (referrer) {
                 const referrerCafePoints = getCafePoints(referrer, cafeId);
                 referrerCafePoints.totalPoints += 150;
-                await referrer.save();
+                referrer.xp += XP_FOR_REFERRAL_BONUS; // also boost referrer XP
 
-                // Create a reward transaction for the referrer's bonus
+                // Create a reward transaction for the referrer
                 const referralBonusTransaction = new RewardTransaction({
                     userId: referrer._id,
                     cafeId: cafe._id,
                     type: "referral_bonus",
-                    points: 100,
+                    points: 150,
                     description: `Referral bonus from new user ${user.name || user.phone}.`
                 });
                 await referralBonusTransaction.save();
                 referrer.rewardLogs.push(referralBonusTransaction._id);
+
                 await referrer.save();
             }
         }
-        
+
         await user.save();
 
         res.status(200).json({
             message: "Visit logged, points and XP awarded.",
-            pointsEarned: pointsEarned,
-            currentPoints: cafePoints.totalPoints,
-            xpEarned: xpEarned,
+            pointsEarned,
+            currentPoints: user.points,
+            xpEarned,
             currentXP: user.xp,
         });
 
@@ -201,6 +215,103 @@ exports.logVisit = async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 };
+
+
+// exports.logVisit = async (req, res) => {
+//     const { userPhone, cafeId, amountSpent } = req.body;
+
+//     try {
+//         // Enforce that users can only log their own visits
+//         if (!req.user || req.user.phone !== userPhone) {
+//             return res.status(403).json({ error: "Unauthorized access" });
+//         }
+//         const user = await User.findOne({ phone: userPhone });
+//         if (!user) {
+//             return res.status(404).json({ error: "User not found" });
+//         }
+
+//         const cafe = await Cafe.findById(cafeId);
+//         if (!cafe) {
+//             return res.status(404).json({ error: "Cafe not found" });
+//         }
+
+//         const hasVisitedCafe = user.visitLogs.some(log => log.cafeId.equals(cafeId));
+
+//         let pointsEarned = Math.floor(amountSpent / 10);
+
+//         if (user.hasMultiplier && user.multiplierExpiry && user.multiplierExpiry > new Date()) {
+//             pointsEarned = Math.floor(pointsEarned * 1.5);
+//         } else {
+//             user.hasMultiplier = false; // clean up expired
+//             user.multiplierExpiry = null;
+//         }
+
+//         const cafePoints = getCafePoints(user, cafeId);
+//         cafePoints.totalPoints += pointsEarned;
+
+//         let xpEarned = hasVisitedCafe ? XP_FOR_VISIT : XP_FOR_FIRST_VISIT;
+//         user.xp += xpEarned;
+
+//         const newVisitLog = new VisitLog({
+//             userId: user._id,
+//             cafeId: cafe._id,
+//             amountSpent,
+//             pointsEarned,
+//             xpEarned
+//         });
+//         await newVisitLog.save();
+//         user.visitLogs.push(newVisitLog._id);
+
+//         // --- CREATE REWARD TRANSACTION ENTRY for points earned ---
+//         const newRewardTransaction = new RewardTransaction({
+//             userId: user._id,
+//             cafeId: cafe._id,
+//             type: "earn",
+//             points: pointsEarned,
+//             description: "Points earned from a visit."
+//         });
+//         await newRewardTransaction.save();
+//         user.rewardLogs.push(newRewardTransaction._id);
+
+//         // --- REFERRAL BONUS LOGIC ---
+//         if (user.referredBy && !hasVisitedCafe) {
+//             const referrer = await User.findOne({ referralCode: user.referredBy });
+//             if (referrer) {
+//                 const referrerCafePoints = getCafePoints(referrer, cafeId);
+//                 referrerCafePoints.totalPoints += 150;
+//                 await referrer.save();
+
+//                 // Create a reward transaction for the referrer's bonus
+//                 const referralBonusTransaction = new RewardTransaction({
+//                     userId: referrer._id,
+//                     cafeId: cafe._id,
+//                     type: "referral_bonus",
+//                     points: 100,
+//                     description: `Referral bonus from new user ${user.name || user.phone}.`
+//                 });
+//                 await referralBonusTransaction.save();
+//                 referrer.rewardLogs.push(referralBonusTransaction._id);
+//                 await referrer.save();
+//             }
+//         }
+        
+//         await user.save();
+
+//         res.status(200).json({
+//             message: "Visit logged, points and XP awarded.",
+//             pointsEarned: pointsEarned,
+//             currentPoints: cafePoints.totalPoints,
+//             xpEarned: xpEarned,
+//             currentXP: user.xp,
+//         });
+
+//     } catch (error) {
+//         console.error("Log visit error:", error);
+//         res.status(500).json({ error: "Server error" });
+//     }
+// };
+
+
 // The getUserProfile function
 exports.getUserProfile = async (req, res) => {
     const { phone } = req.params;
@@ -245,10 +356,10 @@ exports.updateUserProfile = async (req, res) => {
         user
       });
     } catch (error) {
-      console.error("Error updating profile:", error);
+      console.error("❌ Error updating profile:", error);
       res.status(500).json({ message: "Error updating profile", error });
     }
-  }; 
+}; 
   
   
 exports.changePassword = async (req, res) => {
