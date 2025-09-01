@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { getProfile, getInvoiceHistory, getCafes } from "../api/api";
 import Loader from "../components/Loader";
 import CafeCard from "../components/CafeCard";
-import { Search, Heart, Users, Gift } from "lucide-react";
+import { Search, Heart, Users, Gift, ExternalLink } from "lucide-react";
 
 
 
@@ -396,7 +396,7 @@ const HomePage = () => {
             <div className="flex flex-wrap items-center justify-between mb-8 gap-4">
               <h2 className="text-3xl font-bold">Recent Activity</h2>
               <Link
-                to="/invoice-history"
+                to="/rewards#recent-activity"
                 className="px-6 py-3 bg-[#4A3A2F] text-white rounded-full font-semibold shadow-lg hover:bg-opacity-90 transition-colors"
               >
                 View All Activity

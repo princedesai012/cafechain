@@ -1,4 +1,5 @@
 require("dotenv").config();
+require("./cron");
 const express = require("express");
 const connectDB = require("./config/db"); 
 const userRoutes = require("./routes/users");
