@@ -7,6 +7,82 @@ import Loader from "../components/Loader";
 import CafeCard from "../components/CafeCard";
 import { Search, Heart, Users, Gift, ExternalLink } from "lucide-react";
 
+
+
+// ============================================================
+// Animated Background Balls Component
+// ============================================================
+const AnimatedBalls = () => {
+  const [balls, setBalls] = useState([]);
+
+  useEffect(() => {
+    // Only run on the client-side
+    if (typeof window === 'undefined') return;
+
+    const ballsData = Array.from({ length: 15 }, (_, i) => ({
+      id: i,
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      vx: (Math.random() - 0.5) * 2,
+      vy: (Math.random() - 0.5) * 2,
+      size: Math.random() * 30 + 10,
+      opacity: Math.random() * 0.3 + 0.1
+    }));
+    setBalls(ballsData);
+
+    const animateBalls = () => {
+      setBalls(prevBalls => prevBalls.map(ball => {
+        let newX = ball.x + ball.vx;
+        let newY = ball.y + ball.vy;
+        let newVx = ball.vx;
+        let newVy = ball.vy;
+
+        if (newX <= 0 || newX >= window.innerWidth - ball.size) {
+          newVx = -newVx;
+          newX = Math.max(0, Math.min(window.innerWidth - ball.size, newX));
+        }
+        if (newY <= 0 || newY >= window.innerHeight - ball.size) {
+          newVy = -newVy;
+          newY = Math.max(0, Math.min(window.innerHeight - ball.size, newY));
+        }
+
+        return { ...ball, x: newX, y: newY, vx: newVx, vy: newVy };
+      }));
+    };
+
+    const interval = setInterval(animateBalls, 50);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {balls.map(ball => (
+        <motion.div
+          key={ball.id}
+          className="absolute rounded-full bg-white"
+          style={{
+            left: ball.x,
+            top: ball.y,
+            width: ball.size,
+            height: ball.size,
+            opacity: ball.opacity
+          }}
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [ball.opacity, ball.opacity * 0.5, ball.opacity]
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+
 // ============================================================
 // Animated Subtitle for Hero
 // ============================================================
@@ -94,7 +170,7 @@ const HomePage = () => {
         if (Array.isArray(invoiceRes)) {
           const formatted = invoiceRes
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-            .slice(0, 3) 
+            .slice(0, 3)
             .map((inv) => ({
               ...inv,
               points: `₹${Number(inv.amount || 0).toLocaleString("en-IN")}`,
@@ -143,13 +219,26 @@ const HomePage = () => {
   ];
 
   const workflowSteps = [
-    { title: "Join & Check-In", desc: "Sign up and check in at partner cafes to start collecting CashPoints.", icon: "🏪" },
-    { title: "Refer & Earn", desc: "Share your referral code. You and your friends earn bonus points.", icon: "👥" },
-    { title: "Redeem Rewards", desc: "Use your CashPoints to pay for coffee, food, and more.", icon: "🎁" },
+    {
+      title: "Join & Check-In",
+      desc: "Sign up and check in at partner cafes to start collecting CashPoints.",
+      icon: <Search className="w-10 h-10 mx-auto mb-4 text-[#4A3A2F]" strokeWidth={1.5} />
+    },
+    {
+      title: "Refer & Earn",
+      desc: "Share your referral code. You and your friends earn bonus points.",
+      icon: <Users className="w-10 h-10 mx-auto mb-4 text-[#4A3A2F]" strokeWidth={1.5} />
+    },
+    {
+      title: "Redeem Rewards",
+      desc: "Use your CashPoints to pay for coffee, food, and more.",
+      icon: <Gift className="w-10 h-10 mx-auto mb-4 text-[#4A3A2F]" strokeWidth={1.5} />
+    },
   ];
 
+
   const animatedMessages = [
-    "Discover amazing cafes in Vadodara",
+    "Discover amazing cafes !!",
     "Earn rewards with every sip",
     "Your loyalty, rewarded.",
   ];
@@ -172,7 +261,8 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-white text-[#4A3A2F]">
       {/* === Hero Section === */}
-      <section className="relative py-24 bg-gradient-to-br from-[#4A3A2F] via-[#3B2D25] to-[#2A1F18]">
+      <section className="relative py-24 bg-gradient-to-br from-[#4A3A2F] via-[#3B2D25] to-[#2A1F18] overflow-hidden">
+        <AnimatedBalls />
         <div className="relative max-w-7xl mx-auto px-4 text-center">
           <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6">CafeChain</h1>
           <AnimatedHeaderSubtitle lines={animatedMessages} />
@@ -194,12 +284,12 @@ const HomePage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto">
             {/* ✅ THESE ARE THE CHANGED LINES */}
             <Link to="/cafes" className="flex items-center justify-center gap-2 bg-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-50 shadow-lg transition-colors">
-                <span>🔍</span>
-                <span>Find Cafes</span>
+              <span>🔍</span>
+              <span>Find Cafes</span>
             </Link>
             <Link to="/claim-reward" className="flex items-center justify-center gap-2 bg-amber-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-amber-700 shadow-lg transition-colors">
-                <span>💰</span>
-                <span>Redeem Rewards</span>
+              <span>💰</span>
+              <span>Redeem Rewards</span>
             </Link>
           </div>
         </div>
@@ -223,18 +313,41 @@ const HomePage = () => {
       </motion.section>
 
       {/* === How It Works === */}
-      <motion.section className="py-20 bg-gray-50" variants={sectionVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+      <motion.section
+        className="py-20 bg-gray-50"
+        variants={sectionVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">How CashPoints Works</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Start earning rewards in three simple steps</p>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Start earning rewards in three simple steps
+            </p>
           </div>
-          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-12" variants={cardContainerVariants}>
+
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-3 gap-12"
+            variants={cardContainerVariants}
+          >
             {workflowSteps.map((step, idx) => (
-              <motion.div key={idx} className="text-center" variants={cardVariants}>
-                <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center text-4xl shadow-xl bg-[#4A3A2F]">
-                  <span className="text-white">{step.icon}</span>
+              <motion.div
+                key={idx}
+                className="text-center"
+                variants={cardVariants}
+              >
+                {/* ✅ Circular border with step number */}
+                <div className="relative w-24 h-24 mx-auto mb-6 rounded-full border-4 border-[#4A3A2F] flex items-center justify-center">
+                  {/* Step number badge */}
+                  <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-[#4A3A2F] text-white flex items-center justify-center text-sm font-bold">
+                    {idx + 1}
+                  </div>
+
+                  {React.cloneElement(step.icon, { strokeWidth: 2.5, className: "w-12 h-12 text-[#4A3A2F]" })}
                 </div>
+
                 <h3 className="text-2xl font-bold mb-4">{step.title}</h3>
                 <p className="text-gray-600">{step.desc}</p>
               </motion.div>
@@ -242,6 +355,9 @@ const HomePage = () => {
           </motion.div>
         </div>
       </motion.section>
+
+
+
 
       {/* === Featured Cafes === */}
       <motion.section className="py-20 bg-white" variants={sectionVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
@@ -308,35 +424,33 @@ const HomePage = () => {
                         </div>
                       </div>
                       <div
-                        className={`px-3 py-1 text-xs font-semibold rounded-full capitalize ${
-                          activity?.status === "approved"
+                        className={`px-3 py-1 text-xs font-semibold rounded-full capitalize ${activity?.status === "approved"
                             ? "bg-green-100 text-green-700"
                             : activity?.status === "rejected"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }`}
+                              ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
                       >
                         {activity?.status || "Pending"}
                       </div>
                     </div>
                     <div className="mt-4 flex items-center justify-between">
-                       <div className="text-sm text-gray-600">
-                         Amount:{" "}
-                         <span className="font-semibold text-lg text-[#4a3a2f]">
-                           {activity?.points}
-                         </span>
-                       </div>
-                       {activity?.invoiceUrl && (
-                         <a
-                           href={activity.invoiceUrl}
-                           target="_blank"
-                           rel="noopener noreferrer"
-                           className="inline-flex items-center gap-2 text-sm font-semibold text-[#4a3a2f] px-3 py-2 rounded-xl border border-stone-300 hover:bg-stone-100 transition"
-                         >
-                           <ExternalLink className="w-4 h-4" />
-                           View Invoice
-                         </a>
-                       )}
+                      <div className="text-sm text-gray-600">
+                        Amount:{" "}
+                        <span className="font-semibold text-lg text-[#4a3a2f]">
+                          {activity?.points}
+                        </span>
+                      </div>
+                      {activity?.invoiceUrl && (
+                        <a
+                          href={activity.invoiceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-semibold text-amber-600 hover:underline"
+                        >
+                          View Invoice
+                        </a>
+                      )}
                     </div>
                   </motion.div>
                 ))}
