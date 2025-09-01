@@ -22,6 +22,7 @@ const userSchema = new mongoose.Schema({
     rewardLogs: [{ type: mongoose.Schema.Types.ObjectId, ref: "RewardTransaction" }],
     xp: { type: Number, default: 0 },
     hasMultiplier: { type: Boolean, default: false },
+    multiplierExpiry: { type: Date },
     favoriteCafes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Cafe" }]
 });
 

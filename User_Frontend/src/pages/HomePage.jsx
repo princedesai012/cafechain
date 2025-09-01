@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { getProfile, getInvoiceHistory, getCafes } from "../api/api";
 import Loader from "../components/Loader";
 import CafeCard from "../components/CafeCard";
-import { Search, Heart, Users, Gift } from "lucide-react";
+import { Search, Heart, Users, Gift, ExternalLink } from "lucide-react";
 
 // ============================================================
 // Animated Subtitle for Hero
@@ -280,7 +280,7 @@ const HomePage = () => {
             <div className="flex flex-wrap items-center justify-between mb-8 gap-4">
               <h2 className="text-3xl font-bold">Recent Activity</h2>
               <Link
-                to="/invoice-history"
+                to="/rewards#recent-activity"
                 className="px-6 py-3 bg-[#4A3A2F] text-white rounded-full font-semibold shadow-lg hover:bg-opacity-90 transition-colors"
               >
                 View All Activity
@@ -331,8 +331,9 @@ const HomePage = () => {
                            href={activity.invoiceUrl}
                            target="_blank"
                            rel="noopener noreferrer"
-                           className="text-sm font-semibold text-amber-600 hover:underline"
+                           className="inline-flex items-center gap-2 text-sm font-semibold text-[#4a3a2f] px-3 py-2 rounded-xl border border-stone-300 hover:bg-stone-100 transition"
                          >
+                           <ExternalLink className="w-4 h-4" />
                            View Invoice
                          </a>
                        )}
