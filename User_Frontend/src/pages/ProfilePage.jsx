@@ -295,7 +295,7 @@ const ProfilePage = () => {
                                     <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-white" />
                                 </Link>
                             
-                                <a href="/refer" className="group flex items-center justify-between p-4 rounded-lg bg-white hover:bg-[#4a3a2f] hover:text-white transition-colors border border-stone-200">
+                                <a href="/rewards" className="group flex items-center justify-between p-4 rounded-lg bg-white hover:bg-[#4a3a2f] hover:text-white transition-colors border border-stone-200">
                                     <div>
                                         <div className="font-semibold">Refer & Earn</div>
                                         <p className="text-sm text-gray-500 group-hover:text-stone-300">Share with friends to earn bonus points.</p>
