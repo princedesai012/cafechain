@@ -1,11 +1,9 @@
-// components/Navbar.jsx
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, User, Search } from 'lucide-react';
-import { useAuth } from "../context/AuthContext"; // Assuming this path is correct
+import { useAuth } from "../context/AuthContext";
 
-// Updated navigation links from your code
 const navLinks = [
     { name: "Home", href: "/home" },
     { name: "Cafes", href: "/cafes" },
@@ -18,12 +16,40 @@ const Navbar = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, isAuthenticated } = useAuth();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+
+    useEffect(() => {
+        const currentSearchParam = searchParams.get("search") || "";
+        if (searchQuery !== currentSearchParam) {
+            setSearchQuery(currentSearchParam);
+        }
+    }, [searchParams]);
+
+    const handleSearchChange = (e) => {
+        const newQuery = e.target.value;
+        setSearchQuery(newQuery);
+
+        if (location.pathname === "/cafes") {
+            if (newQuery) {
+                setSearchParams({ search: newQuery });
+            } else {
+                setSearchParams({});
+            }
+        }
+    };
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        if (location.pathname !== "/cafes") {
+            navigate(`/cafes?search=${searchQuery}`);
+        }
+    };
 
     const toggleMenu = () => {
         setIsOpen(!isOpen);
     };
 
-    // Animation variants for the mobile menu overlay
     const menuVariants = {
         hidden: { opacity: 0, y: '-100%' },
         visible: { opacity: 1, y: '0%', transition: { type: 'tween', duration: 0.3, ease: 'easeInOut' } },
@@ -32,7 +58,6 @@ const Navbar = () => {
 
     return (
         <>
-            {/* Import the Google Font for the logo */}
             <style>
                 {`
                     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
@@ -50,15 +75,12 @@ const Navbar = () => {
             >
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
-                        {/* Logo */}
                         <div className="flex-shrink-0">
-                            {/* The logo now correctly links to your home page */}
                             <Link to="/home" className="text-3xl font-bold text-[#4A3A2F] font-logo">
                                 CafeChain
                             </Link>
                         </div>
 
-                        {/* Desktop Navigation Links - Conditionally Rendered */}
                         {isAuthenticated && (
                             <div className="hidden md:block">
                                 <div className="ml-10 flex items-baseline space-x-4 relative">
@@ -84,17 +106,18 @@ const Navbar = () => {
                             </div>
                         )}
 
-                        {/* Redesigned Search and Profile section - Conditionally Rendered */}
                         {isAuthenticated && (
-                             <div className="hidden md:flex items-center gap-4">
-                                <div className="flex items-center bg-gray-100 rounded-full px-4 py-2">
+                            <div className="hidden md:flex items-center gap-4">
+                                <form onSubmit={handleSearchSubmit} className="flex items-center bg-gray-100 rounded-full px-4 py-2">
                                     <Search className="w-5 h-5 text-gray-400 mr-2" />
                                     <input
                                         type="text"
                                         placeholder="Search cafes..."
+                                        value={searchQuery}
+                                        onChange={handleSearchChange}
                                         className="bg-transparent outline-none text-sm w-32 transition-all focus:w-40"
                                     />
-                                </div>
+                                </form>
                                 <button
                                     className="w-10 h-10 flex items-center justify-center bg-[#4A3A2F] rounded-full text-white font-bold overflow-hidden"
                                     onClick={() => navigate("/profile")}
@@ -111,7 +134,6 @@ const Navbar = () => {
                             </div>
                         )}
 
-                        {/* Mobile Menu Button */}
                         {isAuthenticated && (
                             <div className="-mr-2 flex md:hidden">
                                 <button
@@ -125,7 +147,6 @@ const Navbar = () => {
                     </div>
                 </div>
 
-                {/* Mobile Menu */}
                 <AnimatePresence>
                     {isOpen && isAuthenticated && (
                         <motion.div
@@ -140,7 +161,7 @@ const Navbar = () => {
                                     <Link
                                         key={link.name}
                                         to={link.href}
-                                        onClick={toggleMenu} // Close menu on click
+                                        onClick={toggleMenu}
                                         className={`block px-3 py-4 rounded-md text-2xl font-medium ${
                                             location.pathname === link.href
                                                 ? 'text-white bg-[#4A3A2F]'
@@ -150,8 +171,20 @@ const Navbar = () => {
                                         {link.name}
                                     </Link>
                                 ))}
+                                <form onSubmit={handleSearchSubmit} className="flex justify-center items-center py-4 px-3">
+                                    <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 w-full">
+                                        <Search className="w-5 h-5 text-gray-400 mr-2" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search cafes..."
+                                            value={searchQuery}
+                                            onChange={handleSearchChange}
+                                            className="bg-transparent outline-none text-sm w-full"
+                                        />
+                                    </div>
+                                </form>
                                 <div className="pt-8">
-                                     <button 
+                                    <button
                                         onClick={() => { navigate("/profile"); toggleMenu(); }}
                                         className="p-4 bg-gray-100 rounded-full text-gray-500 hover:bg-[#4A3A2F] hover:text-white transition-colors"
                                     >
