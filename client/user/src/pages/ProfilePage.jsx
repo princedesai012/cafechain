@@ -279,7 +279,7 @@ const ProfilePage = () => {
                                 <div className="bg-white p-6 rounded-lg border border-stone-200 text-center">
                                     <Award className="w-8 h-8 mx-auto text-[#4a3a2f] mb-2" />
                                     <p className="text-3xl font-extrabold">{profile?.xp ?? 0}</p>
-                                    <p className="text-sm text-gray-500">XP Points</p>
+                                    <p className="text-sm text-gray-500">XP </p>
                                 </div>
                                 <div className="bg-white p-6 rounded-lg border border-stone-200 text-center">
                                     <Users className="w-8 h-8 mx-auto text-[#4a3a2f] mb-2" />
