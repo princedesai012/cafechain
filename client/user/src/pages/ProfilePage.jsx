@@ -1,11 +1,13 @@
+// ProfilePage.jsx (Corrected and Final)
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Settings, LogOut, ArrowRight, User, Shield, Camera, X, Award, History, Users } from 'lucide-react';
+import { Settings, LogOut, ArrowRight, User, Shield, Camera, X, Award, History, Users, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getProfile, updateProfile, changePassword } from '../api/api';
 import { Link } from "react-router-dom";
-import Loader from "../components/Loader";  // ✅ loader import
+import Loader from "../components/Loader";
 
 const ProfilePage = () => {
     const { user: authUser, logout, updateUserData } = useAuth();
@@ -19,10 +21,10 @@ const ProfilePage = () => {
     const [success, setSuccess] = useState('');
     const [selectedImage, setSelectedImage] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
-    const [loading, setLoading] = useState(true); // ✅ new loader state
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const timer = setTimeout(() => setLoading(false), 1000); // ✅ ensure loader visible at least 1s
+        const timer = setTimeout(() => setLoading(false), 1000);
         const load = async () => {
             try {
                 setError('');
@@ -38,7 +40,6 @@ const ProfilePage = () => {
         return () => clearTimeout(timer);
     }, [authUser]);
 
-    // ✅ Show loader while loading
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white">
@@ -187,7 +188,11 @@ const ProfilePage = () => {
                             <div className="flex flex-col items-center space-y-4">
                                 <div className="relative w-32 h-32">
                                     <img
-                                        src={selectedImage || profile?.profilePic || `https://ui-avatars.com/api/?name=${profile?.name}&background=4a3a2f&color=fff&size=128`}
+                                        src={
+                                            selectedImage ||
+                                            profile?.profilePic ||
+                                            `https://ui-avatars.com/api/?name=${profile?.name}&background=4a3a2f&color=fff&size=128`
+                                        }
                                         alt="Profile Preview"
                                         className="w-32 h-32 rounded-full object-cover border-4 border-stone-200"
                                     />
@@ -217,30 +222,28 @@ const ProfilePage = () => {
                     </Modal>
                 )}
                 {showChangePwd && (
-                     <Modal closeModal={() => setShowChangePwd(false)}>
-                        <h2 className="text-2xl font-bold mb-6 text-center">Change Password</h2>
-                        <form onSubmit={handleChangePassword} className="space-y-4">
-                            <input name="currentPassword" type="password" placeholder="Current Password" required className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#4a3a2f]"/>
-                            <input name="newPassword" type="password" placeholder="New Password" required className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#4a3a2f]"/>
-                            <input name="confirmNewPassword" type="password" placeholder="Confirm New Password" required className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#4a3a2f]"/>
-                            {error && <div className="text-red-500 text-sm text-center">{error}</div>}
-                            {success && <div className="text-green-600 text-sm text-center">{success}</div>}
-                            <button disabled={changingPwd} className="w-full bg-[#4a3a2f] text-white py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all shadow-md disabled:bg-opacity-50">
-                                {changingPwd ? 'Changing...' : 'Update Password'}
-                            </button>
-                        </form>
-                    </Modal>
+                       <Modal closeModal={() => setShowChangePwd(false)}>
+                           <h2 className="text-2xl font-bold mb-6 text-center">Change Password</h2>
+                           <form onSubmit={handleChangePassword} className="space-y-4">
+                               <input name="currentPassword" type="password" placeholder="Current Password" required className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#4a3a2f]"/>
+                               <input name="newPassword" type="password" placeholder="New Password" required className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#4a3a2f]"/>
+                               <input name="confirmNewPassword" type="password" placeholder="Confirm New Password" required className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#4a3a2f]"/>
+                               {error && <div className="text-red-500 text-sm text-center">{error}</div>}
+                               {success && <div className="text-green-600 text-sm text-center">{success}</div>}
+                               <button disabled={changingPwd} className="w-full bg-[#4a3a2f] text-white py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all shadow-md disabled:bg-opacity-50">
+                                   {changingPwd ? 'Changing...' : 'Update Password'}
+                               </button>
+                           </form>
+                       </Modal>
                 )}
             </AnimatePresence>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Header */}
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                     <h1 className="text-3xl md:text-4xl font-bold mb-2">Profile</h1>
                 </motion.div>
 
                 <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left Column */}
                     <motion.div 
                         className="lg:col-span-1 space-y-8"
                         initial={{ opacity: 0, x: -20 }}
@@ -250,7 +253,10 @@ const ProfilePage = () => {
                         <div className="bg-stone-50 rounded-2xl p-8 text-center shadow-sm border border-stone-200">
                             <div className="relative w-32 h-32 mx-auto">
                                 <img
-                                    src={profile?.profilePic || `https://ui-avatars.com/api/?name=${profile?.name}&background=4a3a2f&color=fff&size=128`}
+                                    src={
+                                        profile?.profilePic ||
+                                        `https://ui-avatars.com/api/?name=${profile?.name}&background=4a3a2f&color=fff&size=128`
+                                    }
                                     alt="Profile Avatar"
                                     className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md"
                                 />
@@ -261,7 +267,6 @@ const ProfilePage = () => {
                         </div>
                     </motion.div>
 
-                    {/* Right Column */}
                     <motion.div 
                         className="lg:col-span-2 space-y-8"
                         initial={{ opacity: 0, x: 20 }}
@@ -295,7 +300,7 @@ const ProfilePage = () => {
                                     <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-white" />
                                 </Link>
                             
-                                <a href="/refer" className="group flex items-center justify-between p-4 rounded-lg bg-white hover:bg-[#4a3a2f] hover:text-white transition-colors border border-stone-200">
+                                <a href="/rewards" className="group flex items-center justify-between p-4 rounded-lg bg-white hover:bg-[#4a3a2f] hover:text-white transition-colors border border-stone-200">
                                     <div>
                                         <div className="font-semibold">Refer & Earn</div>
                                         <p className="text-sm text-gray-500 group-hover:text-stone-300">Share with friends to earn bonus points.</p>
@@ -315,7 +320,24 @@ const ProfilePage = () => {
                                     </div>
                                     <ArrowRight className="w-5 h-5 text-gray-400" />
                                 </button>
-                              
+                                
+                                {/* ✅ FIXED: Path is now lowercase to match the route in App.jsx */}
+                                <Link to="/privacy-policy" className="w-full flex items-center justify-between text-left p-4 rounded-lg hover:bg-stone-200 transition-colors">
+                                    <div className="flex items-center space-x-3">
+                                        <Shield className="w-5 h-5 text-gray-500" />
+                                        <span className="font-semibold">Privacy Policy</span>
+                                    </div>
+                                    <ArrowRight className="w-5 h-5 text-gray-400" />
+                                </Link>
+
+                                <Link to="/terms-and-conditions" className="w-full flex items-center justify-between text-left p-4 rounded-lg hover:bg-stone-200 transition-colors">
+                                    <div className="flex items-center space-x-3">
+                                        <FileText className="w-5 h-5 text-gray-500" />
+                                        <span className="font-semibold">Terms & Conditions</span>
+                                    </div>
+                                    <ArrowRight className="w-5 h-5 text-gray-400" />
+                                </Link>
+
                                 <button onClick={handleLogout} className="w-full flex items-center space-x-3 text-left p-4 rounded-lg text-red-600 hover:bg-red-50 transition-colors">
                                     <LogOut className="w-5 h-5" />
                                     <span className="font-semibold">Logout</span>
