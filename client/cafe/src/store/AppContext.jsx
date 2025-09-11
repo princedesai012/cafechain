@@ -1,0 +1,334 @@
+import { createContext, useContext, useReducer, useEffect } from 'react';
+import { loadFromStorage, saveToStorage } from '../utils/storage';
+import dummyData from '../assets/data.js';
+
+// Create context
+const AppContext = createContext();
+
+// Initial state
+const initialState = {
+  isLoading: true,
+  isAuthenticated: false,
+  user: null,
+  setupCompleted: false,
+  cafeInfo: null,
+  isOpen: false, // Cafe open/closed status
+  partnerCafes: [],
+  announcements: [],
+  leaderboard: [],
+  events: [],
+  transactions: [
+    {
+      id: 'txn-001',
+      customerId: 'cust-123',
+      customerName: 'John Smith',
+      amount: 15.75,
+      points: 16,
+      date: '2024-02-28T09:15:23Z',
+      type: 'purchase',
+      items: ['Latte', 'Croissant']
+    },
+    {
+      id: 'txn-002',
+      customerId: 'cust-456',
+      customerName: 'Emma Johnson',
+      amount: 8.50,
+      points: 9,
+      date: '2024-02-28T10:30:45Z',
+      type: 'purchase',
+      items: ['Cappuccino', 'Blueberry Muffin']
+    },
+    {
+      id: 'txn-003',
+      customerId: 'cust-789',
+      customerName: 'Michael Brown',
+      amount: 12.25,
+      points: 12,
+      date: '2024-02-28T11:45:12Z',
+      type: 'purchase',
+      items: ['Americano', 'Sandwich']
+    },
+    {
+      id: 'txn-004',
+      customerId: 'cust-123',
+      customerName: 'John Smith',
+      amount: 0,
+      points: -100,
+      date: '2024-02-28T14:20:33Z',
+      type: 'redemption',
+      items: ['Free Coffee Voucher']
+    }
+  ],
+  metrics: {
+    daily: {
+      sales: 542.75,
+      transactions: 37,
+      newCustomers: 5,
+      redemptions: 8,
+      averageOrder: 14.67
+    },
+    weekly: {
+      sales: 3245.50,
+      transactions: 221,
+      newCustomers: 28,
+      redemptions: 42,
+      averageOrder: 14.68
+    },
+    monthly: {
+      sales: 12980.25,
+      transactions: 884,
+      newCustomers: 112,
+      redemptions: 165,
+      averageOrder: 14.68
+    },
+    chartData: {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      sales: [420.50, 380.25, 510.75, 542.75, 625.30, 480.15, 285.80],
+      transactions: [29, 26, 35, 37, 42, 33, 19],
+      customers: [24, 22, 30, 31, 36, 28, 16]
+    }
+  },
+  performance: {},
+  pendingOtp: null,
+  gallery: []
+};
+
+// Reducer function
+function appReducer(state, action) {
+  switch (action.type) {
+    // Initialize app by loading data from localStorage or using dummy data
+    case 'INIT_APP': {
+      const storedData = loadFromStorage();
+      if (storedData) {
+        return {
+          ...state,
+          ...storedData,
+          isLoading: false
+        };
+      } else {
+        // Use dummy data for initial state
+        return {
+          ...state,
+          partnerCafes: dummyData.partnerCafes,
+          announcements: dummyData.announcements,
+          leaderboard: dummyData.leaderboard,
+          events: dummyData.events,
+          transactions: dummyData.transactions,
+          metrics: dummyData.metrics,
+          performance: dummyData.performance,
+          isLoading: false
+        };
+      }
+    }
+    
+    // User authentication
+    case 'LOGIN': {
+      const newState = {
+        ...state,
+        isAuthenticated: true,
+        user: action.payload
+      };
+      saveToStorage(newState);
+      return newState;
+    }
+    
+    case 'REGISTER': {
+      const newState = {
+        ...state,
+        isAuthenticated: true,
+        user: action.payload
+      };
+      saveToStorage(newState);
+      return newState;
+    }
+    
+    case 'LOGOUT': {
+      const newState = {
+        ...initialState,
+        isLoading: false,
+        partnerCafes: state.partnerCafes,
+        announcements: state.announcements,
+        leaderboard: state.leaderboard,
+        events: state.events,
+        transactions: state.transactions,
+        metrics: state.metrics,
+        performance: state.performance
+      };
+      saveToStorage(newState);
+      return newState;
+    }
+    
+    // Setup completion
+    case 'COMPLETE_SETUP': {
+      const newState = {
+        ...state,
+        setupCompleted: true,
+        cafeInfo: action.payload
+      };
+      saveToStorage(newState);
+      return newState;
+    }
+    
+    // OTP Generation for redemption
+    case 'GENERATE_OTP': {
+      const newState = {
+        ...state,
+        pendingOtp: action.payload
+      };
+      saveToStorage(newState);
+      return newState;
+    }
+    
+    // Process redemption
+    case 'PROCESS_REDEMPTION': {
+      const newTransaction = {
+        id: `txn-${Date.now()}`,
+        customerId: `cust-${action.payload.customerPhone.slice(-4)}`,
+        customerName: 'Customer',
+        amount: 0,
+        points: -100,
+        date: new Date().toISOString(),
+        type: 'redemption',
+        items: [action.payload.rewardType === 'free_coffee' ? 'Free Coffee Voucher' : 'Lunch Set Voucher']
+      };
+      
+      const newState = {
+        ...state,
+        pendingOtp: null,
+        transactions: [newTransaction, ...state.transactions]
+      };
+      saveToStorage(newState);
+      return newState;
+    }
+    
+    // Toggle cafe open/closed status
+    case 'TOGGLE_STATUS': {
+      const newState = {
+        ...state,
+        isOpen: !state.isOpen
+      };
+      saveToStorage(newState);
+      return newState;
+    }
+    
+    // OTP generation and verification
+    case 'UPDATE_PERFORMANCE': {
+      const newState = {
+        ...state,
+        pendingOtp: null,
+        transactions: [action.payload.transaction, ...state.transactions]
+      };
+      saveToStorage(newState);
+      return newState;
+    }
+    
+    // This case was removed as it was a duplicate of the earlier CLEAR_OTP case
+    
+    case 'UPDATE_METRICS': {
+      const newState = {
+        ...state,
+        metrics: {
+          ...state.metrics,
+          ...action.payload
+        }
+      };
+      saveToStorage(newState);
+      return newState;
+    }
+    
+    case 'VERIFY_OTP': {
+      if (state.pendingOtp && state.pendingOtp.code === action.payload.code) {
+        // Create new transaction for the redemption
+        const newTransaction = {
+          id: `txn-${Date.now()}`,
+          customerId: state.pendingOtp.customerId,
+          customerName: state.pendingOtp.customerName,
+          amount: 0,
+          points: -state.pendingOtp.points,
+          date: new Date().toISOString(),
+          type: 'redemption',
+          items: [action.payload.item]
+        };
+        
+        const newState = {
+          ...state,
+          pendingOtp: null,
+          transactions: [newTransaction, ...state.transactions]
+        };
+        saveToStorage(newState);
+        return newState;
+      }
+      return state;
+    }
+    
+    case 'CLEAR_OTP': {
+      const newState = {
+        ...state,
+        pendingOtp: null
+      };
+      saveToStorage(newState);
+      return newState;
+    }
+    
+    // Profile and gallery management
+    case 'UPDATE_PROFILE': {
+      const newState = {
+        ...state,
+        cafeInfo: {
+          ...state.cafeInfo,
+          ...action.payload
+        }
+      };
+      saveToStorage(newState);
+      return newState;
+    }
+    
+    case 'ADD_GALLERY_IMAGE': {
+      const newState = {
+        ...state,
+        gallery: [...state.gallery, action.payload]
+      };
+      saveToStorage(newState);
+      return newState;
+    }
+    
+    case 'REMOVE_GALLERY_IMAGE': {
+      const newState = {
+        ...state,
+        gallery: state.gallery.filter((_, index) => index !== action.payload)
+      };
+      saveToStorage(newState);
+      return newState;
+    }
+    
+    default:
+      return state;
+  }
+}
+
+// Provider component
+export function AppProvider({ children }) {
+  const [state, dispatch] = useReducer(appReducer, initialState);
+  
+  // Persist state to localStorage whenever it changes
+  useEffect(() => {
+    if (!state.isLoading) {
+      saveToStorage(state);
+    }
+  }, [state]);
+  
+  return (
+    <AppContext.Provider value={{ state, dispatch }}>
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+// Custom hook for using the context
+export function useAppContext() {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useAppContext must be used within an AppProvider');
+  }
+  return context;
+}
