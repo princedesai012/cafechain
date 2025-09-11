@@ -312,6 +312,30 @@ const HomePage = () => {
         </div>
       </motion.section>
 
+       {/* === Featured Cafes === */}
+      <motion.section className="py-20 bg-white" variants={sectionVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-6">Featured Partner Cafes</h2>
+            <p className="text-xl text-gray-600">Discover amazing coffee experiences in Vadodara</p>
+          </div>
+          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-8" variants={cardContainerVariants}>
+            {cafes.length > 0 ? (
+              cafes.map((cafe) => (
+                <motion.div key={cafe._id} variants={cardVariants}>
+                  <CafeCard cafe={cafe} onClick={() => (window.location.href = `/cafes/${cafe._id}`)} />
+                </motion.div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-center col-span-3">No cafes available at the moment.</p>
+            )}
+          </motion.div>
+          <div className="text-center mt-12">
+            <Link to="/cafes" className="px-8 py-4 bg-amber-600 text-white rounded-xl font-semibold hover:bg-amber-700 shadow-lg text-lg">See All Cafes</Link>
+          </div>
+        </div>
+      </motion.section>
+
       {/* === How It Works === */}
       <motion.section
         className="py-20 bg-gray-50"
@@ -359,29 +383,7 @@ const HomePage = () => {
 
 
 
-      {/* === Featured Cafes === */}
-      <motion.section className="py-20 bg-white" variants={sectionVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-6">Featured Partner Cafes</h2>
-            <p className="text-xl text-gray-600">Discover amazing coffee experiences in Vadodara</p>
-          </div>
-          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-8" variants={cardContainerVariants}>
-            {cafes.length > 0 ? (
-              cafes.map((cafe) => (
-                <motion.div key={cafe._id} variants={cardVariants}>
-                  <CafeCard cafe={cafe} onClick={() => (window.location.href = `/cafes/${cafe._id}`)} />
-                </motion.div>
-              ))
-            ) : (
-              <p className="text-gray-500 text-center col-span-3">No cafes available at the moment.</p>
-            )}
-          </motion.div>
-          <div className="text-center mt-12">
-            <Link to="/cafes" className="px-8 py-4 bg-amber-600 text-white rounded-xl font-semibold hover:bg-amber-700 shadow-lg text-lg">See All Cafes</Link>
-          </div>
-        </div>
-      </motion.section>
+     
 
       {/* === Recent Activity === */}
       <motion.section
