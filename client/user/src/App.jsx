@@ -23,6 +23,8 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import NotFoundPage from './pages/NotFoundPage';
 import axios from 'axios';
 import InvoiceHistoryPage from "./pages/InvoiceHistoryPage";
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage'; // ✅ Import the new page
+import TermsAndConditionsPage from './pages/TermsAndConditions'; // ✅ Import the new page
 
 // Protected Route
 const ProtectedRoute = ({ children }) => {
@@ -42,18 +44,15 @@ const ProtectedRoute = ({ children }) => {
 
 const Layout = () => {
   const location = useLocation();
-  const { isAuthenticated, token } = useAuth(); // <<<--- Get the token from the AuthContext
+  const { isAuthenticated, token } = useAuth();
   const [activePage, setActivePage] = useState('home');
   const navigate = useNavigate();
 
-  // THIS IS THE CRITICAL PART THAT YOU NEED TO ADD
-  // Set the Authorization header for all future Axios requests
   useEffect(() => {
     if (token) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`; // ✅ Fixed with backticks
     } else {
-        // If the user logs out or the token is null, remove the header
-        delete axios.defaults.headers.common['Authorization'];
+      delete axios.defaults.headers.common['Authorization'];
     }
   }, [token]);
 
@@ -82,12 +81,14 @@ const Layout = () => {
     location.pathname === '/welcome' ||
     location.pathname === '/verify-email';
 
+  // ✅ Include new policy page in known routes
   const isKnownRoute = () => {
     const p = location.pathname;
     const known = new Set([
       '/', '/welcome', '/login', '/signup', '/verify-email',
       '/forgot-password', '/verify-otp', '/reset-password',
-      '/home', '/cafes', '/rewards', '/claim-reward', '/leaderboard', '/profile'
+      '/home', '/cafes', '/rewards', '/claim-reward', '/leaderboard', '/profile',
+      '/privacy-policy'
     ]);
     if (known.has(p)) return true;
     if (p.startsWith('/cafes/')) return true;
@@ -119,6 +120,10 @@ const Layout = () => {
           <Route path="/signup" element={<SignupPage onNavigate={handleAuthNavigation} />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
 
+          {/* ✅ Policy page */}
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-and-conditions" element={<TermsAndConditionsPage/>} />
+
           {/* Forgot Password Flow */}
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/verify-otp" element={<VerifyOTPPage />} />
@@ -133,6 +138,7 @@ const Layout = () => {
           <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/invoice-history" element={<InvoiceHistoryPage />} />
+          
           {/* Catch-all */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
