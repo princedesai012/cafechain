@@ -1,15 +1,38 @@
-import { useState } from 'react';
-import { useAppContext } from '../../store/AppContext';
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { useAppContext } from "../../store/AppContext";
+import Loader from "../../components/Loader"; // ✅ Import loader
+
+// 🎨 Animation variants for cards (luxury floating effect)
+const luxuryBoxVariants = {
+  rest: { scale: 1, boxShadow: "0 4px 28px rgba(74,58,47,0.15)" },
+  hover: { scale: 1.04, boxShadow: "0 8px 48px rgba(74,58,47,0.3)" },
+  float: {
+    y: [0, -6, 0],
+    transition: { duration: 2, repeat: Infinity, repeatType: "loop", ease: "easeInOut" },
+  },
+};
 
 function ActivityLogPage() {
+  const navigate = useNavigate();
   const { state } = useAppContext();
-  // Use fallback empty array if transactions is undefined
+
+  const [isLoading, setIsLoading] = useState(true); // ✅ Loader state
+  const [timeFilter, setTimeFilter] = useState("today");
+
+  // ✅ Simulate initial load
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1000); // 1s loader
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) return <Loader />; // ✅ Show loader until ready
+
+  // ✅ Get transactions safely
   const transactions = Array.isArray(state.transactions) ? state.transactions : [];
 
-  const [timeFilter, setTimeFilter] = useState('today'); // 'today', 'week', 'month', 'all'
-  const [typeFilter, setTypeFilter] = useState('all'); // 'all', 'points', 'redemption', 'otp'
-
-  // Get current date for filtering
+  // Prepare date boundaries
   const currentDate = new Date();
   const today = new Date(currentDate.setHours(0, 0, 0, 0));
   const oneWeekAgo = new Date(today);
@@ -17,240 +40,87 @@ function ActivityLogPage() {
   const oneMonthAgo = new Date(today);
   oneMonthAgo.setMonth(today.getMonth() - 1);
 
-  // Filter transactions based on selected filters
-  const filteredTransactions = transactions.filter(transaction => {
+  // Filter transactions
+  const filteredTransactions = transactions.filter((transaction) => {
     const transactionDate = new Date(transaction.date);
-
-    // Apply time filter
-    if (timeFilter === 'today' && transactionDate < today) {
-      return false;
-    }
-    if (timeFilter === 'week' && transactionDate < oneWeekAgo) {
-      return false;
-    }
-    if (timeFilter === 'month' && transactionDate < oneMonthAgo) {
-      return false;
-    }
-
-    // Apply type filter
-    if (typeFilter !== 'all' && transaction.type !== typeFilter) {
-      return false;
-    }
-
+    if (timeFilter === "today" && transactionDate < today) return false;
+    if (timeFilter === "week" && transactionDate < oneWeekAgo) return false;
+    if (timeFilter === "month" && transactionDate < oneMonthAgo) return false;
     return true;
   });
 
-  // Sort transactions by date (newest first)
-  const sortedTransactions = filteredTransactions.length > 0
-    ? [...filteredTransactions].sort((a, b) => new Date(b.date) - new Date(a.date))
-    : [];
+  // Calculate points
+  const totalPointsEarned = filteredTransactions
+    .filter((t) => t.type === "points" && t.status === "completed")
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+  const totalPointsRedeemed = filteredTransactions
+    .filter((t) => t.type === "redeem" && t.status === "completed")
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Activity Log</h1>
+    <div className="relative min-h-screen bg-white px-6 md:px-10 py-12 md:py-14">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="absolute top-6 left-6 flex items-center gap-2 text-[#4a3a2f] hover:text-black transition text-base md:text-lg font-medium"
+      >
+        ← Back
+      </button>
 
-      {/* Filters */}
-      <div className="bg-white shadow rounded-lg p-6 mb-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-          <div className="mb-4 md:mb-0">
-            <h2 className="text-lg font-medium text-gray-900 mb-2">Filters</h2>
-            <p className="text-sm text-gray-500">View your cafe's transaction history</p>
-          </div>
-          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-            <div>
-              <label htmlFor="timeFilter" className="block text-sm font-medium text-gray-700 mb-1">
-                Time Period
-              </label>
-              <select
-                id="timeFilter"
-                value={timeFilter}
-                onChange={(e) => setTimeFilter(e.target.value)}
-                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
-              >
-                <option value="today">Today</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="all">All Time</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="typeFilter" className="block text-sm font-medium text-gray-700 mb-1">
-                Transaction Type
-              </label>
-              <select
-                id="typeFilter"
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
-              >
-                <option value="all">All Types</option>
-                <option value="points">Points Earned</option>
-                <option value="redemption">Redemptions</option>
-                <option value="otp">OTP Verifications</option>
-              </select>
-            </div>
-          </div>
-        </div>
+      {/* Page Title */}
+      <motion.h1
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        className="text-3xl md:text-5xl font-extrabold text-center text-[#4a3a2f] mb-12 md:mb-16 tracking-tight"
+      >
+        Activity Log – Points Summary
+      </motion.h1>
+
+      {/* Time Filter */}
+      <div className="max-w-md mx-auto mb-8 md:mb-12">
+        <label htmlFor="timeFilter" className="block text-sm font-medium text-[#4a3a2f] mb-2">
+          Time Period
+        </label>
+        <select
+          id="timeFilter"
+          value={timeFilter}
+          onChange={(e) => setTimeFilter(e.target.value)}
+          className="block w-full pl-4 pr-10 py-3 text-base border-[#4a3a2f]/40 focus:outline-none focus:ring-2 focus:ring-[#4a3a2f] focus:border-[#4a3a2f] sm:text-sm rounded-xl bg-white shadow"
+        >
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="month">This Month</option>
+          <option value="all">All Time</option>
+        </select>
       </div>
 
-      {/* Activity Log Table */}
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900">Transaction History</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Showing {sortedTransactions.length} {sortedTransactions.length === 1 ? 'transaction' : 'transactions'}
-            {timeFilter !== 'all' && ` from ${timeFilter === 'today' ? 'today' : timeFilter === 'week' ? 'this week' : 'this month'}`}
-          </p>
-        </div>
-        {sortedTransactions.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {sortedTransactions.map((transaction) => (
-                  <tr key={transaction.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(transaction.date).toLocaleDateString()} {transaction.time ? `at ${transaction.time}` : ''}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                          {transaction.customer?.name ? transaction.customer.name.charAt(0) : '?'}
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{transaction.customer?.name || 'Unknown'}</div>
-                          <div className="text-sm text-gray-500">{transaction.customer?.phone || '-'}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        transaction.type === 'points'
-                          ? 'bg-green-100 text-green-800'
-                          : transaction.type === 'redemption'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {transaction.type === 'points'
-                          ? 'Points Earned'
-                          : transaction.type === 'redemption'
-                          ? 'Redemption'
-                          : 'OTP Verification'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {transaction.type === 'points' ? (
-                        <span className="text-green-600">+{transaction.amount} points</span>
-                      ) : transaction.type === 'redemption' ? (
-                        <span className="text-blue-600">-{transaction.amount} points</span>
-                      ) : (
-                        <span>N/A</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        transaction.status === 'completed'
-                          ? 'bg-green-100 text-green-800'
-                          : transaction.status === 'pending'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {transaction.status
-                          ? transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)
-                          : 'Unknown'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="py-8 text-center text-gray-500">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <p className="mt-2">No transactions found for the selected filters.</p>
-            <p className="mt-1">Try changing your filters to see more results.</p>
-          </div>
-        )}
-      </div>
+      {/* Points Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 max-w-5xl mx-auto mt-16">
+        {/* Earned Points */}
+        <motion.div
+          whileHover="hover"
+          initial="rest"
+          animate="float"
+          variants={luxuryBoxVariants}
+          className="flex flex-col justify-center items-center bg-gradient-to-br from-[#fffaf5] to-[#e5d4c3] text-[#4a3a2f] rounded-3xl shadow-2xl p-10 md:p-14 h-60 md:h-60 border-[3px] border-[#4a3a2f]/30"
+        >
+          <p className="text-base md:text-lg font-medium opacity-90">Total Points Earned</p>
+          <h2 className="text-5xl md:text-7xl font-extrabold mt-6">{totalPointsEarned}</h2>
+        </motion.div>
 
-      {/* Activity Summary */}
-      <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Points Summary</h3>
-          <dl className="grid grid-cols-1 gap-x-4 gap-y-6">
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Total Points Earned</dt>
-              <dd className="mt-1 text-3xl font-semibold text-green-600">
-                {transactions
-                  .filter(t => t.type === 'points' && t.status === 'completed')
-                  .reduce((sum, t) => sum + (t.amount || 0), 0)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Total Points Redeemed</dt>
-              <dd className="mt-1 text-3xl font-semibold text-blue-600">
-                {transactions
-                  .filter(t => t.type === 'redemption' && t.status === 'completed')
-                  .reduce((sum, t) => sum + (t.amount || 0), 0)}
-              </dd>
-            </div>
-          </dl>
-        </div>
-
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Customer Activity</h3>
-          <dl className="grid grid-cols-1 gap-x-4 gap-y-6">
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Unique Customers</dt>
-              <dd className="mt-1 text-3xl font-semibold text-primary">
-                {new Set(transactions.map(t => t.customer?.id).filter(Boolean)).size}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Repeat Customers</dt>
-              <dd className="mt-1 text-3xl font-semibold text-primary">
-                {(() => {
-                  const customerCounts = transactions.reduce((acc, t) => {
-                    if (t.customer?.id) {
-                      acc[t.customer.id] = (acc[t.customer.id] || 0) + 1;
-                    }
-                    return acc;
-                  }, {});
-                  return Object.values(customerCounts).filter(count => count > 1).length;
-                })()}
-              </dd>
-            </div>
-          </dl>
-        </div>
-
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Transaction Breakdown</h3>
-          <dl className="grid grid-cols-1 gap-x-4 gap-y-6">
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Points Transactions</dt>
-              <dd className="mt-1 text-3xl font-semibold text-gray-900">
-                {transactions.filter(t => t.type === 'points').length}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Redemption Transactions</dt>
-              <dd className="mt-1 text-3xl font-semibold text-gray-900">
-                {transactions.filter(t => t.type === 'redemption').length}
-              </dd>
-            </div>
-          </dl>
-        </div>
+        {/* Redeemed Points */}
+        <motion.div
+          whileHover="hover"
+          initial="rest"
+          animate="float"
+          variants={luxuryBoxVariants}
+          className="flex flex-col justify-center items-center bg-gradient-to-br from-[#fffaf5] to-[#e5d4c3] text-[#4a3a2f] rounded-3xl shadow-2xl p-10 md:p-14 h-60 md:h-60 border-[3px] border-[#4a3a2f]/30"
+        >
+          <p className="text-base md:text-lg font-medium opacity-90">Total Points Redeemed</p>
+          <h2 className="text-5xl md:text-7xl font-extrabold mt-6">{totalPointsRedeemed}</h2>
+        </motion.div>
       </div>
     </div>
   );

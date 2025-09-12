@@ -1,263 +1,336 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppContext } from '../../store/AppContext';
 import { toast } from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, Gift, Award, Unlock, ChevronLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import Loader from '../../components/Loader'; // ✅ Import Loader
+
+// --- Color Palette ---
+const PRIMARY = '#4a3a2f';
+const ACCENT = '#d4af37';
+const LIGHT_GOLD = '#f0d98c';
 
 function RedemptionPage() {
   const { state, dispatch } = useAppContext();
   const { pendingOtp } = state;
-  
-  const [otpInput, setOtpInput] = useState('');
+  const navigate = useNavigate();
+
+  const [step, setStep] = useState('inputPhone');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [rewardType, setRewardType] = useState('free_coffee');
+  const [pointsToRedeem, setPointsToRedeem] = useState(0);
+  const [otpInput, setOtpInput] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // Generate a new OTP
-  const handleGenerateOtp = (e) => {
-    e.preventDefault();
-    
-    if (!customerPhone) {
-      toast.error('Please enter customer phone number');
-      return;
-    }
-    
-    // Generate a random 6-digit OTP
+  const [isLoading, setIsLoading] = useState(true); // ✅ Loader state
+
+  const customerPoints = 150;
+
+  // --- Loader logic ---
+  useEffect(() => {
+    // show loader for at least 800ms on mount
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) return <Loader />; // ✅ Show loader while page is loading
+
+  // --- Core Logic ---
+  const handleGenerateOtp = () => {
+    if (!customerPhone) return toast.error('Please enter customer mobile number');
+    if (pointsToRedeem <= 0 || pointsToRedeem > customerPoints)
+      return toast.error('Enter a valid points number to redeem');
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // Dispatch action to store OTP in context
     dispatch({
       type: 'GENERATE_OTP',
-      payload: {
-        otp,
-        customerPhone,
-        rewardType,
-        timestamp: new Date().toISOString()
-      }
+      payload: { otp, customerPhone, pointsToRedeem, timestamp: new Date().toISOString() },
     });
-    
-    toast.success(`OTP generated: ${otp}`);
+    toast.success('OTP generated successfully!');
+    setStep('verifyOtp');
   };
 
-  // Verify entered OTP
-  const handleVerifyOtp = (e) => {
-    e.preventDefault();
+  const handleVerifyOtp = () => {
+    if (!pendingOtp) return toast.error('No OTP generated');
+    if (otpInput !== pendingOtp.otp) return toast.error('Invalid OTP');
     setIsVerifying(true);
-    
-    // Simulate API verification delay
     setTimeout(() => {
-      if (!pendingOtp) {
-        toast.error('No pending OTP found. Please generate a new one.');
-        setIsVerifying(false);
-        return;
-      }
-      
-      // ✅ FIXED: use pendingOtp.otp instead of pendingOtp.code
-      if (otpInput === pendingOtp.otp) {
-        // Create a new transaction record
-        const transaction = {
-          id: `txn-${Date.now()}`,
-          type: 'redemption',
-          customerPhone: pendingOtp.customerPhone,
-          rewardType: pendingOtp.rewardType,
-          timestamp: new Date().toISOString(),
-          status: 'completed'
-        };
-        
-        // Dispatch action to verify OTP and record transaction
-        dispatch({
-          type: 'VERIFY_OTP',
-          payload: { transaction }
-        });
-        
-        toast.success('Redemption successful!');
-        setOtpInput('');
-        setCustomerPhone('');
-        setRewardType('free_coffee');
-      } else {
-        toast.error('Invalid OTP. Please try again.');
-      }
-      
+      const transaction = {
+        id: `txn-${Date.now()}`,
+        customerPhone: pendingOtp.customerPhone,
+        pointsRedeemed: pendingOtp.pointsToRedeem,
+        timestamp: new Date().toISOString(),
+        status: 'completed',
+      };
+      dispatch({ type: 'VERIFY_OTP', payload: { transaction } });
+      toast.success('Points successfully redeemed!');
+      setCustomerPhone('');
+      setPointsToRedeem(0);
+      setOtpInput('');
+      setStep('inputPhone');
       setIsVerifying(false);
-    }, 1000);
+      dispatch({ type: 'CLEAR_OTP' });
+    }, 1200);
   };
 
-  // Clear pending OTP
-  const handleClearOtp = () => {
-    dispatch({ type: 'CLEAR_OTP' });
-    toast.success('OTP cleared');
-    setOtpInput('');
+  const handleBack = () => navigate(-1);
+  const handleFormBack = () => {
+    if (step === 'verifyOtp') {
+      setStep('inputPhone');
+      dispatch({ type: 'CLEAR_OTP' });
+      setOtpInput('');
+    }
   };
+
+  // --- Framer Motion Variants ---
+  const formVariants = {
+    initial: { opacity: 0, y: 50 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.7, ease: 'easeOut' } },
+    exit: { opacity: 0, y: -20, transition: { duration: 0.3, ease: 'easeIn' } },
+  };
+
+  const features = [
+    { icon: Gift, text: "Exclusive Rewards" },
+    { icon: Award, text: "Premium Catalog" },
+    { icon: Sparkles, text: "Instant Redemption" },
+  ];
+
+  const buttonHover = { scale: 1.05, boxShadow: `0 0 20px ${ACCENT}` };
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Reward Redemption</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Generate OTP Section */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Generate OTP</h2>
-          <form onSubmit={handleGenerateOtp}>
-            <div className="mb-4">
-              <label htmlFor="customerPhone" className="block text-sm font-medium text-gray-700 mb-1">
-                Customer Phone
-              </label>
-              <input
-                type="tel"
-                id="customerPhone"
-                className="input"
-                placeholder="Enter customer phone"
-                value={customerPhone}
-                onChange={(e) => setCustomerPhone(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="mb-6">
-              <label htmlFor="rewardType" className="block text-sm font-medium text-gray-700 mb-1">
-                Reward Type
-              </label>
-              <select
-                id="rewardType"
-                className="input"
-                value={rewardType}
-                onChange={(e) => setRewardType(e.target.value)}
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[#1e1c1b] font-sans">
+      {/* Left Panel: Luxury Branding - Desktop View */}
+      <div
+        className="hidden lg:flex lg:flex-1 relative items-center justify-center p-8 overflow-hidden"
+        style={{ backgroundColor: PRIMARY }}
+      >
+        <motion.div
+          className="relative z-10 text-center text-white p-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <h1 className="text-5xl font-serif font-extrabold tracking-wide mb-4">
+            The Rewards Vault
+          </h1>
+          <p className="text-lg mb-8 leading-relaxed opacity-80">
+            Unlock a world of exclusive experiences and premium rewards.
+          </p>
+          <div className="space-y-6 max-w-sm mx-auto">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                className="flex items-center space-x-4"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 + index * 0.15 }}
               >
-                <option value="free_coffee">Free Coffee</option>
-                <option value="discount_10">10% Discount</option>
-                <option value="discount_20">20% Discount</option>
-                <option value="free_pastry">Free Pastry</option>
-              </select>
-            </div>
-            
-            <div className="flex justify-between">
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={!!pendingOtp}
-              >
-                Generate OTP
-              </button>
-              
-              {pendingOtp && (
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  onClick={handleClearOtp}
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center border-2"
+                  style={{ borderColor: ACCENT }}
                 >
-                  Clear OTP
-                </button>
-              )}
-            </div>
-          </form>
-        </div>
-        
-        {/* Verify OTP Section */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Verify OTP</h2>
-          
-          {pendingOtp ? (
-            <div>
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md">
-                <p className="text-sm text-green-800">
-                  <span className="font-medium">Active OTP:</span> {pendingOtp.otp}
-                </p>
-                <p className="text-sm text-green-800 mt-1">
-                  <span className="font-medium">Customer:</span> {pendingOtp.customerPhone}
-                </p>
-                <p className="text-sm text-green-800 mt-1">
-                  <span className="font-medium">Reward:</span> {pendingOtp.rewardType.replace('_', ' ')}
-                </p>
-                <p className="text-xs text-green-600 mt-2">
-                  Generated at: {new Date(pendingOtp.timestamp).toLocaleTimeString()}
-                </p>
-              </div>
-              
-              <form onSubmit={handleVerifyOtp}>
-                <div className="mb-6">
-                  <label htmlFor="otpInput" className="block text-sm font-medium text-gray-700 mb-1">
-                    Enter OTP
-                  </label>
-                  <input
-                    type="text"
-                    id="otpInput"
-                    className="input text-center text-2xl tracking-widest"
-                    placeholder="Enter 6-digit OTP"
-                    value={otpInput}
-                    onChange={(e) => setOtpInput(e.target.value)}
-                    maxLength={6}
-                    required
-                  />
+                  <feature.icon className="w-6 h-6" style={{ color: ACCENT }} />
                 </div>
-                
-                <button
-                  type="submit"
-                  className="btn btn-primary w-full"
-                  disabled={isVerifying || otpInput.length !== 6}
-                >
-                  {isVerifying ? 'Verifying...' : 'Verify & Complete Redemption'}
-                </button>
-              </form>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              <p className="mt-4 text-gray-500">No active OTP. Generate one to proceed with redemption.</p>
-            </div>
-          )}
-        </div>
+                <span className="text-lg font-semibold">{feature.text}</span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+        {/* Background Overlay */}
+        <div
+          className="absolute inset-0 z-0 opacity-20"
+          style={{
+            backgroundImage: `url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g fill="${ACCENT.replace('#', '%23')}" opacity="0.1"><path d="M0 0h100v100H0z"/><path d="M100 0L50 50L0 0h100zM0 100l50-50L100 100H0z"/></g></svg>')`,
+            backgroundSize: '30px 30px',
+          }}
+        ></div>
       </div>
       
-      {/* Recent Redemptions */}
-      <div className="mt-8 bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Recent Redemptions</h2>
-        
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reward</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {state.transactions
-                .filter(t => t.type === 'redemption')
-                .slice(0, 5)
-                .map((transaction, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(transaction.timestamp).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {transaction.customerPhone}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {transaction.rewardType.replace('_', ' ')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        {transaction.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-                
-              {state.transactions.filter(t => t.type === 'redemption').length === 0 && (
-                <tr>
-                  <td colSpan="4" className="px-6 py-4 text-sm text-center text-gray-500">
-                    No redemption records found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* Right Panel: The Redemption Form */}
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 bg-gradient-to-br from-white to-[#fcfaf7]">
+        <motion.div
+          className="w-full max-w-xl bg-white rounded-3xl shadow-2xl p-8 lg:p-12 flex flex-col gap-8 border-2"
+          style={{ borderColor: LIGHT_GOLD }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Back button is now always visible */}
+          <motion.button
+            onClick={handleBack}
+            whileHover={{ scale: 1.05 }}
+            className="self-start text-lg font-semibold flex items-center gap-2 mb-4"
+            style={{ color: PRIMARY }}
+          >
+            <ChevronLeft size={20} /> Back
+          </motion.button>
+
+          <AnimatePresence mode="wait">
+            {step === 'inputPhone' && (
+              <motion.form
+                key="phoneStep"
+                variants={formVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleGenerateOtp();
+                }}
+                className="flex flex-col gap-6"
+              >
+                <h2
+                  className="text-3xl lg:text-4xl font-serif font-bold text-center mb-4"
+                  style={{ color: PRIMARY }}
+                >
+                  Redeem Your Points
+                </h2>
+                <p className="text-center text-gray-600 mb-6">
+                  Enter your details to generate a secure OTP.
+                </p>
+
+                <label className="block text-gray-700 font-medium text-lg">
+                  Customer Mobile Number
+                  <input
+                    type="tel"
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="+1 234 567 8901"
+                    className="mt-2 w-full rounded-xl border border-gray-300 p-4 text-lg shadow-md focus:outline-none transition duration-300"
+                    style={{
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                      borderColor: LIGHT_GOLD,
+                      transition: 'all 0.3s ease',
+                    }}
+                    onFocus={(e) => (e.target.style.boxShadow = `0 0 0 4px ${ACCENT}30`)}
+                    onBlur={(e) => (e.target.style.boxShadow = '0 4px 15px rgba(0,0,0,0.05)')}
+                    required
+                  />
+                </label>
+
+                <label className="block text-gray-700 font-medium text-lg">
+                  Points to Redeem (Available: {customerPoints})
+                  <input
+                    type="number"
+                    min={1}
+                    max={customerPoints}
+                    value={pointsToRedeem}
+                    onChange={(e) => setPointsToRedeem(Number(e.target.value))}
+                    placeholder="Enter points"
+                    className="mt-2 w-full rounded-xl border border-gray-300 p-4 text-lg shadow-md focus:outline-none transition duration-300"
+                    style={{
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                      borderColor: LIGHT_GOLD,
+                      transition: 'all 0.3s ease',
+                    }}
+                    onFocus={(e) => (e.target.style.boxShadow = `0 0 0 4px ${ACCENT}30`)}
+                    onBlur={(e) => (e.target.style.boxShadow = '0 4px 15px rgba(0,0,0,0.05)')}
+                    required
+                  />
+                </label>
+
+                <motion.button
+                  type="submit"
+                  className="bg-primary text-white font-bold py-4 rounded-2xl shadow-lg transition duration-300"
+                  style={{ backgroundColor: PRIMARY, transition: 'all 0.3s ease' }}
+                  whileHover={buttonHover}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Generate OTP
+                </motion.button>
+              </motion.form>
+            )}
+
+            {step === 'verifyOtp' && pendingOtp && (
+              <motion.div
+                key="verifyStep"
+                variants={formVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="flex flex-col gap-6"
+              >
+                {/* Internal form back button */}
+                <motion.button
+                  onClick={handleFormBack}
+                  whileHover={{ scale: 1.05 }}
+                  className="self-start text-lg font-semibold flex items-center gap-2"
+                  style={{ color: PRIMARY }}
+                >
+                  <Unlock size={20} /> Back
+                </motion.button>
+
+                <h2
+                  className="text-3xl lg:text-4xl font-serif font-bold text-center mb-4"
+                  style={{ color: PRIMARY }}
+                >
+                  Verify OTP
+                </h2>
+                <p className="text-center text-gray-600 mb-6">
+                  A verification code has been sent to your mobile.
+                </p>
+
+                <motion.div
+                  className="bg-white p-6 rounded-2xl border-2 shadow-inner"
+                  style={{ borderColor: ACCENT }}
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1, transition: { delay: 0.2 } }}
+                >
+                  <p className="text-lg font-semibold" style={{ color: PRIMARY }}>
+                    OTP sent to: <span className="font-mono">{pendingOtp.customerPhone}</span>
+                  </p>
+                  <p className="text-md mt-2 text-gray-600">
+                    Points to redeem: <span className="font-semibold" style={{ color: PRIMARY }}>{pendingOtp.pointsToRedeem}</span>
+                  </p>
+                </motion.div>
+
+                <motion.form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleVerifyOtp();
+                  }}
+                  className="flex flex-col gap-4"
+                >
+                  <label className="block text-gray-700 font-medium text-lg">
+                    Enter OTP
+                    <input
+                      type="text"
+                      maxLength={6}
+                      value={otpInput}
+                      onChange={(e) => setOtpInput(e.target.value)}
+                      placeholder="• • • • • •"
+                      className="mt-2 w-full rounded-2xl border border-gray-300 p-5 text-3xl text-center font-mono tracking-widest shadow-md focus:outline-none transition duration-300"
+                      style={{
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                        borderColor: LIGHT_GOLD,
+                        transition: 'all 0.3s ease',
+                      }}
+                      onFocus={(e) => (e.target.style.boxShadow = `0 0 0 4px ${ACCENT}30`)}
+                      onBlur={(e) => (e.target.style.boxShadow = '0 4px 15px rgba(0,0,0,0.05)')}
+                      required
+                      inputMode="numeric"
+                      pattern="\d{6}"
+                    />
+                  </label>
+
+                  <motion.button
+                    type="submit"
+                    disabled={isVerifying || otpInput.length !== 6}
+                    className={`w-full py-4 rounded-2xl font-bold text-white shadow-lg transition duration-300`}
+                    style={{ backgroundColor: isVerifying || otpInput.length !== 6 ? 'gray' : PRIMARY }}
+                    whileHover={!(isVerifying || otpInput.length !== 6) && buttonHover}
+                    whileTap={{ scale: 0.98 }}
+                    aria-busy={isVerifying}
+                  >
+                    {isVerifying ? 'Verifying...' : 'Verify & Redeem'}
+                  </motion.button>
+                </motion.form>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
     </div>
   );
-}  
+}
 
 export default RedemptionPage;

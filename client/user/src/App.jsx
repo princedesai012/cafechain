@@ -25,6 +25,7 @@ import axios from 'axios';
 import InvoiceHistoryPage from "./pages/InvoiceHistoryPage";
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage'; // ✅ Import the new page
 import TermsAndConditionsPage from './pages/TermsAndConditions'; // ✅ Import the new page
+import PointHistoryPage from './pages/Pointhistory';
 
 // Protected Route
 const ProtectedRoute = ({ children }) => {
@@ -138,6 +139,7 @@ const Layout = () => {
           <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/invoice-history" element={<InvoiceHistoryPage />} />
+           <Route path="/points-history" element={<PointHistoryPage/>} />
           
           {/* Catch-all */}
           <Route path="*" element={<NotFoundPage />} />

@@ -14,10 +14,8 @@ import FirstTimeSetup from './pages/setup/FirstTimeSetup'
 import Dashboard from './pages/dashboard/Dashboard'
 import MetricsPage from './pages/dashboard/MetricsPage'
 import RedemptionPage from './pages/dashboard/RedemptionPage'
-import LeaderboardPage from './pages/dashboard/LeaderboardPage'
 import AdsEventsPage from './pages/dashboard/AdsEventsPage'
 import ActivityLogPage from './pages/dashboard/ActivityLogPage'
-import PerformancePage from './pages/dashboard/PerformancePage'
 import ProfileGalleryPage from './pages/dashboard/ProfileGalleryPage'
 
 // Components
@@ -54,7 +52,7 @@ function App() {
           } />
           
           <Route path="/setup" element={
-            <ProtectedRoute requireSetup={false}>
+            <ProtectedRoute requireSetup={true}>
               <FirstTimeSetup />
             </ProtectedRoute>
           } />
@@ -77,11 +75,7 @@ function App() {
             </ProtectedRoute>
           } />
           
-          <Route path="/dashboard/leaderboard" element={
-            <ProtectedRoute requireSetup={true}>
-              <LeaderboardPage />
-            </ProtectedRoute>
-          } />
+         
           
           <Route path="/dashboard/ads-events" element={
             <ProtectedRoute requireSetup={true}>
@@ -95,11 +89,7 @@ function App() {
             </ProtectedRoute>
           } />
           
-          <Route path="/dashboard/performance" element={
-            <ProtectedRoute requireSetup={true}>
-              <PerformancePage />
-            </ProtectedRoute>
-          } />
+          
           
           <Route path="/dashboard/profile" element={
             <ProtectedRoute requireSetup={true}>

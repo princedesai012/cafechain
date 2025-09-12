@@ -1,162 +1,287 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../store/AppContext';
 import LeaderboardWidget from '../components/LeaderboardWidget';
+import { motion } from 'framer-motion';
+import Loader from '../components/Loader'; // ✅ import Loader
+
+const BACKGROUND = '#f9f7f4';
+const CARD_BG = '#ede7e1';
+const TEXT_DARK = '#2f2a26';
+const ACCENT = '#6b4f3f';
+const SUBTLE_TEXT = '#7d746d';
+
+const fadeIn = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } },
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const itemFadeIn = {
+  hidden: { opacity: 0, y: 15 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
+
+const StyledCard = ({ children, className = '' }) => (
+  <motion.div
+    variants={itemFadeIn}
+    className={`rounded-2xl shadow-xl transition-all duration-300 ${className}`}
+    style={{
+      background: `linear-gradient(145deg, ${CARD_BG}, ${BACKGROUND})`,
+      border: `1px solid ${SUBTLE_TEXT}30`,
+      boxShadow:
+        '0 5px 20px rgba(0,0,0,0.05), inset 0 1px 1px rgba(255,255,255,0.5)',
+    }}
+  >
+    {children}
+  </motion.div>
+);
 
 function Home() {
   const { state } = useAppContext();
   const { isAuthenticated, setupCompleted, cafeInfo, announcements, partnerCafes } = state;
 
-  // If not authenticated, show landing page
+  const [isLoading, setIsLoading] = useState(true); // ✅ loader state
+
+  // ✅ simulate initial data loading
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1200); // 1.2s loader
+    return () => clearTimeout(timer);
+  }, []);
+
+  // ✅ Show loader if still loading
+  if (isLoading) return <Loader />;
+
   if (!isAuthenticated) {
     return (
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl md:text-6xl" tabIndex="0">
-            <span className="block">Welcome to</span>
-            <span className="block text-primary">CafeChain</span>
+      <div
+        className="min-h-screen flex items-center justify-center relative p-8"
+        style={{ background: BACKGROUND, fontFamily: '"Poppins", sans-serif', color: TEXT_DARK }}
+      >
+        <motion.div
+          variants={fadeIn}
+          initial="hidden"
+          animate="visible"
+          className="text-center max-w-4xl mx-auto z-10"
+        >
+          <h1 className="text-8xl font-extralight leading-tight tracking-widest uppercase">
+            Cafe<span className="font-bold text-9xl" style={{ color: ACCENT }}>Chain</span>
           </h1>
-          <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-            Connect your cafe to our network and grow your business with our loyalty program.
+          <p
+            className="mt-8 text-xl font-light max-w-xl mx-auto leading-relaxed"
+            style={{ color: SUBTLE_TEXT }}
+          >
+            Elevating cafe loyalty and community. Connect your cafe to a network of premium hospitality.
           </p>
-          <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
-            <div className="rounded-md shadow w-full sm:w-auto">
+          <div className="mt-16 flex justify-center gap-6">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
                 to="/auth/register"
-                className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90 md:py-4 md:text-lg md:px-10"
-                aria-label="Register for CafeChain"
+                className="px-10 py-4 text-lg font-medium rounded-full transition-all duration-300 shadow-lg hover:shadow-2xl"
+                style={{ background: ACCENT, color: 'white' }}
               >
-                Get started
+                Join the network
               </Link>
-            </div>
-            <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3 w-full sm:w-auto">
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
                 to="/auth/login"
-                className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
-                aria-label="Sign in to CafeChain"
+                className="px-10 py-4 text-lg font-medium rounded-full transition-all duration-300 border hover:text-white"
+                style={{ borderColor: TEXT_DARK, color: TEXT_DARK }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = TEXT_DARK;
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = TEXT_DARK;
+                }}
               >
                 Sign in
               </Link>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
-  // If authenticated but setup not completed, show setup CTA
   if (isAuthenticated && !setupCompleted) {
     return (
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            Complete Your Setup
-          </h1>
-          <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl">
-            You're almost there! Complete your cafe profile to get started.
-          </p>
-          <div className="mt-5 max-w-md mx-auto">
-            <Link
-              to="/setup"
-              className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90 md:py-4 md:text-lg md:px-10"
-            >
-              Set up your cafe
-            </Link>
-          </div>
-        </div>
+      <div
+        className="min-h-screen flex items-center justify-center relative p-8"
+        style={{ background: BACKGROUND, fontFamily: '"Poppins", sans-serif', color: TEXT_DARK }}
+      >
+        <motion.div
+          variants={fadeIn}
+          initial="hidden"
+          animate="visible"
+          className="text-center max-w-xl mx-auto z-10"
+        >
+          <StyledCard className="p-16">
+            <h1 className="text-4xl font-semibold mb-6">Complete Your Profile</h1>
+            <p className="text-lg mb-10" style={{ color: SUBTLE_TEXT }}>
+              Your journey starts here. Finish setting up your cafe profile to begin.
+            </p>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Link
+                to="/setup"
+                className="inline-block px-12 py-4 rounded-full text-lg font-medium transition-all duration-300 shadow-lg hover:shadow-2xl"
+                style={{ background: TEXT_DARK, color: 'white' }}
+              >
+                Go to Setup
+              </Link>
+            </motion.div>
+          </StyledCard>
+        </motion.div>
       </div>
     );
   }
 
-  // If authenticated and setup completed, show dashboard home
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      {/* Welcome section */}
-      <div className="bg-white shadow rounded-lg mb-6 p-4 sm:p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              Welcome back, {cafeInfo?.name}!
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Here's what's happening in your cafe network today.
-            </p>
-          </div>
-        </div>
-      </div>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={staggerContainer}
+      className="min-h-screen p-8 lg:p-16"
+      style={{ background: BACKGROUND, fontFamily: '"Poppins", sans-serif', color: TEXT_DARK }}
+    >
+      <div className="max-w-7xl mx-auto">
+        <motion.div variants={fadeIn} className="mb-12">
+          <h2 className="text-4xl lg:text-5xl font-extralight tracking-wide drop-shadow-lg">
+            Welcome back, <span className="font-bold">{cafeInfo?.name}</span>
+          </h2>
+          <p className="mt-3 text-lg font-light" style={{ color: SUBTLE_TEXT }}>
+            Your hub for connection and growth within the CafeChain network.
+          </p>
+        </motion.div>
 
-
-      {/* Main content */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Announcements */}
-        <div className="lg:col-span-2">
-          <div className="bg-white shadow rounded-lg p-4 sm:p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          <StyledCard className="lg:col-span-2 p-10">
+            <h3
+              className="text-2xl font-semibold mb-6 pb-3 border-b"
+              style={{ borderColor: SUBTLE_TEXT }}
+            >
               Announcements
             </h3>
-            <div className="space-y-4">
+            <div className="space-y-6 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
               {announcements.length > 0 ? (
                 announcements.map((announcement) => (
-                  <div key={announcement.id} className="border-l-4 border-primary pl-4 py-2">
+                  <motion.article
+                    key={announcement.id}
+                    variants={itemFadeIn}
+                    className="p-5 rounded-lg transition-all duration-300"
+                    style={{
+                      background: BACKGROUND,
+                      boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)',
+                    }}
+                  >
                     <div className="flex justify-between items-start">
-                      <h4 className="text-base font-medium text-gray-900">{announcement.title}</h4>
-                      <span className="text-xs text-gray-500">
+                      <h4 className="text-lg font-semibold">{announcement.title}</h4>
+                      <time className="text-sm font-light" style={{ color: SUBTLE_TEXT }}>
                         {new Date(announcement.date).toLocaleDateString()}
-                      </span>
+                      </time>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{announcement.content}</p>
+                    <p className="mt-2 font-light" style={{ color: SUBTLE_TEXT }}>
+                      {announcement.content}
+                    </p>
                     {announcement.priority === 'high' && (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 mt-2">
+                      <span
+                        className="inline-block mt-3 px-3 py-1 rounded-full text-white font-bold text-xs shadow-md tracking-wide"
+                        style={{ background: '#9b2c2c' }}
+                      >
                         Important
                       </span>
                     )}
-                  </div>
+                  </motion.article>
                 ))
               ) : (
-                <p className="text-gray-500">No announcements at this time.</p>
+                <p className="italic" style={{ color: SUBTLE_TEXT }}>
+                  No announcements at this time.
+                </p>
               )}
             </div>
-          </div>
-        </div>
+          </StyledCard>
 
-        {/* Leaderboard */}
-        <div>
-          <LeaderboardWidget />
-        </div>
+          <StyledCard className="p-8 flex flex-col items-center justify-center">
+            <LeaderboardWidget />
+          </StyledCard>
 
-        {/* Partner Cafes */}
-        <div className="lg:col-span-3">
-          <div className="bg-white shadow rounded-lg p-4 sm:p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4" tabIndex="0">
+          <StyledCard className="lg:col-span-3 p-10">
+            <h3
+              className="text-2xl font-semibold mb-6 pb-3 border-b"
+              style={{ borderColor: SUBTLE_TEXT }}
+            >
               Partner Cafes
             </h3>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {partnerCafes.map((cafe) => (
-                <div key={cafe.id} className="border rounded-lg p-4 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left">
-                  <img 
-                    src={cafe.logo} 
-                    alt={`${cafe.name} logo`} 
-                    className="h-12 w-12 rounded-full"
+                <motion.article
+                  key={cafe.id}
+                  variants={itemFadeIn}
+                  whileHover={{
+                    scale: 1.03,
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                    y: -5,
+                  }}
+                  className="rounded-xl p-6 flex items-center transition-transform duration-300 cursor-pointer"
+                  style={{
+                    background: BACKGROUND,
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                    border: `1px solid ${BACKGROUND}`,
+                  }}
+                >
+                  <img
+                    src={cafe.logo}
+                    alt={`${cafe.name} logo`}
+                    className="h-14 w-14 rounded-full object-cover shadow-lg"
+                    style={{ border: `2px solid ${ACCENT}` }}
                   />
-                  <div className="mt-3 sm:mt-0 sm:ml-4">
-                    <h4 className="text-base font-medium text-gray-900">{cafe.name}</h4>
-                    <p className="text-sm text-gray-600">{cafe.address}</p>
-                    <div className="flex flex-col sm:flex-row items-center sm:items-center mt-1">
-                      <span className="text-xs text-gray-500">
-                        Rating: {cafe.rating}/5
+                  <div className="ml-6">
+                    <h4 className="text-lg font-semibold">{cafe.name}</h4>
+                    <p className="text-sm mt-1" style={{ color: SUBTLE_TEXT }}>
+                      {cafe.address}
+                    </p>
+                    <div
+                      className="flex items-center mt-3 text-sm font-medium"
+                      style={{ color: SUBTLE_TEXT }}
+                    >
+                      <span>
+                        Rating: <strong style={{ color: ACCENT }}>{cafe.rating}</strong>/5
                       </span>
-                      <span className="hidden sm:block mx-2 text-gray-300">|</span>
-                      <span className="text-xs text-gray-500 mt-1 sm:mt-0">
+                      <span className="mx-2 text-gray-400">•</span>
+                      <span>
                         Joined: {new Date(cafe.joinedDate).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
-                </div>
+                </motion.article>
               ))}
             </div>
-          </div>
+          </StyledCard>
         </div>
       </div>
-    </div>
+      <style>
+        {`
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            background: transparent;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: ${ACCENT};
+            border-radius: 8px;
+            border: 2px solid ${BACKGROUND};
+          }
+        `}
+      </style>
+    </motion.div>
   );
 }
 

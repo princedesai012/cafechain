@@ -1,161 +1,173 @@
-import { Link } from 'react-router-dom';
-import { useAppContext } from '../../store/AppContext';
-import StatusToggle from '../../components/StatusToggle';
-import Card from '../../components/Card';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useAppContext } from "../../store/AppContext";
+import StatusToggle from "../../components/StatusToggle";
+import Loader from "../../components/Loader"; // ✅ Import Loader
 
 function Dashboard() {
   const { state } = useAppContext();
   const { cafeInfo, metrics } = state;
 
+  const [isLoading, setIsLoading] = useState(true); // ✅ Loader state
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1000); // Simulate loading
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) return <Loader />; // ✅ Show loader while loading
+
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      {/* Dashboard Header */}
-      <div className="bg-white shadow rounded-lg mb-6 p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-          <div className="flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left">
-            <img
-              src={cafeInfo?.logo || 'https://placehold.co/100x100?text=Cafe'}
-              alt={`${cafeInfo?.name || 'Cafe'} logo`}
-              className="h-16 w-16 rounded-full"
-            />
-            <div className="mt-3 sm:mt-0 sm:ml-4">
-              <h2 className="text-2xl font-bold text-gray-900">{cafeInfo?.name}</h2>
-              <p className="text-sm text-gray-500">{cafeInfo?.address}</p>
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="max-w-6xl mx-auto py-6 px-3 sm:px-6 lg:px-8">
+        {/* Dashboard Header */}
+        <header className="bg-white shadow-lg rounded-2xl mb-6 p-6 transition-all duration-300 hover:shadow-2xl">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+
+            {/* Cafe Info */}
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <img
+                  src={cafeInfo?.logo || "https://placehold.co/80x80?text=Cafe"}
+                  alt={`${cafeInfo?.name || "Cafe"} logo`}
+                  className="h-20 w-20 rounded-full ring-2 ring-[#4a3a2f]/30 shadow-md"
+                />
+              </div>
+              <div>
+                <h1 className="text-3xl font-extrabold text-[#4a3a2f] leading-snug">
+                  {cafeInfo?.name}
+                </h1>
+                <p className="text-sm text-gray-600 mt-1">{cafeInfo?.address}</p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto items-start sm:items-center">
+              <div className="bg-gray-100 p-2 rounded-lg shadow-inner">
+                <StatusToggle />
+              </div>
+              <Link
+                to="/dashboard/profile"
+                className="bg-[#4a3a2f] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#3d312a] transition-colors duration-200 shadow-md hover:shadow-lg text-center transform hover:-translate-y-1"
+              >
+                Profile & Settings
+              </Link>
             </div>
           </div>
-          <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row items-center w-full sm:w-auto">
-            <StatusToggle />
-            <Link
-              to="/dashboard/profile"
-              className="mt-3 sm:mt-0 sm:ml-4 btn btn-outline w-full sm:w-auto text-center"
-            >
-              Profile & Settings
-            </Link>
+        </header>
+
+        {/* Quick Stats */}
+        <section aria-labelledby="overview-heading" className="mb-8 animate-fade-in-up">
+          <h2 id="overview-heading" className="text-2xl font-bold text-[#4a3a2f] mb-4">
+            Today's Overview
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Sales */}
+            <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-emerald-500 transform hover:rotate-1 hover:scale-[1.02] transition-all duration-300">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                Total Sales
+              </p>
+              <p className="text-3xl font-bold text-[#4a3a2f]">
+                ${metrics?.daily?.sales.toFixed(2)}
+              </p>
+              <span className="inline-block mt-2 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">
+                +12% today
+              </span>
+            </article>
+
+            {/* Customers */}
+            <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-blue-500 transform hover:rotate-1 hover:scale-[1.02] transition-all duration-300">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                New Customers
+              </p>
+              <p className="text-3xl font-bold text-[#4a3a2f]">
+                {metrics?.daily?.newCustomers}
+              </p>
+              <span className="inline-block mt-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
+                +5 new
+              </span>
+            </article>
+
+            {/* Redemptions */}
+            <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-purple-500 transform hover:rotate-1 hover:scale-[1.02] transition-all duration-300">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                Redemptions
+              </p>
+              <p className="text-3xl font-bold text-[#4a3a2f]">
+                {metrics?.daily?.redemptions}
+              </p>
+              <span className="inline-block mt-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
+                Active
+              </span>
+            </article>
           </div>
-        </div>
+        </section>
+
+        {/* Quick Actions */}
+        <section aria-labelledby="actions-heading" className="animate-fade-in-up">
+          <h2 id="actions-heading" className="text-2xl font-bold text-[#4a3a2f] mb-4">
+            Quick Actions
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {/* Metrics */}
+            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300">
+              <Link to="/dashboard/metrics" className="block p-5">
+                <div className="p-3 rounded-lg bg-gradient-to-br from-[#4a3a2f] to-[#3d312a] mb-3 w-fit group-hover:rotate-6 transition-transform">
+                  {/* Chart Icon */}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19V10M6 19V4M16 19v-7M21 19V8" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-[#4a3a2f] mb-1">Metrics</h3>
+                <p className="text-sm text-gray-600">View detailed sales and customer metrics</p>
+              </Link>
+            </article>
+
+            {/* Redemption */}
+            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300">
+              <Link to="/dashboard/redemption" className="block p-5">
+                <div className="p-3 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 mb-3 w-fit group-hover:rotate-6 transition-transform">
+                  {/* Gift Icon */}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7m16 0H4m16 0a2 2 0 01-2-2h-3.5a1.5 1.5 0 01-1.5-1.5V7m-8 5a2 2 0 002-2V7m0 0a2 2 0 114 0v3a2 2 0 002 2m-6-5a2 2 0 11-4 0" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-[#4a3a2f] mb-1">Redemption</h3>
+                <p className="text-sm text-gray-600">Process customer reward redemptions</p>
+              </Link>
+            </article>
+
+            {/* Ads & Events */}
+            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300">
+              <Link to="/dashboard/ads-events" className="block p-5">
+                <div className="p-3 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 mb-3 w-fit group-hover:rotate-6 transition-transform">
+                  {/* Megaphone Icon */}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5l6-2v14l-6-2M5 8v8a2 2 0 002 2h2l3 3V5L9 2H7a2 2 0 00-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-[#4a3a2f] mb-1">Ads & Events</h3>
+                <p className="text-sm text-gray-600">Manage promotions and special events</p>
+              </Link>
+            </article>
+
+            {/* Activity */}
+            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300">
+              <Link to="/dashboard/activity" className="block p-5">
+                <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 mb-3 w-fit group-hover:rotate-6 transition-transform">
+                  {/* Clock Icon */}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-[#4a3a2f] mb-1">Activity Log</h3>
+                <p className="text-sm text-gray-600">View recent transactions and activities</p>
+              </Link>
+            </article>
+          </div>
+        </section>
       </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" role="region" aria-label="Quick Statistics">
-        <div className="bg-white shadow rounded-lg p-4">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 p-3 rounded-md bg-primary/10">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">All Sales</p>
-              <p className="text-lg font-semibold text-gray-900">${metrics?.daily?.sales.toFixed(2)}</p>
-            </div>
-          </div>
-        </div>
-
-
-        <div className="bg-white shadow rounded-lg p-4">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 p-3 rounded-md bg-accent/10">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">All Customers</p>
-              <p className="text-lg font-semibold text-gray-900">{metrics?.daily?.newCustomers}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white shadow rounded-lg p-4">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 p-3 rounded-md bg-danger/10">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Redemptions</p>
-              <p className="text-lg font-semibold text-gray-900">{metrics?.daily?.redemptions}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Dashboard Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="region" aria-label="Dashboard Navigation">
-        <Card
-          title="Metrics"
-          description="View detailed sales and customer metrics"
-          icon={
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          }
-          to="/dashboard/metrics"
-          color="primary"
-        />
-
-        <Card
-          title="Redemption"
-          description="Process customer reward redemptions"
-          icon={
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          }
-          to="/dashboard/redemption"
-          color="secondary"
-        />
-
-        {/* <Card
-          title="Leaderboard"
-          description="See how your cafe ranks in the network"
-          icon={
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-          }
-          to="/dashboard/leaderboard"
-          color="accent"
-        /> */}
-
-        <Card
-          title="Ads & Events"
-          description="Manage promotions and special events"
-          icon={
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-            </svg>
-          }
-          to="/dashboard/ads-events"
-          color="primary"
-        />
-
-        <Card
-          title="Activity Log"
-          description="View recent transactions and activities"
-          icon={
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          }
-          to="/dashboard/activity"
-          color="secondary"
-        />
-
-        {/* <Card
-          title="Performance"
-          description="Analyze your business performance"
-          icon={
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          }
-          to="/dashboard/performance"
-          color="accent"
-        /> */}
-      </div>
-    </div>
+    </main>
   );
 }
 
