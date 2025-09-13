@@ -37,7 +37,7 @@ const PrivacyPolicyPage = () => {
                 </button>
 
                 <div className="text-center mb-10">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-2">Privacy Policy for CafeChain</h1>
+                    <h1 className="text-4xl md:text-5xl font-bold mb-2">Privacy Policy</h1>
                     <p className="text-gray-500">Effective Date: August 6, 2025</p>
                 </div>
 
@@ -95,12 +95,13 @@ const PrivacyPolicyPage = () => {
                     {/* ... Other sections follow the same pattern ... */}
 
                     <section>
-                        <h2 className="text-2xl font-bold text-[#4a3a2f] mb-3">9. Contact Us</h2>
-                        <p>If you have any questions or concerns about this Privacy Policy, please contact us at:</p>
+                        <h2 className="text-2xl font-bold text-[#4a3a2f] mb-3">Contact Us</h2>
+                        <p>   If you have any questions or concerns about this Privacy Policy, please contact us at:</p>
                         <div className="mt-4 bg-stone-50 p-4 rounded-lg border border-stone-200">
                             <p className="font-semibold">CafeChain Customer Support</p>
-                            <p><strong>Email:</strong> support@cafechain.in</p>
-                            <p><strong>Address:</strong> [Your Company Address, Vadodara, Gujarat, India]</p>
+                            <p><strong>Email:</strong> team.cafechain@gmail.com</p>
+                            <p><strong>Address:</strong> Surat Gujarat India</p>
+                           
                         </div>
                     </section>
                 </div>
