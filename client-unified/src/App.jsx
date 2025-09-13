@@ -7,6 +7,8 @@ import UserApp from './user/App';
 // Import Cafe App  
 import CafeApp from './cafe/App';
 
+import AdminApp from './admin/App';
+
 // Main App Component
 function App() {
   return (
@@ -17,6 +19,9 @@ function App() {
         
         {/* Cafe frontend routes - accessible at /cafe/* */}
         <Route path="/cafe/*" element={<CafeApp />} />
+
+        <Route path="/admin/*" element={<AdminApp />} />
+
         
         {/* Default redirect to user frontend */}
         <Route path="/" element={<Navigate to="/user" replace />} />
