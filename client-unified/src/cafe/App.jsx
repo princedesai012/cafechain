@@ -48,51 +48,51 @@ const CafeLayout = () => {
           
           {/* Protected Routes */}
           <Route path="/" element={
-            <ProtectedRoute>
+            // <ProtectedRoute>
               <Home />
-            </ProtectedRoute>
+           // </ProtectedRoute>
           } />
           
           <Route path="/setup" element={
-            <ProtectedRoute requireSetup={true}>
+           // <ProtectedRoute requireSetup={true}>
               <FirstTimeSetup />
-            </ProtectedRoute>
+           // </ProtectedRoute>
           } />
           
           <Route path="/dashboard" element={
-            <ProtectedRoute requireSetup={true}>
+           // <ProtectedRoute requireSetup={true}>
               <Dashboard />
-            </ProtectedRoute>
+           // </ProtectedRoute>
           } />
           
           <Route path="/dashboard/metrics" element={
-            <ProtectedRoute requireSetup={true}>
+           // <ProtectedRoute requireSetup={true}>
               <MetricsPage />
-            </ProtectedRoute>
+           // </ProtectedRoute>
           } />
           
           <Route path="/dashboard/redemption" element={
-            <ProtectedRoute requireSetup={true}>
+           // <ProtectedRoute requireSetup={true}>
               <RedemptionPage />
-            </ProtectedRoute>
+           // </ProtectedRoute>
           } />
           
           <Route path="/dashboard/ads-events" element={
-            <ProtectedRoute requireSetup={true}>
+           // <ProtectedRoute requireSetup={true}>
               <AdsEventsPage />
-            </ProtectedRoute>
+           // </ProtectedRoute>
           } />
           
           <Route path="/dashboard/activity" element={
-            <ProtectedRoute requireSetup={true}>
+           // <ProtectedRoute requireSetup={true}>
               <ActivityLogPage />
-            </ProtectedRoute>
+           // </ProtectedRoute>
           } />
           
           <Route path="/dashboard/profile" element={
-            <ProtectedRoute requireSetup={true}>
+           // <ProtectedRoute requireSetup={true}>
               <ProfileGalleryPage />
-            </ProtectedRoute>
+           // </ProtectedRoute>
           } />
           
           {/* 404 Route */}
