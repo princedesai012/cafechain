@@ -104,8 +104,8 @@ const TermsAndConditionsPage = () => {
                         <p>If you have any questions about these Terms, please contact us:</p>
                         <div className="mt-4 bg-stone-50 p-4 rounded-lg border border-stone-200">
                             <p className="font-semibold">CafeChain Customer Support</p>
-                            <p><strong>Email:</strong> support@cafechain.in</p>
-                            <p><strong>Address:</strong> [Your Company Address, Vadodara, Gujarat, India]</p>
+                            <p><strong>Email:</strong> team.cafechain@gmail.com</p>
+                            <p><strong>Address:</strong> Surat Gujarat India</p>
                         </div>
                     </section>
                 </div>
