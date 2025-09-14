@@ -317,7 +317,7 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-6">Featured Partner Cafes</h2>
-            <p className="text-xl text-gray-600">Discover amazing coffee experiences in Vadodara</p>
+            <p className="text-xl text-gray-600">Discover amazing coffee experiences in Surat</p>
           </div>
           <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-8" variants={cardContainerVariants}>
             {cafes.length > 0 ? (

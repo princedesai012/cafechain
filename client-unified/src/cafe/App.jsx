@@ -23,6 +23,7 @@ import ProfileGalleryPage from './pages/dashboard/ProfileGalleryPage'
 // Components
 import ProtectedRoute from './components/ProtectedRoute'
 import Loader from './components/Loader'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 
 const CafeLayout = () => {
   const { state, dispatch } = useAppContext()
@@ -45,6 +46,7 @@ const CafeLayout = () => {
           {/* Public Routes */}
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />}></Route>
           
           {/* Protected Routes */}
           <Route path="/" element={

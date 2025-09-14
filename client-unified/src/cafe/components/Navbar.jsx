@@ -23,8 +23,8 @@ function Navbar() {
     location.pathname.startsWith("/auth/register") ||
     location.pathname.startsWith("/setup");
 
-  const isHome = location.pathname === "/" || location.pathname === "/cafe/";
-  const isDashboard = location.pathname.startsWith("/dashboard");
+  const isHome = location.pathname === "/" || location.pathname === "/cafe";
+  const isDashboard = location.pathname.startsWith("/cafe/dashboard");
 
   // Reusable button styles
   const buttonClasses = (from, to) =>

@@ -1,404 +1,547 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, User, Lock, Phone, KeyRound, ArrowLeft, Eye, EyeOff, Coffee, Star, Users, Zap, Shield } from 'lucide-react';
-
-// --- MOCK IMPLEMENTATIONS (If you're using these in a real project, ensure correct paths) ---
-const useAuth = () => ({
-  register: async (data) => {
-    console.log("Register attempt with:", data);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    // Simulate successful registration and requiring email verification
-    if (data.email && data.phone && data.password) {
-      return { success: true, requiresEmailVerification: true };
-    }
-    return { success: false, error: 'Registration failed: Invalid input.' };
-  },
-  verifyEmail: async (data) => {
-    console.log("Verify email attempt with:", data);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    // Simulate successful OTP verification for a specific OTP
-    if (data.otp === '123456') {
-      return { success: true };
-    }
-    return { success: false, error: 'Invalid OTP. Hint: try "123456"' };
-  }
-});
-
-const useNavigate = () => {
-  return (path, options) => {
-    console.log(`Navigating to: ${path}`, options);
-    // In a real app, this would change the URL.
-  };
-};
-
-const requestEmailOtp = async ({ email, phone }) => {
-  console.log(`Requesting OTP for email: ${email}, phone: ${phone}`);
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  console.log('OTP request simulated. Check console for "email" and "phone" in useAuth mock.');
-  return { success: true };
-};
-
-const logo = 'https://placehold.co/80x80/5D4037/F5E6D3?text=CC&font=albertus';
-// --- END MOCK IMPLEMENTATIONS ---
-
-
+import { Phone, Lock, Eye, EyeOff, ArrowLeft, User, Mail, KeyRound, Gift, CheckCircle, Star, Award, Crown, Sparkles } from 'lucide-react';
+import { Link } from "react-router-dom";
 const SignupPage = ({ onNavigate }) => {
+  const [currentView, setCurrentView] = useState('signup'); // 'signup', 'verify'
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    password: '',
     email: '',
+    password: '',
     referralCode: '',
+    otp: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [mounted, setMounted] = useState(false); // For entrance animations
+  const [mounted, setMounted] = useState(false);
 
-  const { register, verifyEmail } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => { setMounted(true); }, []); // Trigger entrance animation on mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
     if (error) setError('');
   };
 
-  const handleRegisterSubmit = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     if (!formData.name || !formData.phone || !formData.password || !formData.email) {
-      setError('Please fill in all required fields.');
+      setError('Please fill in all required fields');
       setLoading(false);
       return;
     }
 
     if (formData.phone.length !== 10) {
-      setError('Please enter a valid 10-digit mobile number.');
+      setError('Please enter a valid 10-digit mobile number');
       setLoading(false);
       return;
     }
 
     try {
-      const result = await register(formData);
-      if (result.success && result.requiresEmailVerification) {
-        await requestEmailOtp({ email: formData.email, phone: formData.phone });
-        setError('');
-        // NOTE: In a real app, you would navigate to a dedicated OTP verification route.
-        // For this single component, we're just toggling the view.
-        setIsVerifying(true);
-      } else {
-        setError(result.error || 'Registration failed.');
-      }
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log('Signup attempt:', formData);
+      setCurrentView('verify');
     } catch (err) {
-      setError(err.message || 'Something went wrong. Please try again.'); // Ensure error is a string
+      setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOtpSubmit = async (e) => {
+  const handleVerifyOtp = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    if (otp.length !== 6) {
-      setError('Please enter a valid 6-digit OTP.');
+    if (formData.otp.length !== 6) {
+      setError('Please enter a valid 6-digit OTP');
       setLoading(false);
       return;
     }
 
     try {
-      const result = await verifyEmail({ email: formData.email, phone: formData.phone, otp });
-      if (result.success) {
-        navigate('/user/home'); // Navigate to home on successful verification
-      } else {
-        setError(result.error || 'Email verification failed.');
-      }
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log('OTP verification:', formData.otp);
+      // Success - redirect to home
     } catch (err) {
-      setError(err.message || 'Something went wrong. Please try again.'); // Ensure error is a string
+      setError('Invalid OTP. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const features = [
-    { icon: Star, text: "Unlock Exclusive Rewards" },
-    { icon: Users, text: "Join Our Vibrant Community" },
-    { icon: Zap, text: "Seamless & Quick Sign-up" },
-    { icon: Shield, text: "Your Data is Secure" }
+  const switchView = (view) => {
+    setCurrentView(view);
+    setError('');
+    setLoading(false);
+  };
+
+  const signupFeatures = [
+    { icon: Gift, text: "Welcome Bonus Rewards", desc: "Get 100 XP credit on first signup" },
+    { icon: Star, text: "Exclusive XP Benefits", desc: "Earn XP on every exploration" },
+    { icon: Award, text: "Loyalty Points Program", desc: "Earn points with every purchase" },
+
+    { icon: Sparkles, text: "Special Discounts", desc: "Special offers on claimed points " }
   ];
 
-  const RunningIcons = () => (
-    <div className="flex w-1/2 items-center justify-around flex-shrink-0">
-      <Coffee className="w-10 h-10 text-white opacity-20" />
-      <Star className="w-8 h-8 text-white opacity-10" />
-      <Coffee className="w-14 h-14 text-white opacity-25" />
-      <Users className="w-8 h-8 text-white opacity-10" />
-      <Coffee className="w-10 h-10 text-white opacity-20" />
-      <Zap className="w-8 h-8 text-white opacity-10" />
-    </div>
-  );
+  const verifyFeatures = [
+    { icon: CheckCircle, text: "Almost There!", desc: "Just one step away from joining" },
+    { icon: Star, text: "Join Our Community", desc: "Connect with fellow coffee lovers" },
+    { icon: Gift, text: "Claim Your Welcome Bonus", desc: "₹100 credit waiting for you" }
+  ];
 
-  const renderForm = () => {
-    if (isVerifying) {
-      return (
-        <form onSubmit={handleOtpSubmit} className="space-y-6">
-          <p className="text-center text-gray-600">
-            A 6-digit OTP has been sent to your email ({formData.email}).
-          </p>
-          <div>
-            <label className="block text-sm font-medium text-dark-brown mb-2">
-              OTP
-            </label>
-            <div className="relative">
-              <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                name="otp"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                placeholder="Enter 6-digit OTP"
-                className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-                maxLength="6"
-                required
-              />
-            </div>
-          </div>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
-              {error}
-            </div>
-          )}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-accent text-white py-3 rounded-xl font-medium hover:bg-dark-brown transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Verifying...' : 'Verify Email'}
-          </button>
-        </form>
-      );
-    }
+  const getCurrentFeatures = () => {
+    return currentView === 'verify' ? verifyFeatures : signupFeatures;
+  };
 
-    return (
-      <form onSubmit={handleRegisterSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium" style={{ color: '#4a3a2f' }}>
-            Name
-          </label>
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              placeholder="Enter your name"
-              className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
-              required
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium" style={{ color: '#4a3a2f' }}>
-            Mobile Number
-          </label>
-          <div className="relative">
-            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              placeholder="Enter your mobile number"
-              className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
-              maxLength="10"
-              required
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium" style={{ color: '#4a3a2f' }}>
-            Email
-          </label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              placeholder="Enter your email"
-              className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
-              required
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium" style={{ color: '#4a3a2f' }}>
-            Password
-          </label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type={showPassword ? 'text' : 'password'}
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              placeholder="Create a password"
-              className="w-full pl-11 pr-11 py-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              {showPassword ? <EyeOff /> : <Eye />}
-            </button>
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium" style={{ color: '#4a3a2f' }}>
-            Referral Code (Optional)
-          </label>
-          <div className="relative">
-            <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              name="referralCode"
-              value={formData.referralCode}
-              onChange={handleInputChange}
-              placeholder="Enter referral code"
-              className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
-            />
-          </div>
-        </div>
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
-            {error}
-          </div>
-        )}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full text-white py-3 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ backgroundColor: loading ? '#6b5b4d' : '#4a3a2f' }}
-        >
-          {loading ? 'Signing Up...' : 'Sign Up'}
-        </button>
-      </form>
-    );
+  const getCurrentTitle = () => {
+    return currentView === 'verify' ? 'Welcome to CafeChain!' : 'Join the CafeChain Family';
+  };
+
+  const getCurrentSubtitle = () => {
+    return currentView === 'verify' 
+      ? 'Your account is almost ready! Complete email verification to unlock all premium features and start earning rewards'
+      : 'Become part of our premium coffee community and unlock exclusive benefits, rewards, and experiences crafted just for you';
   };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* ==================== Desktop Layout ==================== */}
+      {/* Desktop Layout */}
       <div className="hidden lg:flex min-h-screen">
-        {/* Left Side - Signup Form */}
-        <div className="flex-1 flex items-center justify-center p-8 bg-white">
-          <div className={`w-full max-w-sm transform transition-all duration-800 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`} style={{ transitionDelay: '0.2s' }}>
-            <div className="text-center mb-8">
-              <h1 className="text-2xl font-bold mb-2" style={{ color: '#4a3a2f' }}>
-                {isVerifying ? 'Verify Your Email' : 'Create Your Account'}
-              </h1>
-              <p className="text-gray-600">
-                {isVerifying ? 'Enter the OTP to complete your registration.' : 'Sign up to start your journey with CafeChain'}
-              </p>
-            </div>
-            {renderForm()}
-            <div className="text-center mt-6">
-              <span className="text-gray-600">Already have an account? </span>
-              <button
-                onClick={() => onNavigate && onNavigate('login')}
-                className="font-semibold transition-colors"
-                style={{ color: '#4a3a2f' }}
-              >
-                Log In
-              </button>
-            </div>
+        {/* Left Side - Forms */}
+        <div className="flex-1 flex items-center justify-center p-12 bg-white">
+          <div className={`w-full max-w-md transform transition-all duration-800 ${
+            mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+          }`}>
+           {currentView === 'signup' && (
+              <>
+                <SignupForm 
+                  formData={formData}
+                  showPassword={showPassword}
+                  loading={loading}
+                  error={error}
+                  onInputChange={handleInputChange}
+                  onTogglePassword={() => setShowPassword(!showPassword)}
+                  onSubmit={handleSignup}
+                  onNavigate={onNavigate}
+                />
+                {/* Register as Cafe button */}
+                <div className="mt-6 text-center">
+                  <Link 
+                    to="/cafe/auth/register"
+                    className="block w-full py-3 rounded-xl font-semibold text-white text-center transition-all duration-200 hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
+                    style={{ 
+                      backgroundColor: '#6b4f3a',
+                      boxShadow: '0 4px 15px rgba(74, 58, 47, 0.25)'
+                    }}
+                  >
+                    Register as Cafe
+                  </Link>
+                </div>
+              </>
+            )}
+            {currentView === 'verify' && (
+              <VerifyForm 
+                formData={formData}
+                loading={loading}
+                error={error}
+                onInputChange={handleInputChange}
+                onSubmit={handleVerifyOtp}
+                onBack={() => switchView('signup')}
+              />
+            )}
           </div>
         </div>
 
-        {/* Right Side - Branding with running animation */}
+        {/* Right Side - Branding */}
         <div className="flex-1 relative overflow-hidden" style={{ backgroundColor: '#4a3a2f' }}>
-          <div className="relative z-10 h-full flex flex-col justify-center items-center p-8 text-white">
-            <div className={`transform transition-all duration-1000 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-              <img src={logo} alt="CafeChain Logo" className="w-20 h-20 rounded-2xl object-cover mx-auto mb-6 shadow-2xl" />
-              <h1 className="text-3xl font-bold mb-3 text-center">CafeChain</h1>
-              <p className="text-lg opacity-90 text-center mb-8 leading-relaxed">
-                Join our community and discover a world of coffee delights.
+          {/* Animated Background Shapes */}
+          <div className="absolute inset-0 opacity-10">
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                className={`absolute rounded-full bg-white transform transition-all duration-1000 ${
+                  mounted ? 'scale-100 rotate-12' : 'scale-0 rotate-0'
+                }`}
+                style={{
+                  width: `${40 + i * 15}px`,
+                  height: `${40 + i * 15}px`,
+                  right: `${5 + i * 12}%`,
+                  top: `${5 + i * 12}%`,
+                  animationDelay: `${i * 0.2}s`
+                }}
+              />
+            ))}
+          </div>
+
+          <div className="relative z-10 h-full flex flex-col justify-center items-center p-12 text-white">
+            {/* Logo with shining circular border */}
+            <div className={`transform transition-all duration-700 ${
+              mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+            }`}>
+             <div className="flex justify-center items-center mb-8">
+  <div className="w-32 h-32 rounded-full shadow-2xl border-2 border-white animate-pulse flex items-center justify-center bg-white">
+    <img src="/src/user/assets/images/cc.png" alt="CafeChain Logo" className="w-28 h-28 object-contain" />
+  </div>
+</div>
+
+              <h1 className="text-4xl font-bold mb-4 text-center transition-all duration-500">
+                {getCurrentTitle()}
+              </h1>
+              <p className="text-lg opacity-90 text-center mb-12 leading-relaxed transition-all duration-500 max-w-lg">
+                {getCurrentSubtitle()}
               </p>
             </div>
-            <div className="space-y-4 max-w-md">
-              {features.map((feature, index) => (
-                <div key={index} className={`flex items-center space-x-4 transform transition-all duration-700 ${mounted ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`} style={{ transitionDelay: `${0.3 + index * 0.15}s` }}>
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                    <feature.icon className="w-6 h-6" />
-                  </div>
-                  <span className="text-lg">{feature.text}</span>
-                </div>
-              ))}
-            </div>
+
+            {/* Features (center aligned) */}
+           <div className="space-y-6 max-w-lg w-full mx-auto flex flex-col items-center">
+  {getCurrentFeatures().map((feature, index) => (
+    <div
+      key={`${currentView}-${index}`}
+      className={`flex items-center justify-center transform transition-all duration-700 w-full max-w-md ${
+        mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+      }`}
+      style={{ animationDelay: `${0.2 + index * 0.1}s` }}
+    >
+      {/* Icon */}
+      <div className="w-12 h-12 flex items-center justify-center bg-white/20 rounded-xl backdrop-blur-sm mr-4">
+        <feature.icon className="w-6 h-6" />
+      </div>
+
+      {/* Text - centered block */}
+      <div className="flex-1 text-left">
+        <h3 className="font-semibold text-lg mb-1">{feature.text}</h3>
+        <p className="text-sm opacity-80 leading-relaxed">{feature.desc}</p>
+      </div>
+    </div>
+  ))}
+</div>
+
+
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-32 w-full overflow-hidden">
-            <div className="absolute top-0 left-0 flex w-[200%] h-full animate-marquee">
-              <RunningIcons />
-              <RunningIcons />
-            </div>
-          </div>
+
+          {/* Floating Elements */}
+          <div className="absolute bottom-10 right-10 w-4 h-4 bg-white/30 rounded-full animate-pulse" />
+          <div className="absolute top-20 left-20 w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }} />
+          <div className="absolute bottom-32 left-16 w-3 h-3 bg-white/20 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-40 right-32 w-2 h-2 bg-white/25 rounded-full animate-bounce" style={{ animationDelay: '1.5s' }} />
         </div>
       </div>
 
-      {/* ==================== Mobile Layout ==================== */}
-      <div className="lg:hidden min-h-screen flex flex-col">
-        <div className="flex items-center justify-between p-4 bg-white rounded-b-3xl relative z-10">
+      {/* Mobile Layout (unchanged except logo in header) */}
+      <div className="lg:hidden min-h-screen">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 bg-white shadow-sm">
           <button
-            onClick={() => window.history.back()}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            onClick={() => {
+              if (currentView === 'verify') switchView('signup');
+              else window.history.back();
+            }}
+            className="p-2 rounded-xl hover:bg-gray-50 transition-colors"
           >
-            <ArrowLeft className="w-6 h-6 text-dark-brown" />
+            <ArrowLeft className="w-6 h-6" style={{ color: '#4a3a2f' }} />
           </button>
           <div className="flex items-center">
-            <img src={logo} alt="CafeChain" className="w-8 h-8 rounded-lg" />
-            <span className="ml-2 text-lg font-semibold text-dark-brown">CafeChain</span>
+            <div className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center mr-2 bg-white">
+              <img src="/logo.png" alt="CafeChain Logo" className="w-6 h-6 object-contain" />
+            </div>
+            <span className="text-lg font-bold" style={{ color: '#4a3a2f' }}>CafeChain</span>
           </div>
-          <div className="w-10"></div> {/* Spacer */}
+          <div className="w-10" />
         </div>
-        <div className="flex-1 flex items-center justify-center px-6 py-8 bg-gray-50">
-          <div className={`w-full max-w-sm transform transition-all duration-800 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`} style={{ transitionDelay: '0.3s' }}>
-            <div className="text-center mb-8">
-              <h1 className="text-2xl font-bold text-dark-brown mb-2">
-                {isVerifying ? 'Verify Your Email' : 'Create Your Account'}
-              </h1>
-              <p className="text-gray-600">
-                {isVerifying ? 'Enter the OTP to complete your registration.' : 'Sign up to start your journey with CafeChain'}
-              </p>
-            </div>
-            {renderForm()}
-            <div className="text-center mt-6">
-              <span className="text-gray-600">Already have an account? </span>
-              <button
-                onClick={() => onNavigate && onNavigate('login')}
-                className="text-accent hover:text-dark-brown transition-colors font-medium"
-              >
-                Log In
-              </button>
-            </div>
+
+        {/* Hero Section */}
+        <div className="relative py-12 px-6" style={{ backgroundColor: '#4a3a2f' }}>
+          <div className="absolute inset-0 opacity-10">
+            {[...Array(5)].map((_, i) => (
+              <div
+                key={i}
+                className={`absolute rounded-full bg-white transition-all duration-1000 ${
+                  mounted ? 'scale-100' : 'scale-0'
+                }`}
+                style={{
+                  width: `${35 + i * 12}px`,
+                  height: `${35 + i * 12}px`,
+                  left: `${5 + i * 18}%`,
+                  top: `${5 + i * 15}%`,
+                  animationDelay: `${i * 0.3}s`
+                }}
+              />
+            ))}
+          </div>
+          <div className={`text-center text-white transform transition-all duration-700 ${
+            mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+          }`}>
+            <h1 className="text-3xl font-bold mb-3 transition-all duration-500">
+              {currentView === 'signup' ? 'Join CafeChain!' : 'Almost There!'}
+            </h1>
+            <p className="text-lg opacity-90 transition-all duration-500">
+              {currentView === 'signup' ? 'Create your account for exclusive benefits' : 'Verify your email to complete registration'}
+            </p>
+          </div>
+        </div>
+
+        {/* Form Container */}
+        <div className="p-6 bg-white rounded-t-3xl -mt-6 relative z-10">
+          <div className={`transform transition-all duration-800 ${
+            mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+          }`} style={{ animationDelay: '0.3s' }}>
+            {currentView === 'signup' && (
+              <SignupForm 
+                formData={formData}
+                showPassword={showPassword}
+                loading={loading}
+                error={error}
+                onInputChange={handleInputChange}
+                onTogglePassword={() => setShowPassword(!showPassword)}
+                onSubmit={handleSignup}
+                onNavigate={onNavigate}
+                isMobile={true}
+              />
+            )}
+            {currentView === 'verify' && (
+              <VerifyForm 
+                formData={formData}
+                loading={loading}
+                error={error}
+                onInputChange={handleInputChange}
+                onSubmit={handleVerifyOtp}
+                onBack={() => switchView('signup')}
+                isMobile={true}
+              />
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+// Signup Form Component
+const SignupForm = ({ formData, showPassword, loading, error, onInputChange, onTogglePassword, onSubmit, onNavigate, isMobile = false }) => (
+  <div className="animate-fadeIn">
+    <div className="space-y-6">
+      {!isMobile && (
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold mb-2" style={{ color: '#4a3a2f' }}>Create Account</h2>
+          <p className="text-gray-600">Join CafeChain for exclusive benefits and rewards</p>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <label className="block text-sm font-semibold" style={{ color: '#4a3a2f' }}>Full Name</label>
+        <div className="relative group">
+          <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-gray-600 transition-colors" />
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={onInputChange}
+            placeholder="Enter your full name"
+            className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 bg-white transition-all duration-200 hover:border-gray-300"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-semibold" style={{ color: '#4a3a2f' }}>Mobile Number</label>
+        <div className="relative group">
+          <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-gray-600 transition-colors" />
+          <input
+            type="tel"
+            name="phone"
+            value={formData.phone}
+            onChange={onInputChange}
+            placeholder="Enter your mobile number"
+            className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 bg-white transition-all duration-200 hover:border-gray-300"
+            maxLength="10"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-semibold" style={{ color: '#4a3a2f' }}>Email Address</label>
+        <div className="relative group">
+          <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-gray-600 transition-colors" />
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={onInputChange}
+            placeholder="Enter your email address"
+            className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 bg-white transition-all duration-200 hover:border-gray-300"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-semibold" style={{ color: '#4a3a2f' }}>Password</label>
+        <div className="relative group">
+          <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-gray-600 transition-colors" />
+          <input
+            type={showPassword ? 'text' : 'password'}
+            name="password"
+            value={formData.password}
+            onChange={onInputChange}
+            placeholder="Create a strong password"
+            className="w-full pl-12 pr-12 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 bg-white transition-all duration-200 hover:border-gray-300"
+          />
+          <button
+            type="button"
+            onClick={onTogglePassword}
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-semibold" style={{ color: '#4a3a2f' }}>
+          Referral Code <span className="text-gray-400 font-normal">(Optional)</span>
+        </label>
+        <div className="relative group">
+          <KeyRound className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-gray-600 transition-colors" />
+          <input
+            type="text"
+            name="referralCode"
+            value={formData.referralCode}
+            onChange={onInputChange}
+            placeholder="Enter referral code"
+            className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 bg-white transition-all duration-200 hover:border-gray-300"
+          />
+        </div>
+        <p className="text-xs text-gray-500 mt-1">Get extra XP with a valid referral code</p>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 border-2 border-red-100 text-red-700 px-4 py-3 rounded-xl text-sm font-medium animate-pulse">
+          {error}
+        </div>
+      )}
+
+      <button
+        onClick={onSubmit}
+        disabled={loading}
+        className="w-full py-4 rounded-xl font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
+        style={{ 
+          backgroundColor: loading ? '#6b5b4d' : '#4a3a2f',
+          boxShadow: loading ? 'none' : '0 4px 20px rgba(74, 58, 47, 0.3)'
+        }}
+      >
+        {loading ? (
+          <div className="flex items-center justify-center space-x-2">
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <span>Creating Account...</span>
+          </div>
+        ) : 'Create Account'}
+      </button>
+    </div>
+
+    <div className="text-center mt-8 pt-6 border-t border-gray-100">
+      <span className="text-gray-600">Already have an account? </span>
+      <button
+        onClick={() => onNavigate && onNavigate('login')}
+        className="font-semibold hover:underline transition-colors"
+        style={{ color: '#4a3a2f' }}
+      >
+        Sign In
+      </button>
+    </div>
+  </div>
+);
+
+// Verify Form Component
+const VerifyForm = ({ formData, loading, error, onInputChange, onSubmit, onBack, isMobile = false }) => (
+  <div className="animate-fadeIn">
+    <div className="space-y-6">
+      {!isMobile && (
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold mb-2" style={{ color: '#4a3a2f' }}>Verify Email</h2>
+          <p className="text-gray-600">We've sent a 6-digit code to your email address</p>
+        </div>
+      )}
+
+      <div className="text-center p-6 bg-gray-50 rounded-xl">
+        <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: '#4a3a2f' }}>
+          <Mail className="w-8 h-8 text-white" />
+        </div>
+        <p className="text-gray-600">
+          A verification code has been sent to<br />
+          <span className="font-semibold" style={{ color: '#4a3a2f' }}>{formData.email}</span>
+        </p>
+        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-sm text-green-700 font-medium">
+            🎉 Welcome bonus of 100 XP will be credited after verification!
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-semibold" style={{ color: '#4a3a2f' }}>Verification Code</label>
+        <div className="relative group">
+          <KeyRound className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-gray-600 transition-colors" />
+          <input
+            type="text"
+            name="otp"
+            value={formData.otp}
+            onChange={onInputChange}
+            placeholder="Enter 6-digit code"
+            className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 bg-white transition-all duration-200 hover:border-gray-300 text-center text-lg font-mono tracking-widest"
+            maxLength="6"
+          />
+        </div>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 border-2 border-red-100 text-red-700 px-4 py-3 rounded-xl text-sm font-medium animate-pulse">
+          {error}
+        </div>
+      )}
+
+      <div className="text-center">
+        <span className="text-gray-600 text-sm">Didn't receive the code? </span>
+        <button className="text-sm font-semibold hover:underline transition-colors" style={{ color: '#4a3a2f' }}>
+          Resend Code
+        </button>
+      </div>
+
+      <button
+        onClick={onSubmit}
+        disabled={loading}
+        className="w-full py-4 rounded-xl font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
+        style={{ 
+          backgroundColor: loading ? '#6b5b4d' : '#4a3a2f',
+          boxShadow: loading ? 'none' : '0 4px 20px rgba(74, 58, 47, 0.3)'
+        }}
+      >
+        {loading ? (
+          <div className="flex items-center justify-center space-x-2">
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <span>Verifying...</span>
+          </div>
+        ) : 'Verify & Start Journey'}
+      </button>
+
+      <button
+        onClick={onBack}
+        className="w-full py-3 rounded-xl font-medium text-gray-600 hover:text-gray-800 border-2 border-gray-200 hover:border-gray-300 transition-all duration-200"
+      >
+        Back to Sign Up
+      </button>
+
+      
+    </div>
+  </div>
+);
 
 export default SignupPage;

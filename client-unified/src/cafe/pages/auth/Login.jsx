@@ -170,7 +170,7 @@ function Login() {
           <div className="relative z-10 h-full flex flex-col justify-center items-center p-8 text-white">
             <div className={`text-center transform transition-all duration-1000 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
               <div className="logo-container mb-6">
-                <img src="/src/assets/logo.jpg" alt="CafeChain Logo" className="w-20 h-20 rounded-full object-cover shadow-2xl" />
+                <img src="/src/cafe/assets/cc.png" alt="CafeChain Logo" className="w-20 h-20 rounded-full object-cover shadow-2xl" />
               </div>
               <h1 className="text-3xl font-bold mb-3">CafeChain</h1>
               <p className="text-lg opacity-90 mb-8 leading-relaxed">
