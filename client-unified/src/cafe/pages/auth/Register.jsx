@@ -306,7 +306,7 @@ function Register() {
                 <div className="logo-container desktop">
                   <img
                     className="w-20 h-20 rounded-full object-cover shadow-2xl border-4 border-gray-300"
-                    src="/src/assets/logo.jpg" /* Or use a placeholder: "https://placehold.co/80x80/4a3a2f/ffffff?text=C&font=inter" */
+                    src="/src/cafe/assets/cc.png" /* Or use a placeholder: "https://placehold.co/80x80/4a3a2f/ffffff?text=C&font=inter" */
                     alt="CafeChain Logo"
                   />
                 </div>
