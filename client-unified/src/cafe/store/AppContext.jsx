@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer, useEffect } from 'react';
+import axios from 'axios';
 import { loadFromStorage, saveToStorage } from '../utils/storage';
 import dummyData from '../assets/data.js';
 
@@ -10,84 +11,16 @@ const initialState = {
   isLoading: true,
   isAuthenticated: false,
   user: null,
+  cafeStatus: undefined,
   setupCompleted: false,
   cafeInfo: null,
-  isOpen: false, // Cafe open/closed status
+  isOpen: false,
   partnerCafes: [],
   announcements: [],
   leaderboard: [],
   events: [],
-  transactions: [
-    {
-      id: 'txn-001',
-      customerId: 'cust-123',
-      customerName: 'John Smith',
-      amount: 15.75,
-      points: 16,
-      date: '2024-02-28T09:15:23Z',
-      type: 'purchase',
-      items: ['Latte', 'Croissant']
-    },
-    {
-      id: 'txn-002',
-      customerId: 'cust-456',
-      customerName: 'Emma Johnson',
-      amount: 8.50,
-      points: 9,
-      date: '2024-02-28T10:30:45Z',
-      type: 'purchase',
-      items: ['Cappuccino', 'Blueberry Muffin']
-    },
-    {
-      id: 'txn-003',
-      customerId: 'cust-789',
-      customerName: 'Michael Brown',
-      amount: 12.25,
-      points: 12,
-      date: '2024-02-28T11:45:12Z',
-      type: 'purchase',
-      items: ['Americano', 'Sandwich']
-    },
-    {
-      id: 'txn-004',
-      customerId: 'cust-123',
-      customerName: 'John Smith',
-      amount: 0,
-      points: -100,
-      date: '2024-02-28T14:20:33Z',
-      type: 'redemption',
-      items: ['Free Coffee Voucher']
-    }
-  ],
-  metrics: {
-    daily: {
-      sales: 542.75,
-      transactions: 37,
-      newCustomers: 5,
-      redemptions: 8,
-      averageOrder: 14.67
-    },
-    weekly: {
-      sales: 3245.50,
-      transactions: 221,
-      newCustomers: 28,
-      redemptions: 42,
-      averageOrder: 14.68
-    },
-    monthly: {
-      sales: 12980.25,
-      transactions: 884,
-      newCustomers: 112,
-      redemptions: 165,
-      averageOrder: 14.68
-    },
-    chartData: {
-      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      sales: [420.50, 380.25, 510.75, 542.75, 625.30, 480.15, 285.80],
-      transactions: [29, 26, 35, 37, 42, 33, 19],
-      customers: [24, 22, 30, 31, 36, 28, 16]
-    }
-  },
+  transactions: [],
+  metrics: {},
   performance: {},
   pendingOtp: null,
   gallery: []
@@ -97,16 +30,20 @@ const initialState = {
 function appReducer(state, action) {
   switch (action.type) {
     // Initialize app by loading data from localStorage or using dummy data
+
     case 'INIT_APP': {
       const storedData = loadFromStorage();
       if (storedData) {
+        if (storedData.user?.token) {
+          axios.defaults.headers.common['Authorization'] = `Bearer ${storedData.user.token}`;
+        }
         return {
           ...state,
           ...storedData,
-          isLoading: false
+          isLoading: false,
+          cafeStatus: storedData.cafeStatus || storedData.user?.status
         };
       } else {
-        // Use dummy data for initial state
         return {
           ...state,
           partnerCafes: dummyData.partnerCafes,
@@ -126,9 +63,11 @@ function appReducer(state, action) {
       const newState = {
         ...state,
         isAuthenticated: true,
-        user: action.payload
+        user: { ...action.payload },
+        cafeStatus: action.payload.status // critical for ProtectedRoute
       };
       saveToStorage(newState);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
       return newState;
     }
     
@@ -309,14 +248,16 @@ function appReducer(state, action) {
 // Provider component
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
-  
-  // Persist state to localStorage whenever it changes
+
   useEffect(() => {
     if (!state.isLoading) {
       saveToStorage(state);
     }
+    if (state.user?.token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${state.user.token}`;
+    }
   }, [state]);
-  
+
   return (
     <AppContext.Provider value={{ state, dispatch }}>
       {children}
@@ -324,7 +265,6 @@ export function AppProvider({ children }) {
   );
 }
 
-// Custom hook for using the context
 export function useAppContext() {
   const context = useContext(AppContext);
   if (!context) {

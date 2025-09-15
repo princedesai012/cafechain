@@ -1,15 +1,9 @@
 const mongoose = require("mongoose");
 
 const otpSchema = new mongoose.Schema({
-    phone: {
-        type: String,
-        required: false,
-        unique: true,
-        sparse: true
-    },
     email: {
         type: String,
-        required: false,
+        required: true,
         unique: true,
         sparse: true
     },
@@ -19,13 +13,17 @@ const otpSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['phone', 'email'],
+        enum: ['email', 'redemption'],
         required: true
+    },
+    // This field is essential for storing temporary user data during registration
+    metadata: {
+        type: Object 
     },
     createdAt: {
         type: Date,
         default: Date.now,
-        // The OTP will automatically be deleted after 10 minutes (600 seconds)
+        // The OTP will automatically be deleted from the database after 10 minutes
         expires: 600
     }
 });

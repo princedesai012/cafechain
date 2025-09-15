@@ -6,7 +6,15 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    open: true
+    open: true,
+    // ADDED: This proxy configuration will forward API requests to your backend
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000', // IMPORTANT: If your backend runs on a different port, change this value.
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   build: {
     outDir: 'dist',

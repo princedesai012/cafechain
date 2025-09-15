@@ -12,7 +12,10 @@ import Home from './pages/Home'
 import NotFound from './pages/NotFound'
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
-import FirstTimeSetup from './pages/setup/FirstTimeSetup'
+import VerifyOTP from './pages/VerifyOTP'
+import PendingApproval from './pages/PendingApproval'
+
+// import FirstTimeSetup from './pages/setup/FirstTimeSetup'
 import Dashboard from './pages/dashboard/Dashboard'
 import MetricsPage from './pages/dashboard/MetricsPage'
 import RedemptionPage from './pages/dashboard/RedemptionPage'
@@ -23,7 +26,7 @@ import ProfileGalleryPage from './pages/dashboard/ProfileGalleryPage'
 // Components
 import ProtectedRoute from './components/ProtectedRoute'
 import Loader from './components/Loader'
-import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
+// import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 
 const CafeLayout = () => {
   const { state, dispatch } = useAppContext()
@@ -46,64 +49,25 @@ const CafeLayout = () => {
           {/* Public Routes */}
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />}></Route>
+          <Route path="/auth/verify-otp" element={<VerifyOTP />} />
+          <Route path="/pending-approval" element={<PendingApproval />} />
+          {/* <Route path="/forgot-password" element={<ForgotPasswordPage />}></Route> */}
           
           {/* Protected Routes */}
-          <Route path="/" element={
-            // <ProtectedRoute>
-              <Home />
-           // </ProtectedRoute>
-          } />
+          <Route path="/" element={<ProtectedRoute requireActiveCafe={true}><Home /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute requireActiveCafe={true}><Dashboard /></ProtectedRoute>} />
+          <Route path="/dashboard/metrics" element={<ProtectedRoute requireActiveCafe={true}><MetricsPage /></ProtectedRoute>} />
+          <Route path="/dashboard/redemption" element={<ProtectedRoute requireActiveCafe={true}><RedemptionPage /></ProtectedRoute>} />
+          <Route path="/dashboard/ads-events" element={<ProtectedRoute requireActiveCafe={true}><AdsEventsPage /></ProtectedRoute>} />
+          <Route path="/dashboard/activity" element={<ProtectedRoute requireActiveCafe={true}><ActivityLogPage /></ProtectedRoute>} />
+          <Route path="/dashboard/profile" element={<ProtectedRoute requireActiveCafe={true}><ProfileGalleryPage /></ProtectedRoute>} />
           
-          <Route path="/setup" element={
-           // <ProtectedRoute requireSetup={true}>
-              <FirstTimeSetup />
-           // </ProtectedRoute>
-          } />
-          
-          <Route path="/dashboard" element={
-           // <ProtectedRoute requireSetup={true}>
-              <Dashboard />
-           // </ProtectedRoute>
-          } />
-          
-          <Route path="/dashboard/metrics" element={
-           // <ProtectedRoute requireSetup={true}>
-              <MetricsPage />
-           // </ProtectedRoute>
-          } />
-          
-          <Route path="/dashboard/redemption" element={
-           // <ProtectedRoute requireSetup={true}>
-              <RedemptionPage />
-           // </ProtectedRoute>
-          } />
-          
-          <Route path="/dashboard/ads-events" element={
-           // <ProtectedRoute requireSetup={true}>
-              <AdsEventsPage />
-           // </ProtectedRoute>
-          } />
-          
-          <Route path="/dashboard/activity" element={
-           // <ProtectedRoute requireSetup={true}>
-              <ActivityLogPage />
-           // </ProtectedRoute>
-          } />
-          
-          <Route path="/dashboard/profile" element={
-           // <ProtectedRoute requireSetup={true}>
-              <ProfileGalleryPage />
-           // </ProtectedRoute>
-          } />
-          
-          {/* 404 Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
     </div>
-  )
-}
+  );
+};
 
 function App() {
   return (
