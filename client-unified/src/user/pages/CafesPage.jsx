@@ -77,7 +77,18 @@ const CafesPage = () => {
   const [cafes, setCafes] = useState([]);
   const [filteredCafes, setFilteredCafes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  const cafesPerPage = 5;
   const navigate = useNavigate();
+
+  // Update isMobile on window resize
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchCafes = async () => {
@@ -108,6 +119,7 @@ const CafesPage = () => {
       cafe.address.toLowerCase().includes(lowerCaseQuery)
     );
     setFilteredCafes(searchFiltered);
+    setCurrentPage(1); // reset page when filters change
   }, [cafes, activeTab, searchParams]);
 
   const subtitleLines = [
@@ -117,6 +129,7 @@ const CafesPage = () => {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+    setCurrentPage(1);
 
     if (tab === "favourite") {
       const favourites = JSON.parse(localStorage.getItem("favourites")) || [];
@@ -127,7 +140,6 @@ const CafesPage = () => {
     }
   };
 
-  // Keep favourites in sync if cafes change
   useEffect(() => {
     if (activeTab === "favourite") {
       const favourites = JSON.parse(localStorage.getItem("favourites")) || [];
@@ -143,6 +155,13 @@ const CafesPage = () => {
   if (loading) {
     return <Loader />;
   }
+
+  // Slice cafes for mobile pagination
+  const pagedCafes = isMobile
+    ? filteredCafes.slice((currentPage - 1) * cafesPerPage, currentPage * cafesPerPage)
+    : filteredCafes;
+
+  const totalPages = isMobile ? Math.ceil(filteredCafes.length / cafesPerPage) : 1;
 
   return (
     <div className="w-full min-h-screen bg-white flex flex-col items-center pb-24 text-[#4a3a2f]">
@@ -184,22 +203,28 @@ const CafesPage = () => {
                 left: activeTab === "all" ? "4px" : "50%",
                 right: activeTab === "favourite" ? "4px" : "50%",
               }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30, duration: 0.45 }}
             />
           </div>
         </div>
 
         <AnimatePresence mode="wait">
-          {filteredCafes.length > 0 ? (
+          {pagedCafes.length > 0 ? (
             <motion.div
-              key={activeTab + searchParams.get("search")}
+              key={activeTab + searchParams.get("search") + currentPage}
               className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8"
               variants={containerVariants}
               initial="hidden"
               animate="visible"
             >
-              {filteredCafes.map((cafe) => (
-                <motion.div key={cafe._id} variants={itemVariants}>
+              {pagedCafes.map((cafe, index) => (
+                <motion.div
+                  key={cafe._id}
+                  variants={index < 4 ? itemVariants : {}}
+                  initial={index < 4 ? "hidden" : false}
+                  animate={index < 4 ? "visible" : false}
+                  transition={index < 4 ? { type: "spring", stiffness: 100 } : {}}
+                >
                   <CafeCard cafe={cafe} onClick={() => handleCafeClick(cafe)} />
                 </motion.div>
               ))}
@@ -227,6 +252,23 @@ const CafesPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Pagination for mobile */}
+        {isMobile && totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-6">
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                className={`w-8 h-8 rounded-full text-sm font-medium ${
+                  currentPage === i + 1 ? "bg-[#4a3a2f] text-white" : "bg-gray-200 text-gray-600"
+                }`}
+                onClick={() => setCurrentPage(i + 1)}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

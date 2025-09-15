@@ -22,6 +22,7 @@ const ProfilePage = () => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
     const [loading, setLoading] = useState(true);
+const [editName, setEditName] = useState('');
 
     useEffect(() => {
         const timer = setTimeout(() => setLoading(false), 1000);
@@ -57,7 +58,7 @@ const ProfilePage = () => {
             const phone = authUser?.phone || localStorage.getItem('userPhone');
             if (!phone) throw new Error('Missing user phone');
 
-            const updateData = { name: profile?.name };
+         const updateData = { name: editName };
 
             if (selectedFile) {
                 if (!selectedFile.type.startsWith('image/')) {
@@ -204,14 +205,14 @@ const ProfilePage = () => {
                             </div>
                             <div>
                                 <label htmlFor="name" className="block text-sm font-medium text-gray-600 mb-1">Full Name</label>
-                                <input
-                                    type="text"
-                                    id="name"
-                                    defaultValue={profile?.name || ''}
-                                    onChange={(e) => setProfile(prev => ({ ...prev, name: e.target.value }))}
-                                    placeholder="Your name"
-                                    className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#4a3a2f] focus:border-[#4a3a2f] transition"
-                                />
+<input
+    type="text"
+    id="name"
+    value={editName}
+    onChange={(e) => setEditName(e.target.value)}
+    placeholder="Your name"
+    className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#4a3a2f] focus:border-[#4a3a2f] transition"
+/>
                             </div>
                             {error && <div className="text-red-500 text-sm text-center">{error}</div>}
                             {success && <div className="text-green-600 text-sm text-center">{success}</div>}
@@ -321,8 +322,13 @@ const ProfilePage = () => {
                         <div className="bg-stone-50 rounded-2xl p-6 shadow-sm border border-stone-200">
                             <h3 className="text-lg font-bold mb-4">Account Settings</h3>
                             <div className="space-y-3">
-                                <button onClick={() => setShowEdit(true)} className="w-full flex items-center justify-between text-left p-4 rounded-lg hover:bg-stone-200 transition-colors">
-                                    <div className="flex items-center space-x-3">
+<button 
+  onClick={() => {
+    setEditName(profile?.name || "");  // ✅ preload once when opening
+    setShowEdit(true);
+  }} 
+  className="w-full flex items-center justify-between text-left p-4 rounded-lg hover:bg-stone-200 transition-colors"
+>                                    <div className="flex items-center space-x-3">
                                         <User className="w-5 h-5 text-gray-500" />
                                         <span className="font-semibold">Edit Profile</span>
                                     </div>

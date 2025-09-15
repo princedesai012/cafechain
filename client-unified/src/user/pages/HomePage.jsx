@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { getProfile, getInvoiceHistory, getCafes } from "../api/api";
 import Loader from "../components/Loader";
 import CafeCard from "../components/CafeCard";
-import { Search, Heart, Users, Gift, ExternalLink } from "lucide-react";
+import { Search, Heart, Users, Gift, ExternalLink ,Coffee } from "lucide-react";
 
 
 
@@ -264,34 +264,37 @@ const HomePage = () => {
       <section className="relative py-24 bg-gradient-to-br from-[#4A3A2F] via-[#3B2D25] to-[#2A1F18] overflow-hidden">
         <AnimatedBalls />
         <div className="relative max-w-7xl mx-auto px-4 text-center">
-          <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6">CafeChain</h1>
+          <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6">Welcome to CafeChain</h1>
           <AnimatedHeaderSubtitle lines={animatedMessages} />
 
-          <div className="inline-block max-w-md mx-auto mb-10">
-            <div className="bg-white rounded-3xl shadow-2xl p-6 text-[#4a3a2f]">
-              <div className="flex items-center">
-                <div className="w-24 h-24 bg-gray-100 flex items-center justify-center rounded-2xl mr-6">
-                  <span className="text-4xl">☕</span>
-                </div>
-                <div className="text-left">
-                  <p className="text-sm text-gray-500">Your XP</p>
-                  <h2 className="text-5xl font-extrabold">{points.toLocaleString()}</h2>
-                </div>
-              </div>
-            </div>
-          </div>
+ <div className="inline-block max-w-md mx-auto mb-10">
+  <div className="bg-white rounded-3xl shadow-2xl p-6 text-[#4a3a2f]">
+    <div className="flex items-center">
+      <div className="w-24 h-24 bg-white flex items-center justify-center rounded-2xl mr-6">
+        <Coffee className="w-12 h-12 text-[#4a3a2f]" strokeWidth={2} />
+      </div>
+      <div className="text-left">
+        <p className="text-sm text-gray-500">Your XP</p>
+        <h2 className="text-5xl font-extrabold">{points.toLocaleString()}</h2>
+      </div>
+    </div>
+  </div>
+</div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto">
-            {/* ✅ THESE ARE THE CHANGED LINES */}
-            <Link to="/user/cafes" className="flex items-center justify-center gap-2 bg-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-50 shadow-lg transition-colors">
-              <span>🔍</span>
-              <span>Find Cafes</span>
-            </Link>
-            <Link to="/user/claim-reward" className="flex items-center justify-center gap-2 bg-amber-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-amber-700 shadow-lg transition-colors">
-              <span>💰</span>
-              <span>Redeem Rewards</span>
-            </Link>
-          </div>
+
+
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto">
+  <Link to="/user/cafes" className="flex items-center justify-center gap-3 bg-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-50 shadow-lg transition-colors">
+    <Search className="w-6 h-6 text-black" strokeWidth={2} />
+    <span>Find Cafes</span>
+  </Link>
+  <Link to="/user/claim-reward" className="flex items-center justify-center gap-3 bg-amber-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-amber-700 shadow-lg transition-colors">
+    <Gift className="w-10 h-10 text-white" strokeWidth={2} />
+    <span>Redeem Rewards</span>
+  </Link>
+</div>
+
+
         </div>
       </section>
 
@@ -469,10 +472,17 @@ const HomePage = () => {
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-5xl font-bold text-white mb-6">Ready to Start Earning?</h2>
           <p className="text-xl text-amber-200 mb-12">Join CafeChain today and transform every coffee purchase into valuable rewards.</p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Link to="/user/cafes" className="bg-white px-12 py-5 rounded-2xl font-bold text-xl hover:bg-gray-100 shadow-xl text-[#4A3A2F] transition-transform hover:scale-105">🚀 Explore Cafes</Link>
-            <Link to="/user/rewards" className="bg-amber-600 text-white px-12 py-5 rounded-2xl font-bold text-xl hover:bg-amber-700 shadow-xl transition-transform hover:scale-105">📱 Redeem Points</Link>
-          </div>
+        <div className="flex flex-col sm:flex-row gap-6 justify-center">
+  <Link to="/user/cafes" className="bg-white px-12 py-5 rounded-2xl font-bold text-xl hover:bg-gray-100 shadow-xl text-[#4A3A2F] transition-transform hover:scale-105 flex items-center justify-center gap-3">
+    <Search className="w-6 h-6 text-black" strokeWidth={2} />
+    <span>Explore Cafes</span>
+  </Link>
+  <Link to="/user/rewards" className="bg-amber-600 text-white px-12 py-5 rounded-2xl font-bold text-xl hover:bg-amber-700 shadow-xl transition-transform hover:scale-105 flex items-center justify-center gap-3">
+    <Gift className="w-6 h-6 text-white" strokeWidth={2} />
+    <span>Redeem Points</span>
+  </Link>
+</div>
+
         </div>
       </motion.section>
     </div>

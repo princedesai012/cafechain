@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAppContext } from "../store/AppContext";
 import { useState, useEffect } from "react";
-import logo from "../assets/logo.jpg";
+import logo from "../assets/cc.png";
 
 function Navbar() {
   const { state } = useAppContext();

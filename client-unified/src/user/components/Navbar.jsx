@@ -42,7 +42,13 @@ const Navbar = () => {
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         if (location.pathname !== "/user/cafes") {
-            navigate(`/cafes?search=${searchQuery}`);
+            navigate(`/user/cafes?search=${searchQuery}`);
+        } else {
+            if (searchQuery) {
+                setSearchParams({ search: searchQuery });
+            } else {
+                setSearchParams({});
+            }
         }
     };
 
