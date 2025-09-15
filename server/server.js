@@ -1,44 +1,53 @@
 require("dotenv").config();
 require("./cron");
+
 const express = require("express");
-const connectDB = require("./config/db"); 
-const userRoutes = require("./routes/users");
-const emailOtpRoutes = require("./routes/emailOtp");
+const connectDB = require("./config/db");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const path = require("path");
-const app = express();
-const PORT = process.env.PORT || 5000;
-const forgotPasswordRoutes = require("./routes/forgotPasswordRoutes");
+
+// --- Route Imports ---
+const userRoutes = require("./routes/users");
+const emailOtpRoutes = require("./routes/emailOtp");
 const rewardRoutes = require("./routes/rewardRoutes");
 const cafeRoutes = require("./routes/cafeRoutes");
+const forgotPasswordRoutes = require("./routes/forgotPasswordRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const cafeOwnerRoutes = require("./routes/cafeOwnerRoutes");
 const { authenticateUserJWT } = require("./middlewares/auth");
 
-// Increase payload size limits for image uploads
-app.use((req, res, next) => {
-  res.setHeader('X-Powered-By', 'CafeChain');
-  next();
-});
+const app = express();
+const PORT = process.env.PORT || 5000;
 
+// --- Database Connection ---
 connectDB();
+
+// --- Core Middleware ---
 app.use(cors({
     origin: ["http://localhost:5173", "http://localhost:3000"],
     credentials: true,
 }));
+
+// ✅ CRITICAL: This is the most important line for your login issue.
+// It allows the server to understand the JSON data sent from your frontend.
 app.use(express.json({ limit: '50mb' }));
+
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use(cookieParser()); 
-// Serve uploaded avatars statically
+app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// --- API ROUTES ---
+// The express.json() middleware must come before these routes are defined.
 app.use("/api/users", userRoutes);
 app.use("/api/email-otp", emailOtpRoutes);
-// app.use("/api/rewards", rewardRoutes);
 app.use("/api/rewards", authenticateUserJWT, rewardRoutes);
 app.use("/api/cafes", cafeRoutes);
-
 app.use("/api/forgot-password", forgotPasswordRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/cafe-owner", cafeOwnerRoutes);
 
+// --- Server Startup ---
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

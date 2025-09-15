@@ -1,32 +1,34 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../store/AppContext';
 
-/**
- * ProtectedRoute component to handle authentication and setup requirements
- * @param {Object} props
- * @param {boolean} props.requireSetup - If true, requires setup to be completed
- * @param {React.ReactNode} props.children - Child components to render if conditions are met
- */
-function ProtectedRoute({ children, requireSetup = true }) {
+function ProtectedRoute({ children, requireSetup = false, requireActiveCafe = false }) {
   const { state } = useAppContext();
-  const { isAuthenticated, setupCompleted } = state;
+  const { isAuthenticated, setupCompleted, cafeStatus } = state;
+  const location = useLocation();
 
-  // If not authenticated, redirect to login
+  // 1. If not logged in → always go to login
   if (!isAuthenticated) {
-    return <Navigate to="/cafe/auth/login" replace />;
+    return <Navigate to="/cafe/auth/login" state={{ from: location }} replace />;
   }
 
-  // If setup is required but not completed, redirect to setup
-  if (requireSetup && !setupCompleted) {
-    return <Navigate to="/cafe/setup" replace />;
+  // NEW: Check cafeStatus for access routing
+  if (requireActiveCafe) {
+    if (cafeStatus === "pending") return <Navigate to="/cafe/setup" replace />;
+    if (cafeStatus === "pendingApproval") return <Navigate to="/cafe/pending-approval" replace />;
+    if (cafeStatus !== "active") return <Navigate to="/cafe" replace />;
   }
-
-  // If setup is completed but we're on the setup page, redirect to home
+  // If setup not done, redirect
+  if (requireSetup && typeof setupCompleted !== "undefined") {
+    if (!setupCompleted) {
+      return <Navigate to="/cafe/setup" replace />;
+    }
+  }
   if (!requireSetup && setupCompleted) {
-    return <Navigate to="/cafe" replace />;
+    if (location.pathname === "/cafe/setup") {
+      return <Navigate to="/cafe" replace />;
+    }
   }
-
-  // If all conditions are met, render the children
+  // 2. All good
   return children;
 }
 

@@ -38,7 +38,7 @@ export default function AdminLoginPage() {
         <button className="bg-blue-600 text-white px-4 py-2 rounded w-full mb-2" type="submit">
           Login
         </button>
-        <div className="text-center mt-2">
+        {/* <div className="text-center mt-2">
           <span>Don't have an account? </span>
           <button
             type="button"
@@ -47,7 +47,7 @@ export default function AdminLoginPage() {
           >
             Sign Up
           </button>
-        </div>
+        </div> */}
       </form>
     </div>
   );

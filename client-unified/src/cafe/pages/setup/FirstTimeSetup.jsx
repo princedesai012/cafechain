@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppContext } from "../../store/AppContext";
 import toast from "react-hot-toast";
-import Loader from "../../components/Loader"; // ✅ Import Loader component
+import Loader from "../../components/Loader";
 import cafeLogo from "../../assets/logo.jpg";
+import axios from 'axios';
 
 function FirstTimeSetup() {
   const [formData, setFormData] = useState({
@@ -13,23 +13,25 @@ function FirstTimeSetup() {
     email: "",
     description: "",
     openingHours: "",
+    // You can add more fields here if needed, like features or gallery
+    features: [],
+    gallery: [],
   });
 
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(true); // ✅ loader initially true
-  const { dispatch } = useAppContext();
+  const [isLoading, setIsLoading] = useState(false); // Changed initial state to false
   const navigate = useNavigate();
 
-  // Show loader on initial mount
+  // This effect can be removed if you don't want an artificial initial load time
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1200); // 1.2s full-page loader
+    const timer = setTimeout(() => setIsLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" })); // clear error as user types
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const validate = () => {
@@ -46,17 +48,14 @@ function FirstTimeSetup() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Please enter a valid email address.";
     }
-    if (formData.description.length > 200) {
-      newErrors.description = "Description cannot exceed 200 characters.";
-    }
-    if (formData.openingHours && formData.openingHours.length < 5) {
-      newErrors.openingHours = "Opening hours must be at least 5 characters.";
+    if (formData.description.length > 500) { // Increased limit
+      newErrors.description = "Description cannot exceed 500 characters.";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validate()) {
@@ -64,26 +63,33 @@ function FirstTimeSetup() {
       return;
     }
 
-    setIsLoading(true); // ✅ loader during form submission
+    setIsLoading(true);
 
-    setTimeout(() => {
-      dispatch({
-        type: "COMPLETE_SETUP",
-        payload: {
-          ...formData,
-          id: `cafe-${Date.now()}`,
-          joinedDate: new Date().toISOString(),
-          status: "active",
-        },
-      });
+    try {
+      const onboardingToken = sessionStorage.getItem('onboardingToken');
+      if (!onboardingToken) {
+          toast.error("Your session has expired. Please start the registration process again.");
+          navigate('/cafe/auth/register');
+          return;
+      }
 
-      toast.success("Setup completed successfully!");
-      setIsLoading(false);
-      navigate("/");
-    }, 1000);
+      // Send the token in the authorization header for the backend to verify
+      const response = await axios.put(
+          '/api/cafe-owner/setup-profile', 
+          formData,
+          { headers: { 'Authorization': `Bearer ${onboardingToken}` } }
+      );
+    
+      toast.success(response.data.message);
+      sessionStorage.removeItem('onboardingToken'); // Clean up the temporary token
+      navigate('/cafe/pending-approval'); // Navigate to the pending page
+    } catch (error) {
+        toast.error(error.response?.data?.error || 'Setup submission failed. Please try again.');
+    } finally {
+        setIsLoading(false);
+    }
   };
 
-  // ✅ Show loader if isLoading
   if (isLoading) return <Loader />;
 
   return (
@@ -106,12 +112,10 @@ function FirstTimeSetup() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="w-full md:w-1/2 bg-white text-[#4a3a2f] flex items-center justify-center p-10">
+      <div className="w-full md:w-1/2 bg-white text-[#4a3a2f] flex items-center justify-center p-6 sm:p-10">
         <div className="max-w-lg w-full">
-          <h1 className="text-3xl font-extrabold mb-6">Set Up Your Cafe</h1>
+          <h1 className="text-3xl font-extrabold mb-6">Set Up Your Cafe Details</h1>
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Form fields remain same */}
-            {/* Cafe Name */}
             <div>
               <label htmlFor="name" className="block font-semibold">
                 Cafe Name *
@@ -129,7 +133,6 @@ function FirstTimeSetup() {
               )}
             </div>
 
-            {/* Address */}
             <div>
               <label htmlFor="address" className="block font-semibold">
                 Address *
@@ -147,9 +150,8 @@ function FirstTimeSetup() {
               )}
             </div>
 
-            {/* Phone + Email */}
-            <div className="flex gap-4">
-              <div className="w-1/2">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="w-full sm:w-1/2">
                 <label htmlFor="phone" className="block font-semibold">
                   Phone *
                 </label>
@@ -165,7 +167,7 @@ function FirstTimeSetup() {
                   <p className="text-red-600 text-sm mt-1">{errors.phone}</p>
                 )}
               </div>
-              <div className="w-1/2">
+              <div className="w-full sm:w-1/2">
                 <label htmlFor="email" className="block font-semibold">
                   Email *
                 </label>
@@ -183,7 +185,6 @@ function FirstTimeSetup() {
               </div>
             </div>
 
-            {/* Description */}
             <div>
               <label htmlFor="description" className="block font-semibold">
                 Description
@@ -195,13 +196,13 @@ function FirstTimeSetup() {
                 className="w-full border rounded-md p-2 focus:ring-2 focus:ring-[#4a3a2f]"
                 value={formData.description}
                 onChange={handleChange}
+                placeholder="Tell customers what makes your cafe special."
               ></textarea>
               {errors.description && (
                 <p className="text-red-600 text-sm mt-1">{errors.description}</p>
               )}
             </div>
 
-            {/* Opening Hours */}
             <div>
               <label htmlFor="openingHours" className="block font-semibold">
                 Opening Hours
@@ -220,14 +221,13 @@ function FirstTimeSetup() {
               )}
             </div>
 
-            {/* Submit */}
             <div>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#4a3a2f] text-white font-semibold py-3 rounded-md hover:bg-[#3a2d24] transition"
+                className="w-full bg-[#4a3a2f] text-white font-semibold py-3 rounded-md hover:bg-[#3a2d24] transition disabled:opacity-60"
               >
-                {isLoading ? "Saving..." : "Complete Setup"}
+                {isLoading ? "Submitting for Approval..." : "Submit for Approval"}
               </button>
             </div>
           </form>
@@ -238,3 +238,4 @@ function FirstTimeSetup() {
 }
 
 export default FirstTimeSetup;
+
