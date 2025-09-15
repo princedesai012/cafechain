@@ -15,7 +15,6 @@ const SignupPage = ({ onNavigate }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     setMounted(true);
@@ -35,46 +34,24 @@ const SignupPage = ({ onNavigate }) => {
     setLoading(true);
     setError('');
 
-    // Validation checks
-    if (!formData.name || !formData.phone || !formData.password || !formData.email || !formData.confirmPassword) {
+    if (!formData.name || !formData.phone || !formData.password || !formData.email) {
       setError('Please fill in all required fields');
       setLoading(false);
       return;
     }
+
     if (formData.phone.length !== 10) {
       setError('Please enter a valid 10-digit mobile number');
       setLoading(false);
       return;
     }
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
-      return;
-    }
 
     try {
-      const response = await fetch(`${API_URL}/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email,
-          password: formData.password,
-          referralCode: formData.referralCode
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send OTP.');
-      }
-
-      console.log('Signup OTP sent:', data.message);
-      setCurrentView('verify'); // Switch to OTP view on success
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log('Signup attempt:', formData);
+      setCurrentView('verify');
     } catch (err) {
-      setError(err.message || 'Something went wrong. Please try again.');
+      setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
