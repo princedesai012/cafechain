@@ -1,27 +1,26 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAppContext } from "../../store/AppContext";
-import StatusToggle from "../../components/StatusToggle";
-import Loader from "../../components/Loader"; // ✅ Import Loader
+import Loader from "../../components/Loader"; 
 
 function Dashboard() {
   const { state } = useAppContext();
   const { cafeInfo, metrics } = state;
 
-  const [isLoading, setIsLoading] = useState(true); // ✅ Loader state
+  const [isLoading, setIsLoading] = useState(true); 
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000); // Simulate loading
+    const timer = setTimeout(() => setIsLoading(false), 1000); 
     return () => clearTimeout(timer);
   }, []);
 
-  if (isLoading) return <Loader />; // ✅ Show loader while loading
+  if (isLoading) return <Loader />; 
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-6xl mx-auto py-6 px-3 sm:px-6 lg:px-8">
         {/* Dashboard Header */}
-        <header className="bg-white shadow-lg rounded-2xl mb-6 p-6 transition-all duration-300 hover:shadow-2xl">
+        <header className="bg-white shadow-lg rounded-2xl mb-6 p-6 transition-all duration-300 hover:shadow-2xl animate-fade-in-down">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
 
             {/* Cafe Info */}
@@ -43,12 +42,9 @@ function Dashboard() {
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto items-start sm:items-center">
-              <div className="bg-gray-100 p-2 rounded-lg shadow-inner">
-                <StatusToggle />
-              </div>
               <Link
                 to="/cafe/dashboard/profile"
-                className="bg-[#4a3a2f] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#3d312a] transition-colors duration-200 shadow-md hover:shadow-lg text-center transform hover:-translate-y-1"
+                className="bg-[#4a3a2f] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#3d312a] transition-colors duration-200 shadow-md hover:shadow-lg text-center transform hover:scale-105"
               >
                 Profile & Settings
               </Link>
@@ -63,7 +59,7 @@ function Dashboard() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Sales */}
-            <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-emerald-500 transform hover:rotate-1 hover:scale-[1.02] transition-all duration-300">
+            <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-emerald-500 transform hover:scale-[1.03] transition-all duration-300 animate-slide-in-1">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                 Total Sales
               </p>
@@ -76,7 +72,7 @@ function Dashboard() {
             </article>
 
             {/* Customers */}
-            <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-blue-500 transform hover:rotate-1 hover:scale-[1.02] transition-all duration-300">
+            <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-blue-500 transform hover:scale-[1.03] transition-all duration-300 animate-slide-in-2">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                 New Customers
               </p>
@@ -89,7 +85,7 @@ function Dashboard() {
             </article>
 
             {/* Redemptions */}
-            <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-purple-500 transform hover:rotate-1 hover:scale-[1.02] transition-all duration-300">
+            <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-purple-500 transform hover:scale-[1.03] transition-all duration-300 animate-slide-in-3">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                 Redemptions
               </p>
@@ -110,9 +106,9 @@ function Dashboard() {
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {/* Metrics */}
-            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300">
+            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300 animate-slide-in-4">
               <Link to="/cafe/dashboard/metrics" className="block p-5">
-                <div className="p-3 rounded-lg bg-gradient-to-br from-[#4a3a2f] to-[#3d312a] mb-3 w-fit group-hover:rotate-6 transition-transform">
+                <div className="p-3 rounded-lg bg-gradient-to-br from-[#4a3a2f] to-[#3d312a] mb-3 w-fit  transition-transform">
                   {/* Chart Icon */}
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19V10M6 19V4M16 19v-7M21 19V8" />
@@ -124,9 +120,9 @@ function Dashboard() {
             </article>
 
             {/* Redemption */}
-            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300">
+            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300 animate-slide-in-5">
               <Link to="/cafe/dashboard/redemption" className="block p-5">
-                <div className="p-3 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 mb-3 w-fit group-hover:rotate-6 transition-transform">
+                <div className="p-3 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 mb-3 w-fit transition-transform">
                   {/* Gift Icon */}
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7m16 0H4m16 0a2 2 0 01-2-2h-3.5a1.5 1.5 0 01-1.5-1.5V7m-8 5a2 2 0 002-2V7m0 0a2 2 0 114 0v3a2 2 0 002 2m-6-5a2 2 0 11-4 0" />
@@ -138,9 +134,9 @@ function Dashboard() {
             </article>
 
             {/* Ads & Events */}
-            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300">
+            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300 animate-slide-in-6">
               <Link to="/cafe/dashboard/ads-events" className="block p-5">
-                <div className="p-3 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 mb-3 w-fit group-hover:rotate-6 transition-transform">
+                <div className="p-3 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 mb-3 w-fit transition-transform">
                   {/* Megaphone Icon */}
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5l6-2v14l-6-2M5 8v8a2 2 0 002 2h2l3 3V5L9 2H7a2 2 0 00-2 2z" />
@@ -152,9 +148,9 @@ function Dashboard() {
             </article>
 
             {/* Activity */}
-            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300">
+            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300 animate-slide-in-7">
               <Link to="/cafe/dashboard/activity" className="block p-5">
-                <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 mb-3 w-fit group-hover:rotate-6 transition-transform">
+                <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 mb-3 w-fit transition-transform">
                   {/* Clock Icon */}
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

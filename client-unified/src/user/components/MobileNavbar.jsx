@@ -1,6 +1,7 @@
 // components/MobileNavbar.jsx
 import React from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useSearchParams, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Search } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -8,6 +9,41 @@ import { motion } from 'framer-motion';
 const MobileNavbar = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated } = useAuth();
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.pathname === "/user/cafes") {
+            setSearchQuery(searchParams.get("search") || "");
+        } else {
+            setSearchQuery("");
+        }
+        }, [searchParams, location.pathname]);
+
+        const handleSearchChange = (e) => {
+        const value = e.target.value;
+        setSearchQuery(value);
+        if (location.pathname === "/user/cafes") {
+            if (value.trim()) {
+            setSearchParams({ search: value });
+            } else {
+            setSearchParams({});
+            }
+        }
+        };
+
+        const handleSearchSubmit = (e) => {
+            e.preventDefault();
+            if (searchQuery.trim()) {
+                if (location.pathname !== "/user/cafes") {
+                navigate(`/user/cafes?search=${searchQuery}`);
+                } else {
+                setSearchParams({ search: searchQuery });
+                }
+            }
+            };
+
 
     return (
         <>
@@ -34,28 +70,32 @@ const MobileNavbar = () => {
             >
                 <div className="px-4 py-3 flex items-center justify-between h-20">
                     {/* Logo with link to home page */}
-                    <div className="flex-shrink-0">
-                        <Link to="/user/home" className="text-2xl font-bold text-[#4A3A2F] font-logo">
+                    <div className="flex-shrink-0 focus:outline-none focus:ring-0 border-none">
+                        <Link to="/user/home" className="text-2xl font-bold text-[#4A3A2F] font-logo focus:outline-none focus:ring-0 border-none">
                             CafeChain
                         </Link>
                     </div>
 
                     {/* The search and profile icons will only appear if the user is authenticated. */}
                     {isAuthenticated && (
-                        <div className="flex items-center gap-3 flex-1 ml-3">
+                        <div className="flex items-center gap-3 flex-1 ml-3 focus:outline-none focus:ring-0 border-none">
                             {/* Redesigned Search Bar */}
-                            <div className="flex items-center bg-gray-100 rounded-full px-3 py-2 w-full">
-                                <Search className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+                            <div className="flex items-center bg-gray-100 rounded-full px-3 py-2 w-full focus:outline-none focus:ring-0 border-none">
+                                <form onSubmit={handleSearchSubmit} className="flex items-center bg-gray-100 rounded-full px-3 py-2 w-full focus:outline-none focus:ring-0 border-none">
+                                <Search className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0 focus:outline-none focus:ring-0 border-none" />
                                 <input
                                     type="text"
                                     placeholder="Search cafes..."
-                                    className="bg-transparent outline-none text-sm w-full"
+                                    value={searchQuery}
+                                    onChange={handleSearchChange}
+                                    className="bg-transparent outline-none text-sm w-full focus:outline-none focus:ring-0 border-none"
                                 />
+                                </form>
                             </div>
                             
                             {/* Redesigned Profile Icon */}
                             <button
-                                className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-[#4A3A2F] rounded-full text-white font-bold overflow-hidden"
+                                className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-[#4A3A2F] rounded-full text-white font-bold overflow-hidden focus:outline-none focus:ring-0 border-none"
                                 onClick={() => navigate("/user/profile")}
                                 aria-label="Go to profile"
                             >
@@ -76,3 +116,4 @@ const MobileNavbar = () => {
 };
 
 export default MobileNavbar;
+ 

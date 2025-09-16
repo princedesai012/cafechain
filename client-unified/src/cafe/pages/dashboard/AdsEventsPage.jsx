@@ -87,6 +87,20 @@ function AdsEventsPage() {
         >
           <ArrowLeft className="mr-2" /> Back
         </button>
+       <a
+    href="https://wa.me/917575825782?text=hiii%20heloo%20cafechain"  // <-- Add your number
+    target="_blank"
+    rel="noopener noreferrer"
+    className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold shadow-md transition-all duration-300 hover:scale-105"
+    style={{ backgroundColor: PRIMARY, color: 'white' }}
+  >
+    <img
+      src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+      alt="WhatsApp"
+      className="w-5 h-5"
+    />
+    Book Your Ads & Events
+  </a>
       </header>
 
       <div className="container mx-auto px-4 md:px-12 py-6">

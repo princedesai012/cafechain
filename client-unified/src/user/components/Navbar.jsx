@@ -82,7 +82,7 @@ const Navbar = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
                         <div className="flex-shrink-0">
-                            <Link to="/user/home" className="text-3xl font-bold text-[#4A3A2F] font-logo">
+                            <Link to="/user/home" className="text-3xl font-bold text-[#4A3A2F] font-logo focus:outline-none focus:ring-0 border-none">
                                 CafeChain
                             </Link>
                         </div>
@@ -94,7 +94,7 @@ const Navbar = () => {
                                         <div key={link.name} className="relative">
                                             <Link
                                                 to={link.href}
-                                                className="text-gray-600 hover:text-[#4A3A2F] px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                                className="text-gray-600 hover:text-[#4A3A2F] px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-0 border-none"
                                             >
                                                 {link.name}
                                             </Link>
@@ -115,24 +115,24 @@ const Navbar = () => {
                         {isAuthenticated && (
                             <div className="hidden md:flex items-center gap-4">
                                 <form onSubmit={handleSearchSubmit} className="flex items-center bg-gray-100 rounded-full px-4 py-2">
-                                    <Search className="w-5 h-5 text-gray-400 mr-2" />
+                                    <Search className="w-5 h-5 text-gray-400 mr-2 " />
                                     <input
                                         type="text"
                                         placeholder="Search cafes..."
                                         value={searchQuery}
                                         onChange={handleSearchChange}
-                                        className="bg-transparent outline-none text-sm w-32 transition-all focus:w-40"
+                                        className="bg-transparent outline-none text-sm w-32 transition-all focus:w-40 focus:outline-none focus:ring-0 border-none"
                                     />
                                 </form>
                                 <button
-                                    className="w-10 h-10 flex items-center justify-center bg-[#4A3A2F] rounded-full text-white font-bold overflow-hidden"
+                                    className="w-10 h-10 flex items-center justify-center bg-[#4A3A2F] rounded-full text-white font-bold overflow-hidden focus:outline-none focus:ring-0 border-none"
                                     onClick={() => navigate("/user/profile")}
                                     aria-label="Go to profile"
                                 >
                                     {user?.profilePic ? (
                                         <img src={user.profilePic} alt="avatar" className="w-full h-full object-cover" />
                                     ) : (
-                                        <span className="text-white font-semibold">
+                                        <span className="text-white font-semibold ">
                                             {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
                                         </span>
                                     )}
@@ -144,7 +144,7 @@ const Navbar = () => {
                             <div className="-mr-2 flex md:hidden">
                                 <button
                                     onClick={toggleMenu}
-                                    className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-white hover:bg-[#4A3A2F] focus:outline-none"
+                                    className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-white hover:bg-[#4A3A2F] focus:outline-none focus:ring-0 border-none"
                                 >
                                     {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                                 </button>
