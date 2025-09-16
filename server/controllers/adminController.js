@@ -161,7 +161,7 @@ exports.approveCafe = async (req, res) => {
           ownerName: pendingData.ownerName,
           ownerPhone: pendingData.ownerPhone,
           email: pendingData.email,
-          password: pendingData.password, // Pass the pre-hashed password
+          password: pendingData.hashedPassword, // Pass the pre-hashed password
           cafeCode: crypto.randomBytes(3).toString("hex").toUpperCase(),
           status: "active",
       });

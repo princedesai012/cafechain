@@ -48,14 +48,14 @@ exports.register = async (req, res) => {
         }
 
         // --- 3. PREPARE USER DATA (WITHOUT SAVING) ---
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // const hashedPassword = password;
         const referralCodeGenerated = crypto.randomBytes(3).toString("hex");
 
         let tempUserData = {
             name,
             phone,
             email,
-            password: hashedPassword,
+            password,
             referralCode: referralCodeGenerated,
             xp: 100, // Base registration XP
             isEmailVerified: false, // Will be set to true upon verification

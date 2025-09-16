@@ -31,8 +31,13 @@ const cafeSchema = new mongoose.Schema({
 
 // Pre-save hook to hash the password before saving the document
 cafeSchema.pre('save', async function(next) {
-    // Only hash the password if it has been modified (or is new)
+    // Only hash the password if it has been modified AND it's not already a bcrypt hash
     if (!this.isModified('password')) return next();
+    
+    // ✅ ADDED CHECK: Don't re-hash if it's already a hashed password (starts with $2)
+    if (this.password.startsWith('$2')) {
+        return next();
+    }
     
     this.password = await bcrypt.hash(this.password, 10);
     next();

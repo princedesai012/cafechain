@@ -7,6 +7,13 @@ const otpSchema = new mongoose.Schema({
         unique: true,
         sparse: true
     },
+    phone: {
+        type: String,
+        // The 'unique' option creates the unique index.
+        unique: true,
+        // The 'sparse' option allows multiple documents with a null phone value.
+        sparse: true, 
+      },
     otp: {
         type: String,
         required: true
