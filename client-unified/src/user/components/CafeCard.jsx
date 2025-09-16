@@ -41,7 +41,7 @@ const CafeCard = ({ cafe, onClick }) => {
         {/* Phone */}
         <div className="flex items-center text-gray-600 text-sm mb-2">
           <Phone className="w-4 h-4 mr-1 flex-shrink-0" />
-          <span>{cafe.phone || "N/A"}</span>
+          <span>{cafe.cafePhone || "N/A"}</span>
         </div>
 
         {/* ✅ Features */}

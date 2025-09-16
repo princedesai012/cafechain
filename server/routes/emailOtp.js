@@ -1,11 +1,10 @@
+// routes/emailOtpRoutes.js
+
 const express = require("express");
 const router = express.Router();
-const { requestEmailOTP, verifyEmailOTP, resendEmailOTP } = require("../controllers/emailOtpController");
-const { validateEmail } = require("../middlewares/validate");
+const { verifyEmailOtp, resendEmailOtp } = require("../controllers/emailOtpController");
 
-// Email OTP routes
-router.post("/request-email-otp", validateEmail, requestEmailOTP);
-router.post("/verify-email-otp", validateEmail, verifyEmailOTP);
-router.post("/resend-email-otp", validateEmail, resendEmailOTP);
+router.post("/verify-email-otp", verifyEmailOtp);
+router.post("/resend-email-otp", resendEmailOtp);
 
 module.exports = router;

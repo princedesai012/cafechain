@@ -25,10 +25,9 @@ const generateReferralCode = () => crypto.randomBytes(3).toString("hex");
 // 1. Request OTP for Registration
 exports.requestCafeEmailOTP = async (req, res) => {
   const { email, ownerPhone, cafePhone, password } = req.body;
-  // Ensure we have the necessary fields to check
-  if (!email || !ownerPhone || !cafePhone) {
-    res.status(400).json({ error: "Email, Owner Phone, and Cafe Phone are required." });
-    return;
+    
+  if (!email || !ownerPhone || !cafePhone || !password) {
+    return res.status(400).json({ error: "All required fields must be provided." });
   }
 
   try {
@@ -53,6 +52,8 @@ exports.requestCafeEmailOTP = async (req, res) => {
       return;
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Generate OTP and metadata (include password as plain text)
     const otp = otpGenerator.generate(6, { 
       upperCaseAlphabets: false, 
@@ -60,7 +61,7 @@ exports.requestCafeEmailOTP = async (req, res) => {
       specialChars: false 
     });
 
-    const metadata = { ...req.body }; // Keep plain password
+    const metadata = { ...req.body, hashedPassword }; // Keep plain password
 
     await OTP.findOneAndUpdate(
       { email },
@@ -80,11 +81,9 @@ exports.requestCafeEmailOTP = async (req, res) => {
       message: "OTP sent to your email.",
       email: email
     });
-    return;
   } catch (error) {
     console.error("OTP Request Error:", error);
     res.status(500).json({ error: "Server error during registration check." });
-    return;
   }
 };
 
@@ -92,60 +91,58 @@ exports.requestCafeEmailOTP = async (req, res) => {
 exports.verifyCafeEmailOTP = async (req, res) => {
   const { otp, email } = req.body;
   try {
-    const otpDocument = await OTP.findOne({ email, otp, type: 'email' });
-    if (!otpDocument) {
-      res.status(400).json({ error: "Invalid or expired OTP." });
-      return;
-    }
+      const otpDocument = await OTP.findOne({ email, otp, type: 'email' });
+      if (!otpDocument) {
+          return res.status(400).json({ error: "Invalid or expired OTP." });
+      }
 
-    // Directly create the PendingCafe from the OTP's metadata (has plain password)
-    const newPendingCafe = new PendingCafe(otpDocument.metadata);
-    await newPendingCafe.save();
+      // Now, otpDocument.metadata contains 'hashedPassword', which matches the model.
+      const newPendingCafe = new PendingCafe(otpDocument.metadata);
+      await newPendingCafe.save(); // This will no longer cause a validation error.
 
-    await OTP.deleteOne({ _id: otpDocument._id });
+      await OTP.deleteOne({ _id: otpDocument._id });
 
-    res.status(201).json({ message: "Email verified! Your application has been submitted for approval." });
-    return;
+      res.status(201).json({ message: "Email verified! Your application has been submitted for approval." });
   } catch (error) {
-    console.error("OTP Verify Error:", error);
-    res.status(500).json({ error: "Server error during verification." });
-    return;
+      console.error("OTP Verify Error:", error);
+      res.status(500).json({ error: "Server error during verification." });
   }
 };
 
 // 3. Login for cafe owner
 exports.loginCafe = async (req, res) => {
+  // ✅ DEBUG: Add this console log to check your environment variable
+  console.log("JWT Secret being used:", process.env.JWT_SECRET); 
+  
   const { email, password } = req.body;
   try {
-    const cafe = await Cafe.findOne({ email });
-    if (!cafe) {
-      res.status(404).json({ error: "No account found with this email." });
-      return;
-    }
-    const isMatch = await cafe.comparePassword(password);
-    if (!isMatch) {
-      res.status(400).json({ error: "Incorrect password." });
-      return;
-    }
-    if (cafe.status !== 'active') {
-      res.status(403).json({ error: `This cafe's account is not active. Current status: '${cafe.status}'.` });
-      return;
-    }
-    const token = jwt.sign(
-      { id: cafe._id, name: cafe.name, role: 'cafe' },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-    res.status(200).json({
-      message: "Login successful!",
-      token,
-      cafe: { id: cafe._id, name: cafe.name, email: cafe.email, status: cafe.status }
-    });
-    return;
+      const cafe = await Cafe.findOne({ email });
+      if (!cafe) {
+          return res.status(404).json({ error: "No account found with this email." });
+      }
+      const isMatch = await cafe.comparePassword(password);
+      if (!isMatch) {
+          return res.status(400).json({ error: "Incorrect password." });
+      }
+      if (cafe.status !== 'active') {
+          return res.status(403).json({ error: `This cafe's account is not active. Current status: '${cafe.status}'.` });
+      }
+
+      // This line will crash if the JWT_SECRET is undefined
+      const token = jwt.sign(
+          { id: cafe._id, name: cafe.name, role: 'cafe' },
+          process.env.JWT_SECRET,
+          { expiresIn: "7d" }
+      );
+
+      res.status(200).json({
+          message: "Login successful!",
+          token,
+          cafe: { id: cafe._id, name: cafe.name, email: cafe.email, status: cafe.status }
+      });
   } catch (error) {
-    console.error("Login Error:", error);
-    res.status(500).json({ error: "Server error during login." });
-    return;
+      console.error("Login Error:", error);
+      res.status(500).json({ error: "Server error during login." });
   }
 };
 
