@@ -5,7 +5,7 @@ export default function KPISection() {
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
       <div className="bg-white p-6 rounded shadow text-center">
         <div className="text-3xl font-bold">1,234</div>
-        <div className="text-gray-500">Active Users</div>
+        <div className="text-gray-500">Total Users</div>
       </div>
       <div className="bg-white p-6 rounded shadow text-center">
         <div className="text-3xl font-bold">56</div>

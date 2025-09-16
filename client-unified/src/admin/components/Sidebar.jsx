@@ -8,6 +8,7 @@ const navItems = [
   { to: "/admin/users", label: "User Management" },
   { to: "/admin/analytics", label: "Analytics" },
   { to: "/admin/promotions", label: "Promotions" },
+  { to: "/admin/invoices", label: "Invoices" }, // ✅ New route for invoices
 ];
 
 export default function Sidebar() {
@@ -23,7 +24,9 @@ export default function Sidebar() {
             to={item.to}
             className={({ isActive }) =>
               `block px-4 py-2 rounded mb-2 ${
-                isActive ? "bg-blue-100 text-blue-700 font-semibold" : "text-gray-700 hover:bg-gray-100"
+                isActive
+                  ? "bg-blue-100 text-blue-700 font-semibold"
+                  : "text-gray-700 hover:bg-gray-100"
               }`
             }
           >

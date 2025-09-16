@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import DashboardPage from "./pages/DashboardPage";
@@ -13,6 +13,7 @@ import PromotionsPage from "./pages/PromotionsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import AdminLoginPage from "./pages/AdminLoginPage";
+import AdminInvoicesPage from "./pages/invoice"; 
 // import AdminSignupPage from "./pages/AdminSignupPage";
 
 const AdminLayout = ({ children }) => (
@@ -31,6 +32,8 @@ export default function AdminApp() {
       <Routes>
         <Route path="/login" element={<AdminLoginPage />} />
         {/* <Route path="/signup" element={<AdminSignupPage />} /> */}
+
+        {/* Dashboard */}
         <Route
           path="/"
           element={
@@ -47,6 +50,8 @@ export default function AdminApp() {
             </AdminLayout>
           }
         />
+
+        {/* Cafes */}
         <Route
           path="cafes/approval-queue"
           element={
@@ -56,7 +61,7 @@ export default function AdminApp() {
           }
         />
         <Route
-          path="/cafes"
+          path="cafes"
           element={
             <AdminLayout>
               <CafeListPage />
@@ -71,6 +76,8 @@ export default function AdminApp() {
             </AdminLayout>
           }
         />
+
+        {/* Users */}
         <Route
           path="users"
           element={
@@ -80,7 +87,7 @@ export default function AdminApp() {
           }
         />
         <Route
-          path="/users/:id"
+          path="users/:id"
           element={
             <AdminLayout>
               <UserProfilePage />
@@ -95,6 +102,8 @@ export default function AdminApp() {
             </AdminLayout>
           }
         />
+
+        {/* Analytics */}
         <Route
           path="analytics"
           element={
@@ -103,6 +112,8 @@ export default function AdminApp() {
             </AdminLayout>
           }
         />
+
+        {/* Promotions */}
         <Route
           path="promotions"
           element={
@@ -111,6 +122,18 @@ export default function AdminApp() {
             </AdminLayout>
           }
         />
+
+        {/* ✅ Invoices */}
+        <Route
+          path="invoices"
+          element={
+            <AdminLayout>
+              <AdminInvoicesPage />
+            </AdminLayout>
+          }
+        />
+
+        {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </AdminAuthProvider>
