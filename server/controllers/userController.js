@@ -6,9 +6,9 @@ const cloudinary = require("../config/cloudinary");
 const Cafe = require("../models/Cafe");
 const VisitLog = require("../models/VisitLog");
 const RewardTransaction = require("../models/RewardTransaction");
-const OTP = require("../models/OTP"); // 👈 ADD THIS
-const nodemailer = require("nodemailer"); // 👈 ADD THIS
-const otpGenerator = require("otp-generator"); // 👈 ADD THIS
+const OTP = require("../models/OTP");
+const nodemailer = require("nodemailer");
+const otpGenerator = require("otp-generator");
 
 const generateReferralCode = () => crypto.randomBytes(3).toString("hex");
 
@@ -27,6 +27,7 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASSWORD,
     },
 });
+
 
 exports.register = async (req, res) => {
     console.log("Register body:", req.body);
@@ -143,6 +144,46 @@ exports.login = async (req, res) => {
 };
 
 
+exports.getUserCafePoints = async (req, res) => {
+    const { phone } = req.params;
+  
+    // Authorization check: User can only see their own points
+    if (req.user.phone !== phone) {
+      return res.status(403).json({ error: "Unauthorized access" });
+    }
+  
+    try {
+      const user = await User.findOne({ phone }).populate({
+        path: "points.cafeId",
+        select: "name", // Select only the 'name' field from the Cafe model
+      });
+  
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+  
+      // Format the data to be easily used by the frontend
+      const cafePoints = user.points
+        .map((p) => {
+          // Ensure cafeId is not null before accessing its properties
+          if (p.cafeId) {
+            return {
+              cafeName: p.cafeId.name,
+              points: p.totalPoints,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean); // Filter out any null entries
+  
+      res.status(200).json(cafePoints);
+    } catch (error) {
+      console.error("Get user cafe points error:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+};
+
+
 const getCafePoints = (user, cafeId) => {
     let cafePoints = user.points.find(p => p.cafeId.equals(cafeId));
     if (!cafePoints) {
@@ -151,6 +192,7 @@ const getCafePoints = (user, cafeId) => {
     }
     return cafePoints;
 };
+
 
 exports.logVisit = async (req, res, fromAdmin = false, claimData = null) => {
   try {
@@ -535,6 +577,7 @@ exports.changePassword = async (req, res) => {
     }
 };
 
+
 exports.logout = async (req, res) => {
     try {
         res.clearCookie("token", {
@@ -547,6 +590,7 @@ exports.logout = async (req, res) => {
         return res.status(200).json({ message: "Logged out" });
     }
 };
+
 
 exports.getReferralChain = async (req, res) => {
     const { phone } = req.params;
@@ -587,6 +631,7 @@ exports.getReferralChain = async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 };
+
 
 exports.getVisitHistory = async (req, res) => {
     const { phone } = req.params;
@@ -642,6 +687,7 @@ exports.getRewardHistory = async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 };
+
 
 exports.addFavoriteCafe = async (req, res) => {
     const { phone } = req.params;
@@ -706,6 +752,7 @@ exports.getFavoriteCafes = async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 };
+
 
 exports.getLeaderboard = async (req, res) => {
     try {

@@ -40,18 +40,10 @@ export const logoutUser = () => apiClient('/users/logout', {}, { method: 'POST' 
 
 // Profile
 export const getProfile = (phone) => apiClient(`/users/profile/${phone}`, {}, { method: 'GET' });
+
 export const getLeaderboard = () => apiClient('/users/leaderboard', {}, { method: 'GET' });
 export const getRewardsHistory = (phone) => apiClient(`/users/rewards/${phone}`, {}, { method: 'GET' }); // NEW FUNCTION
 
-// export const updateProfile = async (phone, data) => {
-//   const token = localStorage.getItem('authToken');
-//   const headers = {
-//     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-//     'Content-Type': 'application/json',
-//   };
-//   const response = await axios.put(`${API_URL}/users/profile/${phone}`, data, { headers, withCredentials: true });
-//   return response.data;
-// };
 
 export const updateProfile = (phone, data) => 
   apiClient(`/users/profile/${phone}`, data, { method: 'PUT' });
@@ -71,6 +63,10 @@ export const claimReward = (formData) =>
     headers: { "Content-Type": "multipart/form-data" },
     withCredentials: true,
 });
+
+// cafepoints
+export const getUserCafePoints = (phone) =>
+  apiClient(`/users/cafe-points/${phone}`, {}, { method: "GET" });
 
 // Invoices
 export const getInvoiceHistory = () =>
