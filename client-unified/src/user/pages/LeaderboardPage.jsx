@@ -23,13 +23,8 @@ const LeaderboardPage = () => {
           new Promise((resolve) => setTimeout(resolve, 500)),
         ]);
 
-        // console.log("User from Auth Context:", user); 
-
-
-        // Access the correct array from the object returned by the API
         const usersArray = leaderboardRes.leaderboard;
 
-        // Add a check to ensure usersArray is an array before proceeding
         if (!Array.isArray(usersArray)) {
           console.error("API did not return a valid leaderboard array:", usersArray);
           setError("Invalid data received from the server.");
@@ -37,37 +32,38 @@ const LeaderboardPage = () => {
           return;
         }
 
-        // Sort the leaderboard data by XP in descending order
         const sortedLeaderboard = [...usersArray].sort((a, b) => b.xp - a.xp);
 
-        // Assign rank to all users based on their position in the sorted list
         const rankedData = sortedLeaderboard.map((u, index) => ({
           ...u,
           rank: index + 1,
           avatar: u.name ? u.name.split(" ").map((n) => n[0]).join("") : "",
-          profilePic: u.profilePic || `https://ui-avatars.com/api/?name=${u.name.replace(/\s/g, "+")}`
+          profilePic:
+            u.profilePic ||
+            `https://ui-avatars.com/api/?name=${u.name.replace(/\s/g, "+")}`,
         }));
 
-        // Find and extract the current user
-        const userEntry = rankedData.find(u => u._id === user?._id);
-        
+        const userEntry = rankedData.find((u) => u._id === user?._id);
+
         if (userEntry) {
           setCurrentUser(userEntry);
         } else if (profileRes) {
-          // Fallback in case user is not on the leaderboard yet
           setCurrentUser({
             ...profileRes,
             name: profileRes.name,
             xp: profileRes.xp,
-            rank: 'N/A', // User not ranked yet
-            profilePic: profileRes.profilePic || `https://ui-avatars.com/api/?name=${profileRes.name.replace(/\s/g, "+")}`
+            rank: "N/A",
+            profilePic:
+              profileRes.profilePic ||
+              `https://ui-avatars.com/api/?name=${profileRes.name.replace(/\s/g, "+")}`,
           });
         } else {
-            setCurrentUser(null);
+          setCurrentUser(null);
         }
 
-        // Filter out the current user from the main list
-        const filteredLeaderboard = user ? rankedData.filter(u => u.phone !== user.phone) : rankedData;
+        const filteredLeaderboard = user
+          ? rankedData.filter((u) => u.phone !== user.phone)
+          : rankedData;
         setLeaderboardData(filteredLeaderboard);
       } catch (err) {
         console.error("Failed to fetch data:", err);
@@ -92,7 +88,11 @@ const LeaderboardPage = () => {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut" },
+    },
   };
 
   // --- Helper Functions ---
@@ -134,7 +134,9 @@ const LeaderboardPage = () => {
     }
     const initials = user.name ? user.name.split(" ").map((n) => n[0]).join("") : "";
     return (
-      <div className={`${size} flex items-center justify-center font-bold text-gray-700 bg-gray-200 rounded-full`}>
+      <div
+        className={`${size} flex items-center justify-center font-bold text-gray-700 bg-gray-200 rounded-full`}
+      >
         {initials}
       </div>
     );
@@ -163,7 +165,7 @@ const LeaderboardPage = () => {
   if (topThree[2]) podiumOrder.push(topThree[2]);
 
   return (
-    <div className="min-h-screen bg-[#ffffff] text-gray-900 font-['Inter'] p-6 md:p-10 pb-24 overflow-hidden">
+    <div className="min-h-screen bg-[#ffffff] text-gray-900 font-['Inter'] p-6 md:p-10 pb-28 md:pb-10 overflow-hidden">
       <style>{`.drop-shadow-glow { filter: drop-shadow(0 0 8px rgba(0,0,0,0.1)); }`}</style>
       <motion.div
         className="text-center mb-10"
@@ -177,6 +179,7 @@ const LeaderboardPage = () => {
         <p className="text-gray-600 text-lg">Top 15 Coffee Enthusiasts</p>
       </motion.div>
 
+      {/* Desktop Podium */}
       {podiumOrder.length > 0 && (
         <motion.div
           className="hidden md:flex justify-center items-end space-x-6 mb-12"
@@ -185,38 +188,40 @@ const LeaderboardPage = () => {
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
         >
-          {podiumOrder.map((user) => (
-            <motion.div
-              key={user.rank}
-              variants={itemVariants}
-              whileHover={{ scale: 1.05, y: -5 }}
-              transition={{ type: "spring", stiffness: 200 }}
-              className={`flex flex-col items-center justify-center rounded-2xl shadow-xl p-6 md:p-8 ${getPodiumColor(
-                user.rank
-              )} relative overflow-hidden w-48 md:w-60`}
-              style={{
-                transform:
-                  user.rank === 1 ? "translateY(-30px)" : "translateY(-15px)",
-              }}
-            >
-              <div className="absolute top-2 right-2">
-                {getRankIcon(user.rank)}
-              </div>
-              <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4 shadow-inner">
-                {renderAvatar(user)}
-              </div>
-              <h2 className="font-bold text-xl mb-1 truncate max-w-[150px] text-center">
-                {user.name}
-              </h2>
-              <p className="text-2xl font-extrabold drop-shadow-glow">
-                {user.xp.toLocaleString()}
-              </p>
-              <p className="text-sm opacity-80">XP</p>
-            </motion.div>
-          ))}
+          {podiumOrder.map((user) => {
+            let heightClass = "h-60"; // default
+            if (user.rank === 1) heightClass = "h-80"; // tallest
+            if (user.rank === 2) heightClass = "h-72"; // medium
+            if (user.rank === 3) heightClass = "h-64"; // shortest
+
+            return (
+              <motion.div
+                key={user.rank}
+                variants={itemVariants}
+                whileHover={{ scale: 1.05, y: -5 }}
+                transition={{ type: "spring", stiffness: 200 }}
+                className={`flex flex-col items-center justify-center rounded-2xl shadow-xl p-6 md:p-8 ${getPodiumColor(
+                  user.rank
+                )} relative overflow-hidden w-48 md:w-60 ${heightClass}`}
+              >
+                <div className="absolute top-2 right-2">{getRankIcon(user.rank)}</div>
+                <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4 shadow-inner">
+                  {renderAvatar(user)}
+                </div>
+                <h2 className="font-bold text-xl mb-1 truncate max-w-[150px] text-center">
+                  {user.name}
+                </h2>
+                <p className="text-2xl font-extrabold drop-shadow-glow">
+                  {user.xp.toLocaleString()}
+                </p>
+                <p className="text-sm opacity-80">XP</p>
+              </motion.div>
+            );
+          })}
         </motion.div>
       )}
 
+      {/* Mobile Podium */}
       {topThree.length > 0 && (
         <motion.div
           className="flex md:hidden justify-between items-end mb-8 relative w-full max-w-sm mx-auto"
@@ -225,7 +230,7 @@ const LeaderboardPage = () => {
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
         >
-          {topThree.map((user) => (
+          {[topThree[1], topThree[0], topThree[2]].map((user) => (
             <motion.div
               key={user.rank}
               variants={itemVariants}
@@ -259,12 +264,40 @@ const LeaderboardPage = () => {
         </motion.div>
       )}
 
-      {/* Announcement Banner */}
-      <div className="bg-[#4A3A2F] text-white px-4 py-3 rounded-xl mb-6 text-center shadow-md">
-        📢 <span className="font-semibold">Next Week Special:</span> 
-        Top 3 users’ points will increase by 
-        <span className="text-yellow-300 font-bold"> 1.5x</span>!
+      {/* Announcement Banner with shine */}
+      <div className="relative bg-[#4A3A2F] text-white px-4 py-3 rounded-xl mb-6 text-center shadow-md overflow-hidden">
+        <span className="relative z-10">
+          📢 <span className="font-semibold">Next Week Special:</span> Top 3 users’ points will
+          increase by <span className="text-yellow-300 font-bold"> 1.5x</span>!
+        </span>
+        <div className="absolute inset-0">
+          <div className="shine absolute inset-0"></div>
+        </div>
       </div>
+
+      <style>
+        {`
+          .shine {
+            background: linear-gradient(
+              120deg,
+              transparent 0%,
+              rgba(255, 255, 255, 0.4) 50%,
+              transparent 100%
+            );
+            background-size: 200% 100%;
+            animation: shineMove 6s infinite;
+          }
+
+          @keyframes shineMove {
+            0% {
+              background-position: -200% 0;
+            }
+            100% {
+              background-position: 200% 0;
+            }
+          }
+        `}
+      </style>
 
       {currentUser && (
         <motion.div
@@ -285,15 +318,11 @@ const LeaderboardPage = () => {
               </div>
               <div className="flex flex-col">
                 <span className="font-semibold">You</span>
-                <span className="text-sm text-gray-500">
-                  Rank: {currentUser.rank}
-                </span>
+                <span className="text-sm text-gray-500">Rank: {currentUser.rank}</span>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-lg font-bold">
-                {currentUser.xp.toLocaleString()}
-              </div>
+              <div className="text-lg font-bold">{currentUser.xp.toLocaleString()}</div>
               <div className="text-xs text-gray-500">XP</div>
             </div>
           </div>
@@ -325,9 +354,7 @@ const LeaderboardPage = () => {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-lg font-bold">
-                  {user.xp.toLocaleString()}
-                </div>
+                <div className="text-lg font-bold">{user.xp.toLocaleString()}</div>
                 <div className="text-xs text-gray-500">XP</div>
               </div>
             </motion.div>
@@ -339,3 +366,4 @@ const LeaderboardPage = () => {
 };
 
 export default LeaderboardPage;
+  

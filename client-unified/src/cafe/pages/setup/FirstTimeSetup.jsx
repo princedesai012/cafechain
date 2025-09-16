@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import Loader from "../../components/Loader";
-import cafeLogo from "../../assets/logo.jpg";
+
+import Loader from "../../components/Loader"; // ✅ Import Loader component
+import cafeLogo from "../../assets/cc.png";
 import axios from 'axios';
 
 function FirstTimeSetup() {
   const [formData, setFormData] = useState({
     name: "",
+    owner: "", // ✅ Added cafe owner name
     address: "",
     phone: "",
     email: "",
@@ -38,6 +40,9 @@ function FirstTimeSetup() {
     const newErrors = {};
     if (!formData.name || formData.name.length < 3) {
       newErrors.name = "Cafe name must be at least 3 characters.";
+    }
+    if (!formData.owner || formData.owner.length < 3) {
+      newErrors.owner = "Owner name must be at least 3 characters.";
     }
     if (!formData.address || formData.address.length < 5) {
       newErrors.address = "Address must be at least 5 characters.";
@@ -116,6 +121,7 @@ function FirstTimeSetup() {
         <div className="max-w-lg w-full">
           <h1 className="text-3xl font-extrabold mb-6">Set Up Your Cafe Details</h1>
           <form onSubmit={handleSubmit} className="space-y-5">
+
             <div>
               <label htmlFor="name" className="block font-semibold">
                 Cafe Name *
@@ -133,6 +139,23 @@ function FirstTimeSetup() {
               )}
             </div>
 
+            {/* Owner Name */}
+            <div>
+              <label htmlFor="owner" className="block font-semibold">
+                Owner Name *
+              </label>
+              <input
+                type="text"
+                name="owner"
+                id="owner"
+                className="w-full border rounded-md p-2 focus:ring-2 focus:ring-[#4a3a2f]"
+                value={formData.owner}
+                onChange={handleChange}
+              />
+              {errors.owner && (
+                <p className="text-red-600 text-sm mt-1">{errors.owner}</p>
+              )}
+            </div>
             <div>
               <label htmlFor="address" className="block font-semibold">
                 Address *
