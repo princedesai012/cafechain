@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { MapPin, Phone, Clock, Heart } from "lucide-react";
+import { MapPin, Phone, Clock, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getCafeById } from "../api/api";
 import Loader from "../components/Loader";
@@ -11,10 +11,18 @@ const CafeDetailPage = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // slider states
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const dummyImages = [
+    "https://picsum.photos/seed/cafe1/800/600",
+    "https://picsum.photos/seed/cafe2/800/600",
+    "https://picsum.photos/seed/cafe3/800/600",
+  ];
+
   useEffect(() => {
     const fetchCafe = async () => {
       setLoading(true);
-      const startTime = Date.now(); // track start time
+      const startTime = Date.now();
       try {
         const data = await getCafeById(id);
         setCafe(data);
@@ -24,12 +32,20 @@ const CafeDetailPage = () => {
         console.error("Error fetching cafe:", error);
       } finally {
         const elapsed = Date.now() - startTime;
-        const remaining = 1000 - elapsed; // 1 second minimum
+        const remaining = 1000 - elapsed;
         setTimeout(() => setLoading(false), remaining > 0 ? remaining : 0);
       }
     };
     fetchCafe();
   }, [id]);
+
+  // slider auto change
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % dummyImages.length);
+    }, 3000); // auto slide every 3s
+    return () => clearInterval(interval);
+  }, [dummyImages.length]);
 
   const handleBack = () => navigate("/user/cafes");
 
@@ -50,6 +66,16 @@ const CafeDetailPage = () => {
     }
   };
 
+  const prevSlide = () => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === 0 ? dummyImages.length - 1 : prevIndex - 1
+    );
+  };
+
+  const nextSlide = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % dummyImages.length);
+  };
+
   if (loading) {
     return <Loader />;
   }
@@ -65,19 +91,30 @@ const CafeDetailPage = () => {
         </button>
       </div>
 
+      {/* Mobile View */}
       <div className="block md:hidden">
         <div className="px-4 py-6 space-y-6 relative">
+          {/* Slider */}
           <div className="bg-light-gray rounded-2xl h-48 overflow-hidden relative">
             <img
-              src={cafe.image || "/assets/Images/logo.jpg"}
+              src={dummyImages[currentIndex]}
               alt={cafe.name}
-              className="w-full h-full object-cover rounded-2xl"
+              className="w-full h-full object-cover rounded-2xl transition-transform duration-700 ease-in-out"
               onError={handleImgError}
             />
-            <div className="absolute top-3 right-3 flex items-center gap-2 bg-white px-3 py-1 rounded-full shadow-md">
-              <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-              <span className="text-sm font-semibold text-gray-700">Open</span>
-            </div>
+            {/* Arrows */}
+            <button
+              onClick={prevSlide}
+              className="absolute top-1/2 left-3 transform -translate-y-1/2 bg-white p-2 rounded-full shadow"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="absolute top-1/2 right-3 transform -translate-y-1/2 bg-white p-2 rounded-full shadow"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
 
           <div className="flex items-center justify-end">
@@ -128,24 +165,45 @@ const CafeDetailPage = () => {
                 )}
               </div>
             </div>
+
+            {/* Description */}
+            <div>
+              <h3 className="font-semibold text-dark-brown mb-2">Description</h3>
+              <p className="text-gray-600 text-sm leading-relaxed max-h-40 overflow-y-auto">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut
+                perspiciatis unde omnis iste natus error sit voluptatem
+                accusantium doloremque laudantium. This is a dummy description
+                for responsiveness testing.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Desktop View */}
       <div className="hidden md:block">
         <div className="md:max-w-7xl md:mx-auto md:px-8 md:py-8">
           <div className="grid grid-cols-2 gap-8 items-start bg-white p-8 rounded-2xl shadow-soft relative">
+            {/* Slider */}
             <div className="bg-light-gray rounded-2xl h-96 overflow-hidden relative">
               <img
-                src={cafe.image || "/assets/Images/logo.jpg"}
+                src={dummyImages[currentIndex]}
                 alt={cafe.name}
-                className="w-full h-full object-cover rounded-2xl"
+                className="w-full h-full object-cover rounded-2xl transition-transform duration-700 ease-in-out"
                 onError={handleImgError}
               />
-              <div className="absolute top-3 right-3 flex items-center gap-2 bg-white px-3 py-1 rounded-full shadow-md">
-                <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-                <span className="text-sm font-semibold text-gray-700">Open</span>
-              </div>
+              <button
+                onClick={prevSlide}
+                className="absolute top-1/2 left-3 transform -translate-y-1/2 bg-white p-2 rounded-full shadow"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button
+                onClick={nextSlide}
+                className="absolute top-1/2 right-3 transform -translate-y-1/2 bg-white p-2 rounded-full shadow"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
             </div>
 
             <div className="space-y-6">
@@ -200,6 +258,19 @@ const CafeDetailPage = () => {
                     <span className="text-gray-500 text-sm">No tags available</span>
                   )}
                 </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <h3 className="font-semibold text-dark-brown mb-2 text-xl">
+                  Description
+                </h3>
+                <p className="text-gray-600 text-base leading-relaxed max-h-48 overflow-y-auto">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
+                  ut perspiciatis unde omnis iste natus error sit voluptatem
+                  accusantium doloremque laudantium. This is a dummy description
+                  for responsiveness testing.
+                </p>
               </div>
             </div>
           </div>

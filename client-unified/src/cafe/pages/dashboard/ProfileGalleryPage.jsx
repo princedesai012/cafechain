@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import { useAppContext } from "../../store/AppContext";
-import Loader from '../../components/Loader';
+import { useNavigate } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast";
 
 import {
   BuildingStorefrontIcon,
   PhotoIcon,
   PhoneIcon,
   MapPinIcon,
-  EnvelopeIcon,
   ArrowLeftIcon,
   InformationCircleIcon,
-} from "@heroicons/react/24/outline"; // Black outline icons
-import { useNavigate } from "react-router-dom";
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 
 function ProfileGalleryPage() {
   const { state } = useAppContext();
@@ -32,15 +32,25 @@ function ProfileGalleryPage() {
   });
 
   const [gallery, setGallery] = useState(initialGallery || []);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const [redemptionPolicy, setRedemptionPolicy] = useState({
-    pointsPerDollar: cafeInfo.redemptionPolicy?.pointsPerDollar || 1,
-    minimumPoints: cafeInfo.redemptionPolicy?.minimumPoints || 100,
-    maximumDiscount: cafeInfo.redemptionPolicy?.maximumDiscount || 50,
-  });
+  const availableTags = [
+    "Coffee",
+    "Tea",
+    "Pastries",
+    "Breakfast",
+    "Lunch",
+    "Vegan",
+    "Organic",
+    "Specialty Coffee",
+    "Wifi",
+    "Study Friendly",
+    "Pet Friendly",
+    "Outdoor Seating",
+    "Live Music",
+  ];
 
   const handleCafeFormChange = (e) => {
     const { name, value } = e.target;
@@ -59,71 +69,62 @@ function ProfileGalleryPage() {
     });
   };
 
+  // Updated to allow multiple images at once
   const handleImageSelect = (e) => {
-    if (e.target.files?.[0]) {
-      const file = e.target.files[0];
-      setSelectedImage(file);
+    if (!e.target.files) return;
 
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
+    const files = Array.from(e.target.files);
+
+    // Check total limit
+    if (gallery.length + selectedImages.length + files.length > 5) {
+      toast.error("You can upload maximum 5 images in total.");
+      return;
     }
+
+    setSelectedImages((prev) => [...prev, ...files]);
+
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setImagePreviews((prev) => [...prev, ...previews]);
   };
 
   const handleImageUpload = () => {
-    if (!selectedImage) return;
+    if (selectedImages.length === 0) return;
 
     setUploadProgress(0);
+    let progress = 0;
     const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setGallery((prev) => [
-              ...prev,
-              { url: imagePreview, caption: selectedImage.name },
-            ]);
-            setSelectedImage(null);
-            setImagePreview(null);
-            setUploadProgress(0);
-            alert("Image uploaded successfully!");
-          }, 500);
-          return 100;
-        }
-        return prev + 10;
-      });
+      progress += 10;
+      setUploadProgress(progress);
+
+      if (progress >= 100) {
+        clearInterval(interval);
+
+        const newImages = selectedImages.map((file, idx) => ({
+          url: imagePreviews[idx],
+          caption: file.name,
+        }));
+
+        setGallery((prev) => [...prev, ...newImages].slice(0, 5)); // enforce max 5
+
+        setSelectedImages([]);
+        setImagePreviews([]);
+        setUploadProgress(0);
+
+        toast.success("Images uploaded successfully!");
+      }
     }, 200);
   };
 
-  const handlePolicyChange = (e) => {
-    const { name, value } = e.target;
-    setRedemptionPolicy((prev) => ({
-      ...prev,
-      [name]: parseInt(value, 10) || 0,
-    }));
+  const handleRemoveImage = (idx) => {
+    setGallery((prev) => prev.filter((_, i) => i !== idx));
+    toast.success("Image removed!");
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setEditMode(false);
-    alert("Profile updated successfully!");
+    toast.success("Profile updated successfully!");
   };
-
-  const availableTags = [
-    "Coffee",
-    "Tea",
-    "Pastries",
-    "Breakfast",
-    "Lunch",
-    "Vegan",
-    "Organic",
-    "Specialty Coffee",
-    "Wifi",
-    "Study Friendly",
-    "Pet Friendly",
-    "Outdoor Seating",
-    "Live Music",
-  ];
 
   const tabConfig = [
     { id: "profile", label: "Cafe Profile", icon: BuildingStorefrontIcon },
@@ -132,8 +133,9 @@ function ProfileGalleryPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 font-sans antialiased">
+      <Toaster position="top-right" />
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Back Button (desktop only) */}
+        {/* Back Button */}
         <div className="hidden md:flex items-center mb-6">
           <button
             onClick={() => navigate(-1)}
@@ -206,14 +208,13 @@ function ProfileGalleryPage() {
               )}
             </div>
 
-            {/* Profile Content */}
             <div className="p-8">
               {editMode ? (
                 <form
                   onSubmit={handleSubmit}
                   className="grid grid-cols-1 lg:grid-cols-2 gap-8"
                 >
-                  {/* Inputs */}
+                  {/* Cafe Name */}
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
                       Cafe Name
@@ -222,11 +223,11 @@ function ProfileGalleryPage() {
                       type="text"
                       name="name"
                       value={cafeForm.name}
-                      onChange={handleCafeFormChange}
                       className="w-full px-4 py-3 border border-[#4a3a2f]/30 rounded-lg focus:border-[#4a3a2f] focus:outline-none"
                     />
                   </div>
 
+                  {/* Phone */}
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
                       Phone Number
@@ -240,6 +241,7 @@ function ProfileGalleryPage() {
                     />
                   </div>
 
+                  {/* Address */}
                   <div className="lg:col-span-2 space-y-2">
                     <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
                       Address
@@ -253,6 +255,7 @@ function ProfileGalleryPage() {
                     />
                   </div>
 
+                  {/* Email */}
                   <div className="lg:col-span-2 space-y-2">
                     <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
                       Email Address
@@ -266,6 +269,7 @@ function ProfileGalleryPage() {
                     />
                   </div>
 
+                  {/* Opening Hours */}
                   <div className="lg:col-span-2 space-y-2">
                     <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
                       Opening Hours
@@ -276,6 +280,20 @@ function ProfileGalleryPage() {
                       value={cafeForm.openingHours}
                       onChange={handleCafeFormChange}
                       placeholder="e.g. Mon-Fri: 8am-6pm"
+                      className="w-full px-4 py-3 border border-[#4a3a2f]/30 rounded-lg focus:border-[#4a3a2f] focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div className="lg:col-span-2 space-y-2">
+                    <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
+                      Description
+                    </label>
+                    <textarea
+                      name="description"
+                      value={cafeForm.description}
+                      onChange={handleCafeFormChange}
+                      rows={4}
                       className="w-full px-4 py-3 border border-[#4a3a2f]/30 rounded-lg focus:border-[#4a3a2f] focus:outline-none"
                     />
                   </div>
@@ -303,7 +321,7 @@ function ProfileGalleryPage() {
                     </div>
                   </div>
 
-                  {/* Actions */}
+                  {/* Buttons */}
                   <div className="lg:col-span-2 flex justify-end gap-4 pt-6 border-t border-[#4a3a2f]/10">
                     <button
                       type="button"
@@ -400,6 +418,7 @@ function ProfileGalleryPage() {
                 Upload and manage photos of your cafe.
               </p>
             </div>
+
             <div className="p-8">
               {/* Upload Section */}
               <div className="mb-10 p-8 border-2 border-dashed border-[#4a3a2f]/30 rounded-xl bg-gray-50">
@@ -410,53 +429,73 @@ function ProfileGalleryPage() {
                   </p>
                   <label className="inline-block mt-4 cursor-pointer">
                     <span className="px-6 py-2 bg-[#4a3a2f] text-white rounded-lg hover:bg-[#3a2d24] transition">
-                      Choose Image
+                      Choose Images
                     </span>
                     <input
                       type="file"
-                      className="sr-only"
-                      onChange={handleImageSelect}
+                      multiple
                       accept="image/*"
+                      onChange={handleImageSelect}
+                      className="sr-only"
                     />
                   </label>
                 </div>
 
                 {/* Preview & Upload Controls */}
-                {imagePreview && (
-                  <div className="mt-6">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="mx-auto h-40 object-contain rounded-lg border border-[#4a3a2f]/20"
-                    />
-                    <div className="mt-4 flex justify-center gap-4">
-                      <button
-                        onClick={handleImageUpload}
-                        type="button"
-                        className="px-6 py-2 bg-[#4a3a2f] text-white rounded-lg hover:bg-[#3a2d24] transition"
-                      >
-                        Upload
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSelectedImage(null);
-                          setImagePreview(null);
-                          setUploadProgress(0);
-                        }}
-                        type="button"
-                        className="px-6 py-2 border border-[#4a3a2f]/30 text-[#4a3a2f] rounded-lg hover:bg-[#4a3a2f] hover:text-white transition"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                    {uploadProgress > 0 && (
-                      <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-[#4a3a2f] h-2 rounded-full transition-all"
-                          style={{ width: `${uploadProgress}%` }}
+                {imagePreviews.length > 0 && (
+                  <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {imagePreviews.map((preview, idx) => (
+                      <div key={idx} className="relative group">
+                        <img
+                          src={preview}
+                          alt="Preview"
+                          className="w-full h-40 object-contain rounded-lg border border-[#4a3a2f]/20"
                         />
+                        <button
+                          onClick={() => {
+                            setSelectedImages((prev) =>
+                              prev.filter((_, i) => i !== idx)
+                            );
+                            setImagePreviews((prev) =>
+                              prev.filter((_, i) => i !== idx)
+                            );
+                          }}
+                          className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                        >
+                          <XMarkIcon className="h-5 w-5" />
+                        </button>
                       </div>
-                    )}
+                    ))}
+                  </div>
+                )}
+
+                {imagePreviews.length > 0 && (
+                  <div className="mt-4 flex justify-center gap-4">
+                    <button
+                      onClick={handleImageUpload}
+                      className="px-6 py-2 bg-[#4a3a2f] text-white rounded-lg hover:bg-[#3a2d24] transition"
+                    >
+                      Upload
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedImages([]);
+                        setImagePreviews([]);
+                        setUploadProgress(0);
+                      }}
+                      className="px-6 py-2 border border-[#4a3a2f]/30 text-[#4a3a2f] rounded-lg hover:bg-[#4a3a2f] hover:text-white transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+
+                {uploadProgress > 0 && (
+                  <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-[#4a3a2f] h-2 rounded-full transition-all"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
                   </div>
                 )}
               </div>
@@ -467,13 +506,19 @@ function ProfileGalleryPage() {
                   gallery.map((img, idx) => (
                     <div
                       key={idx}
-                      className="aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition"
+                      className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition group"
                     >
                       <img
                         src={img.url}
                         alt={img.caption}
                         className="w-full h-full object-cover"
                       />
+                      <button
+                        onClick={() => handleRemoveImage(idx)}
+                        className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                      >
+                        <XMarkIcon className="h-5 w-5" />
+                      </button>
                     </div>
                   ))
                 ) : (
@@ -491,4 +536,3 @@ function ProfileGalleryPage() {
 }
 
 export default ProfileGalleryPage;
-

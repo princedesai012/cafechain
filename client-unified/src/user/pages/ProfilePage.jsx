@@ -24,6 +24,8 @@ const ProfilePage = () => {
     const [loading, setLoading] = useState(true);
 const [editName, setEditName] = useState('');
 
+
+
     useEffect(() => {
         const timer = setTimeout(() => setLoading(false), 1000);
         const load = async () => {
@@ -206,13 +208,15 @@ const [editName, setEditName] = useState('');
                             <div>
                                 <label htmlFor="name" className="block text-sm font-medium text-gray-600 mb-1">Full Name</label>
 <input
-    type="text"
-    id="name"
-    value={editName}
-    onChange={(e) => setEditName(e.target.value)}
-    placeholder="Your name"
-    className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#4a3a2f] focus:border-[#4a3a2f] transition"
+  type="text"
+  id="name"
+  value={editName}
+  onChange={(e) => setEditName(e.target.value)}
+  placeholder="Your name"
+  className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#4a3a2f] focus:border-[#4a3a2f] transition box-border"
 />
+
+
                             </div>
                             {error && <div className="text-red-500 text-sm text-center">{error}</div>}
                             {success && <div className="text-green-600 text-sm text-center">{success}</div>}
@@ -366,3 +370,4 @@ const [editName, setEditName] = useState('');
 };
 
 export default ProfilePage;
+

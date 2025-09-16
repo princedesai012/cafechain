@@ -261,7 +261,7 @@ const LoginPage = ({ onNavigate }) => {
           {/* Login as Cafe Button (Mobile) */}
           <div className="mt-6 text-center">
             <button
-              onClick={() => navigate("/cafe/login")}
+              onClick={() => navigate("/cafe/auth/login")}
               className="w-full py-3 rounded-xl font-semibold text-white transition-all duration-200 hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
               style={{
                 backgroundColor: "#6b4f3a",
