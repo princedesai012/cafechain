@@ -13,7 +13,7 @@ import PromotionsPage from "./pages/PromotionsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import AdminLoginPage from "./pages/AdminLoginPage";
-import AdminSignupPage from "./pages/AdminSignupPage";
+// import AdminSignupPage from "./pages/AdminSignupPage";
 
 const AdminLayout = ({ children }) => (
   <div className="flex min-h-screen bg-gray-50">
@@ -30,7 +30,7 @@ export default function AdminApp() {
     <AdminAuthProvider>
       <Routes>
         <Route path="/login" element={<AdminLoginPage />} />
-        <Route path="/signup" element={<AdminSignupPage />} />
+        {/* <Route path="/signup" element={<AdminSignupPage />} /> */}
         <Route
           path="/"
           element={
@@ -56,7 +56,7 @@ export default function AdminApp() {
           }
         />
         <Route
-          path="cafes"
+          path="/cafes"
           element={
             <AdminLayout>
               <CafeListPage />
@@ -80,7 +80,15 @@ export default function AdminApp() {
           }
         />
         <Route
-          path="users/:id"
+          path="/users/:id"
+          element={
+            <AdminLayout>
+              <UserProfilePage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="profile/:id"
           element={
             <AdminLayout>
               <UserProfilePage />
