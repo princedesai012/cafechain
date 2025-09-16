@@ -6,99 +6,139 @@ const cloudinary = require("../config/cloudinary");
 const Cafe = require("../models/Cafe");
 const VisitLog = require("../models/VisitLog");
 const RewardTransaction = require("../models/RewardTransaction");
+const OTP = require("../models/OTP"); // 👈 ADD THIS
+const nodemailer = require("nodemailer"); // 👈 ADD THIS
+const otpGenerator = require("otp-generator"); // 👈 ADD THIS
 
 const generateReferralCode = () => crypto.randomBytes(3).toString("hex");
 
 // XP System Constants
-const XP_FOR_VISIT = 100;
-const XP_FOR_FIRST_VISIT = 250;
+// const XP_FOR_VISIT = 100;
+// const XP_FOR_FIRST_VISIT = 250;
 const XP_FOR_REGISTRATION = 100;
 const XP_FOR_REFERRAL_BONUS = 200;
 // New constant for the bonus XP given to the new user
 const XP_FOR_NEW_USER_REFERRAL = 150; 
 
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+    },
+});
 
 exports.register = async (req, res) => {
-    const { name, phone, password, referralCode } = req.body;
-
+    console.log("Register body:", req.body);
     try {
-        const existingUser = await User.findOne({ phone });
-        if (existingUser) return res.status(400).json({ getCafePointserror: "Phone already registered" });
+        const { name, phone, password, confirmPassword, email, referralCode } = req.body;
 
+        // --- 1. VALIDATION ---
+        if (!email || !name || !phone || !password || !confirmPassword) {
+            return res.status(400).json({ success: false, message: "All fields are required" });
+        }
+        if (password !== confirmPassword) {
+            return res.status(400).json({ success: false, message: "Passwords do not match" });
+        }
+
+        // --- 2. CHECK FOR EXISTING *VERIFIED* USER ---
+        const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: "An account with this Email or Phone already exists." });
+        }
+
+        // --- 3. PREPARE USER DATA (WITHOUT SAVING) ---
         const hashedPassword = await bcrypt.hash(password, 10);
-        const securePhoneId = `${phone}-607`; 
-        
-        // Step 1: Initialize new user's XP to the default value
-        let newuserXP = XP_FOR_REGISTRATION;
+        const referralCodeGenerated = crypto.randomBytes(3).toString("hex");
 
-        // Step 2: Check for and process the referral code
+        let tempUserData = {
+            name,
+            phone,
+            email,
+            password: hashedPassword,
+            referralCode: referralCodeGenerated,
+            xp: 100, // Base registration XP
+            isEmailVerified: false, // Will be set to true upon verification
+        };
+
+        // Add referrer info to temporary data if a valid code was used
         if (referralCode) {
             const referrer = await User.findOne({ referralCode });
             if (referrer) {
-                // If a referrer is found, update the new user's XP
-                newuserXP = XP_FOR_NEW_USER_REFERRAL;
-                
-                // Update the referrer's XP
-                referrer.referredBy = referralCode;
-                referrer.referralChildren.push(phone);
-                referrer.xp += XP_FOR_REFERRAL_BONUS;
-                await referrer.save();
+                tempUserData.referredBy = referrer.referralCode;
             }
-        }       
+        }
 
-        // Step 3: Create the new user with the determined XP value
-        const newUser = new User({
-            name,
-            phone,
-            password: hashedPassword,
-            securePhoneId,
-            referralCode: generateReferralCode(),
-            xp: newuserXP, // Use the dynamically set XP value
-            referredBy: referralCode,
-            isEmailVerified: false, 
+        // --- 4. GENERATE AND SEND OTP ---
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false,
         });
 
-        await newUser.save();
-        
-        res.status(201).json({ 
-            message: "User registered successfully. Please verify your email to continue.",
-            user: {
-                name: newUser.name,
-                phone: newUser.phone,
-                isEmailVerified: newUser.isEmailVerified
+        // Save registration data temporarily in the OTP document
+        await OTP.findOneAndUpdate(
+            { email },
+            {
+                email,
+                otp,
+                type: 'email',
+                metadata: tempUserData, // Store all user data here
+                createdAt: Date.now()
             },
-            requiresEmailVerification: true
+            { new: true, upsert: true, setDefaultsOnInsert: true }
+        );
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'CafeChain Email Verification',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px;">
+                    <h2 style="text-align: center;">☕ Welcome to CafeChain!</h2>
+                    <p>Your verification code is:</p>
+                    <h1 style="text-align: center; font-size: 36px; letter-spacing: 5px;">${otp}</h1>
+                    <p>This code will expire in 10 minutes.</p>
+                </div>
+            `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ OTP Email sent to ${email}`);
+
+        // --- 5. RESPOND TO FRONTEND ---
+        return res.json({
+            success: true,
+            message: "Registration successful. Please check your email for the OTP to verify your account.",
         });
 
     } catch (error) {
-        res.status(500).json({ error: "Server error" });
+        console.error("Register error:", error);
+        res.status(500).json({ success: false, message: "Server error" });
     }
 };
 
+
 exports.login = async (req, res) => {
     const { phone, password } = req.body;
-
     try {
-        const user = await User.findOne({ phone });
-        if (!user) return res.status(400).json({ error: "User not found" });
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ error: "Incorrect password" });
-
-        const token = jwt.sign(
-            { id: user._id, phone: user.phone }, // now includes _id
-            process.env.JWT_SECRET,
-            { expiresIn: "7d" }
-        );
-            
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Lax'
-        });
-        res.json({ token, user: { name: user.name, phone: user.phone, profilePic: user.profilePic } });
+      const user = await User.findOne({ phone });
+      if (!user) return res.status(400).json({ error: "User not found" });
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) return res.status(400).json({ error: "Incorrect password" });
+      const token = jwt.sign(
+        { id: user._id, phone: user.phone },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Lax'
+      });
+      res.json({ token, user: { name: user.name, phone: user.phone, profilePic: user.profilePic } });
     } catch (error) {
-        res.status(500).json({ error: "Server error" });
+      res.status(500).json({ error: "Server error" });
     }
 };
 

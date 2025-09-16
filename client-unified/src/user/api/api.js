@@ -1,7 +1,7 @@
 // api/api.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+// const API_URL = 'http://localhost:5000/api';
 
 const apiClient = async (endpoint, data = {}, options = {}) => {
   const token = localStorage.getItem('authToken');
@@ -17,15 +17,16 @@ const apiClient = async (endpoint, data = {}, options = {}) => {
   try {
     const response = await axios({
       method: options.method || 'GET',
-      url: `${API_URL}${endpoint}`,
+      url: `/api${endpoint}`,
       data: options.method === 'POST' || options.method === 'PUT' ? data : null,
       headers,
-      withCredentials: true,
+      // withCredentials: true,
     });
     return response.data;
-  } catch (error) {
-    console.error(`API Error on ${endpoint}:`, error.response?.data?.error || error.message);
-    throw error.response?.data?.error || 'API request failed';
+  }catch (error) {
+    const errorMessage = error.response?.data?.message || error.response?.data?.error || 'API request failed';
+    console.error(`API Error on ${endpoint}:`, errorMessage);
+    throw errorMessage;
   }
 };
 
@@ -42,15 +43,18 @@ export const getProfile = (phone) => apiClient(`/users/profile/${phone}`, {}, { 
 export const getLeaderboard = () => apiClient('/users/leaderboard', {}, { method: 'GET' });
 export const getRewardsHistory = (phone) => apiClient(`/users/rewards/${phone}`, {}, { method: 'GET' }); // NEW FUNCTION
 
-export const updateProfile = async (phone, data) => {
-  const token = localStorage.getItem('authToken');
-  const headers = {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    'Content-Type': 'application/json',
-  };
-  const response = await axios.put(`${API_URL}/users/profile/${phone}`, data, { headers, withCredentials: true });
-  return response.data;
-};
+// export const updateProfile = async (phone, data) => {
+//   const token = localStorage.getItem('authToken');
+//   const headers = {
+//     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+//     'Content-Type': 'application/json',
+//   };
+//   const response = await axios.put(`${API_URL}/users/profile/${phone}`, data, { headers, withCredentials: true });
+//   return response.data;
+// };
+
+export const updateProfile = (phone, data) => 
+  apiClient(`/users/profile/${phone}`, data, { method: 'PUT' });
 
 // Cafes
 export const getCafes = () => apiClient('/cafes', {}, { method: 'GET' });

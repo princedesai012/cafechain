@@ -3,15 +3,17 @@ import { loginUser, registerUser, verifyEmailOtp, logoutUser, getProfile } from 
 
 const AuthContext = createContext();
 
-export const useAuth = () => useContext(AuthContext);
+// export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  return useContext(AuthContext);
+}
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Restore session from localStorage
     const token = localStorage.getItem('authToken');
     const userPhone = localStorage.getItem('userPhone');
     
@@ -47,10 +49,7 @@ export const AuthProvider = ({ children }) => {
         if (response.user?.phone) localStorage.setItem('userPhone', response.user.phone);
         setIsAuthenticated(true);
         setUser(response.user);
-        // Ensure profile is synced/validated after login
-        try {
-          await loadUserProfile(response.user?.phone || phone);
-        } catch {}
+        await loadUserProfile(response.user?.phone || phone);
         return { success: true };
       }
       return { success: false, error: 'Login failed: no token received' };
@@ -64,12 +63,9 @@ export const AuthProvider = ({ children }) => {
   const register = async (data) => {
     try {
       const response = await registerUser(data);
-      if (response && response.requiresEmailVerification) {
-        return { success: true, requiresEmailVerification: true };
-      }
-      return { success: false, error: 'Registration failed' };
+      return { success: response.success, error: response.message };
     } catch (err) {
-      return { success: false, error: err || 'Registration failed' };
+      return { success: false, error: err };
     }
   };
 
@@ -81,16 +77,14 @@ export const AuthProvider = ({ children }) => {
         if (response.user?.phone) localStorage.setItem('userPhone', response.user.phone);
         setIsAuthenticated(true);
         setUser(response.user);
-        try {
-          await loadUserProfile(response.user?.phone || data?.phone);
-        } catch {}
+        await loadUserProfile(response.user?.phone || data?.phone);
         return { success: true };
       }
       return { success: false, error: 'Email verification failed: no token received' };
     } catch (err) {
       setIsAuthenticated(false);
       setUser(null);
-      return { success: false, error: err || 'Email verification failed' };
+      return { success: false, error: err };
     }
   };
 

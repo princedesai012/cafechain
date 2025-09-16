@@ -1,34 +1,42 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../store/AppContext';
+import Loader from './Loader';
 
-function ProtectedRoute({ children, requireSetup = false, requireActiveCafe = false }) {
+function ProtectedRoute({ children, requireActiveCafe = false }) {
   const { state } = useAppContext();
-  const { isAuthenticated, setupCompleted, cafeStatus } = state;
+  const { isAuthenticated, user, isLoading } = state;
   const location = useLocation();
 
-  // 1. If not logged in → always go to login
+  // 1. Show a loader while the app initializes the session from storage.
+  if (isLoading) {
+    return <Loader />;
+  }
+
+  // 2. If not authenticated, always redirect to the login page.
   if (!isAuthenticated) {
     return <Navigate to="/cafe/auth/login" state={{ from: location }} replace />;
   }
 
-  // NEW: Check cafeStatus for access routing
+  // At this point, the user is authenticated.
+  // Now, check if this route requires an 'active' status.
   if (requireActiveCafe) {
-    if (cafeStatus === "pending") return <Navigate to="/cafe/setup" replace />;
-    if (cafeStatus === "pendingApproval") return <Navigate to="/cafe/pending-approval" replace />;
-    if (cafeStatus !== "active") return <Navigate to="/cafe" replace />;
-  }
-  // If setup not done, redirect
-  if (requireSetup && typeof setupCompleted !== "undefined") {
-    if (!setupCompleted) {
-      return <Navigate to="/cafe/setup" replace />;
+    // ✅ FIXED: Correctly checks the status from the nested user object.
+    if (user?.status !== 'active') {
+        // If status is anything other than 'active', send to the pending page.
+        return <Navigate to="/cafe/pending-approval" replace />;
     }
   }
-  if (!requireSetup && setupCompleted) {
-    if (location.pathname === "/cafe/setup") {
-      return <Navigate to="/cafe" replace />;
-    }
+
+  // 4. If a logged-in user tries to go back to the login/register pages,
+  // redirect them to their appropriate page.
+  if (location.pathname === '/cafe/auth/login' || location.pathname === '/cafe/auth/register') {
+      if (user?.status === 'active') {
+          return <Navigate to="/cafe/dashboard" replace />;
+      }
+      return <Navigate to="/cafe/pending-approval" replace />;
   }
-  // 2. All good
+
+  // 5. If all checks pass, render the requested component.
   return children;
 }
 

@@ -47,6 +47,11 @@ app.use("/api/forgot-password", forgotPasswordRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/cafe-owner", cafeOwnerRoutes);
 
+app.use((err, req, res, next) => {
+    console.error("UNHANDLED ERROR:", err);
+    res.status(500).send({ error: 'Something went wrong on the server!' });
+});
+
 // --- Server Startup ---
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

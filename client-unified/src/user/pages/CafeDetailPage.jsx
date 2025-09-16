@@ -103,7 +103,7 @@ const CafeDetailPage = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="w-5 h-5 text-gray-500" />
-                <span className="text-gray-700">{cafe.phone || "N/A"}</span>
+                <span className="text-gray-700">{cafe.cafePhone || "N/A"}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Clock className="w-5 h-5 text-gray-500" />
@@ -174,7 +174,7 @@ const CafeDetailPage = () => {
                 </div>
                 <div className="flex items-center space-x-3">
                   <Phone className="w-6 h-6 text-gray-500" />
-                  <span className="text-lg text-gray-700">{cafe.phone || "N/A"}</span>
+                  <span className="text-lg text-gray-700">{cafe.cafePhone || "N/A"}</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Clock className="w-6 h-6 text-gray-500" />
