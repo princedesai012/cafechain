@@ -295,7 +295,7 @@ const SignupPage = ({ onNavigate }) => {
           </button>
           <div className="flex items-center">
             <div className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center mr-2 bg-white">
-              <img src="/logo.png" alt="CafeChain Logo" className="w-6 h-6 object-contain" />
+              <img src="/src/user/assets/images/cc.png" alt="CafeChain Logo" className="w-6 h-6 object-contain" />
             </div>
             <span className="text-lg font-bold" style={{ color: '#4a3a2f' }}>CafeChain</span>
           </div>
