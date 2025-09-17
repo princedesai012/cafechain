@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useAppContext } from '../../store/AppContext';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Gift, Award, Unlock, ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Loader from '../../components/Loader'; // ✅ Import Loader
+import Loader from '../../components/Loader';
+import { initiateRedemption, verifyRedemption } from '../../api/api'; // Import the API service
 
 // --- Color Palette ---
 const PRIMARY = '#4a3a2f';
@@ -12,72 +12,72 @@ const ACCENT = '#d4af37';
 const LIGHT_GOLD = '#f0d98c';
 
 function RedemptionPage() {
-  const { state, dispatch } = useAppContext();
-  const { pendingOtp } = state;
   const navigate = useNavigate();
 
   const [step, setStep] = useState('inputPhone');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [pointsToRedeem, setPointsToRedeem] = useState(0);
+  const [pointsToRedeem, setPointsToRedeem] = useState(''); // Changed to string to allow empty input
   const [otpInput, setOtpInput] = useState('');
+  const [customerEmail, setCustomerEmail] = useState(''); // To store email for verification step
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [isLoading, setIsLoading] = useState(true); // ✅ Loader state
+  const customerPoints = 150; // This should ideally come from an API
 
-  const customerPoints = 150;
-
-  // --- Loader logic ---
   useEffect(() => {
-    // show loader for at least 800ms on mount
     const timer = setTimeout(() => setIsLoading(false), 800);
     return () => clearTimeout(timer);
   }, []);
 
-  if (isLoading) return <Loader />; // ✅ Show loader while page is loading
-
-  // --- Core Logic ---
-  const handleGenerateOtp = () => {
-    if (!customerPhone) return toast.error('Please enter customer mobile number');
-    if (pointsToRedeem <= 0 || pointsToRedeem > customerPoints)
-      return toast.error('Enter a valid points number to redeem');
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    dispatch({
-      type: 'GENERATE_OTP',
-      payload: { otp, customerPhone, pointsToRedeem, timestamp: new Date().toISOString() },
-    });
-    toast.success('OTP generated successfully!');
-    setStep('verifyOtp');
-  };
-
-  const handleVerifyOtp = () => {
-    if (!pendingOtp) return toast.error('No OTP generated');
-    if (otpInput !== pendingOtp.otp) return toast.error('Invalid OTP');
-    setIsVerifying(true);
-    setTimeout(() => {
-      const transaction = {
-        id: `txn-${Date.now()}`,
-        customerPhone: pendingOtp.customerPhone,
-        pointsRedeemed: pendingOtp.pointsToRedeem,
-        timestamp: new Date().toISOString(),
-        status: 'completed',
-      };
-      dispatch({ type: 'VERIFY_OTP', payload: { transaction } });
-      toast.success('Points successfully redeemed!');
-      setCustomerPhone('');
-      setPointsToRedeem(0);
-      setOtpInput('');
-      setStep('inputPhone');
+  const handleGenerateOtp = async () => {
+    if (!customerPhone || !pointsToRedeem) {
+      return toast.error('Please fill in all fields.');
+    }
+    if (parseInt(pointsToRedeem, 10) <= 0 || parseInt(pointsToRedeem, 10) > customerPoints) {
+      return toast.error('Please enter a valid number of points.');
+    }
+    
+    setIsVerifying(true); // Use isVerifying as a general loading state for API calls
+    try {
+      const response = await initiateRedemption(customerPhone, pointsToRedeem);
+      toast.success(response.data.message);
+      setCustomerEmail(response.data.customerEmail); // Save customer email
+      setStep('verifyOtp');
+    } catch (error) {
+      // Error is already handled by the apiClient interceptor
+      console.error("Failed to initiate redemption:", error);
+    } finally {
       setIsVerifying(false);
-      dispatch({ type: 'CLEAR_OTP' });
-    }, 1200);
+    }
   };
 
+  const handleVerifyOtp = async () => {
+    if (!otpInput || otpInput.length !== 6) {
+        return toast.error('Please enter a valid 6-digit OTP.');
+    }
+    setIsVerifying(true);
+    try {
+      const response = await verifyRedemption(otpInput, customerEmail);
+      toast.success(response.data.message);
+      // Reset form state after successful redemption
+      setCustomerPhone('');
+      setPointsToRedeem('');
+      setOtpInput('');
+      setCustomerEmail('');
+      setStep('inputPhone');
+    } catch (error) {
+      console.error("Failed to verify OTP:", error);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+  
   const handleBack = () => navigate(-1);
   const handleFormBack = () => {
     if (step === 'verifyOtp') {
       setStep('inputPhone');
-      dispatch({ type: 'CLEAR_OTP' });
       setOtpInput('');
+      setCustomerEmail(''); // Clear sensitive data
     }
   };
 
@@ -95,6 +95,8 @@ function RedemptionPage() {
   ];
 
   const buttonHover = { scale: 1.05, boxShadow: `0 0 20px ${ACCENT}` };
+
+  if (isLoading) return <Loader />;
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[#1e1c1b] font-sans">
@@ -185,7 +187,7 @@ function RedemptionPage() {
                   Redeem Your Points
                 </h2>
                 <p className="text-center text-gray-600 mb-6">
-                  Enter your details to generate a secure OTP.
+                  Enter customer details to generate a secure OTP.
                 </p>
 
                 <label className="block text-gray-700 font-medium text-lg">
@@ -194,7 +196,7 @@ function RedemptionPage() {
                     type="tel"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
-                    placeholder="+1 234 567 8901"
+                    placeholder="10-digit mobile number"
                     className="mt-2 w-full rounded-xl border border-gray-300 p-4 text-lg shadow-md focus:outline-none transition duration-300"
                     style={{
                       boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
@@ -214,7 +216,7 @@ function RedemptionPage() {
                     min={1}
                     max={customerPoints}
                     value={pointsToRedeem}
-                    onChange={(e) => setPointsToRedeem(Number(e.target.value))}
+                    onChange={(e) => setPointsToRedeem(e.target.value)}
                     placeholder="Enter points"
                     className="mt-2 w-full rounded-xl border border-gray-300 p-4 text-lg shadow-md focus:outline-none transition duration-300"
                     style={{
@@ -230,17 +232,18 @@ function RedemptionPage() {
 
                 <motion.button
                   type="submit"
+                  disabled={isVerifying}
                   className="bg-primary text-white font-bold py-4 rounded-2xl shadow-lg transition duration-300"
-                  style={{ backgroundColor: PRIMARY, transition: 'all 0.3s ease' }}
-                  whileHover={buttonHover}
+                  style={{ backgroundColor: isVerifying ? 'gray' : PRIMARY, transition: 'all 0.3s ease' }}
+                  whileHover={!isVerifying && buttonHover}
                   whileTap={{ scale: 0.98 }}
                 >
-                  Generate OTP
+                  {isVerifying ? 'Sending OTP...' : 'Generate OTP'}
                 </motion.button>
               </motion.form>
             )}
 
-            {step === 'verifyOtp' && pendingOtp && (
+            {step === 'verifyOtp' && (
               <motion.div
                 key="verifyStep"
                 variants={formVariants}
@@ -266,7 +269,7 @@ function RedemptionPage() {
                   Verify OTP
                 </h2>
                 <p className="text-center text-gray-600 mb-6">
-                  A verification code has been sent to your mobile.
+                  A verification code has been sent to the customer's email.
                 </p>
 
                 <motion.div
@@ -276,10 +279,10 @@ function RedemptionPage() {
                   animate={{ scale: 1, opacity: 1, transition: { delay: 0.2 } }}
                 >
                   <p className="text-lg font-semibold" style={{ color: PRIMARY }}>
-                    OTP sent to: <span className="font-mono">{pendingOtp.customerPhone}</span>
+                    OTP sent to: <span className="font-mono">{customerEmail}</span>
                   </p>
                   <p className="text-md mt-2 text-gray-600">
-                    Points to redeem: <span className="font-semibold" style={{ color: PRIMARY }}>{pendingOtp.pointsToRedeem}</span>
+                    Points to redeem: <span className="font-semibold" style={{ color: PRIMARY }}>{pointsToRedeem}</span>
                   </p>
                 </motion.div>
 

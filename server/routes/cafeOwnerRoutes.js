@@ -5,6 +5,7 @@ const {
   verifyCafeEmailOTP, 
   loginCafe, 
   // setupProfile,
+  getLoyaltyProgramMetrics,
   getCafeDashboardAnalytics, // Kept from your old file
   initiateRedemption,      // Kept from your old file
   verifyRedemption         // Kept from your old file
@@ -30,5 +31,6 @@ router.get("/analytics/summary", authenticateCafeOwnerJWT, getCafeDashboardAnaly
 // These routes also remain unchanged.
 router.post("/redemption/initiate", authenticateCafeOwnerJWT, initiateRedemption);
 router.post("/redemption/verify", authenticateCafeOwnerJWT, verifyRedemption);
+router.get("/analytics/loyalty", authenticateCafeOwnerJWT, getLoyaltyProgramMetrics);
 
 module.exports = router;
