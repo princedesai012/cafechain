@@ -10,6 +10,7 @@ const RewardClaim = require("../models/RewardClaim");
 const RewardTransaction = require("../models/RewardTransaction");
 const nodemailer = require("nodemailer");
 const otpGenerator = require("otp-generator");
+const cloudinary = require("../config/cloudinary"); 
 
 // Configure email transporter
 const transporter = nodemailer.createTransport({
@@ -25,7 +26,7 @@ const generateReferralCode = () => crypto.randomBytes(3).toString("hex");
 // 1. Request OTP for Registration
 exports.requestCafeEmailOTP = async (req, res) => {
   const { email, ownerPhone, cafePhone, password } = req.body;
-    
+
   if (!email || !ownerPhone || !cafePhone || !password) {
     return res.status(400).json({ error: "All required fields must be provided." });
   }
@@ -55,10 +56,10 @@ exports.requestCafeEmailOTP = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate OTP and metadata (include password as plain text)
-    const otp = otpGenerator.generate(6, { 
-      upperCaseAlphabets: false, 
-      lowerCaseAlphabets: false, 
-      specialChars: false 
+    const otp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      lowerCaseAlphabets: false,
+      specialChars: false
     });
 
     const metadata = { ...req.body, hashedPassword }; // Keep plain password
@@ -91,147 +92,234 @@ exports.requestCafeEmailOTP = async (req, res) => {
 exports.verifyCafeEmailOTP = async (req, res) => {
   const { otp, email } = req.body;
   try {
-      const otpDocument = await OTP.findOne({ email, otp, type: 'email' });
-      if (!otpDocument) {
-          return res.status(400).json({ error: "Invalid or expired OTP." });
-      }
+    const otpDocument = await OTP.findOne({ email, otp, type: 'email' });
+    if (!otpDocument) {
+      return res.status(400).json({ error: "Invalid or expired OTP." });
+    }
 
-      // Now, otpDocument.metadata contains 'hashedPassword', which matches the model.
-      const newPendingCafe = new PendingCafe(otpDocument.metadata);
-      await newPendingCafe.save(); // This will no longer cause a validation error.
+    // Now, otpDocument.metadata contains 'hashedPassword', which matches the model.
+    const newPendingCafe = new PendingCafe(otpDocument.metadata);
+    await newPendingCafe.save(); // This will no longer cause a validation error.
 
-      await OTP.deleteOne({ _id: otpDocument._id });
+    await OTP.deleteOne({ _id: otpDocument._id });
 
-      res.status(201).json({ message: "Email verified! Your application has been submitted for approval." });
+    res.status(201).json({ message: "Email verified! Your application has been submitted for approval." });
   } catch (error) {
-      console.error("OTP Verify Error:", error);
-      res.status(500).json({ error: "Server error during verification." });
+    console.error("OTP Verify Error:", error);
+    res.status(500).json({ error: "Server error during verification." });
   }
 };
 
 // 3. Login for cafe owner
 exports.loginCafe = async (req, res) => {
   // ✅ DEBUG: Add this console log to check your environment variable
-  console.log("JWT Secret being used:", process.env.JWT_SECRET); 
-  
+  console.log("JWT Secret being used:", process.env.JWT_SECRET);
+
   const { email, password } = req.body;
   try {
-      const cafe = await Cafe.findOne({ email });
-      if (!cafe) {
-          return res.status(404).json({ error: "No account found with this email." });
-      }
-      const isMatch = await cafe.comparePassword(password);
-      if (!isMatch) {
-          return res.status(400).json({ error: "Incorrect password." });
-      }
-      if (cafe.status !== 'active') {
-          return res.status(403).json({ error: `This cafe's account is not active. Current status: '${cafe.status}'.` });
-      }
+    const cafe = await Cafe.findOne({ email });
+    if (!cafe) {
+      return res.status(404).json({ error: "No account found with this email." });
+    }
+    const isMatch = await cafe.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Incorrect password." });
+    }
+    if (cafe.status !== 'active') {
+      return res.status(403).json({ error: `This cafe's account is not active. Current status: '${cafe.status}'.` });
+    }
 
-      // This line will crash if the JWT_SECRET is undefined
-      const token = jwt.sign(
-          { id: cafe._id, name: cafe.name, role: 'cafe' },
-          process.env.JWT_SECRET,
-          { expiresIn: "7d" }
-      );
+    // This line will crash if the JWT_SECRET is undefined
+    const token = jwt.sign(
+      { id: cafe._id, name: cafe.name, role: 'cafe' },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
-      res.status(200).json({
-          message: "Login successful!",
-          token,
-          cafe: { id: cafe._id, name: cafe.name, email: cafe.email, status: cafe.status }
-      });
+    res.status(200).json({
+      message: "Login successful!",
+      token,
+      cafe: { id: cafe._id, name: cafe.name, email: cafe.email, status: cafe.status }
+    });
   } catch (error) {
-      console.error("Login Error:", error);
-      res.status(500).json({ error: "Server error during login." });
+    console.error("Login Error:", error);
+    res.status(500).json({ error: "Server error during login." });
   }
 };
 
+// 4. Add a new image to a cafe's gallery
+exports.addCafeImage = async (req, res) => {
+  const { image } = req.body;
+  // The middleware already fetched the full cafe object and attached it to req.user
+  const cafe = req.user;
+
+  if (!image) {
+      return res.status(400).json({ error: "Image data is required." });
+  }
+
+  try {
+      // No need to find the cafe again, we already have it.
+      
+      if (cafe.images.length >= 5) {
+          return res.status(400).json({ error: "Cannot add more than 5 images." });
+      }
+
+      // Sanitize the cafe name to create a safe folder name.
+      const safeCafeName = cafe.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+
+      // Upload to Cloudinary in a cafe-specific folder
+      const result = await cloudinary.uploader.upload(image, {
+          folder: `CafeChain/Cafe/${safeCafeName}_${cafe._id}`,
+          transformation: [
+              { width: 1024, height: 768, crop: 'limit' },
+              { quality: 'auto:good' }
+          ]
+      });
+
+      cafe.images.push({
+          url: result.secure_url,
+          public_id: result.public_id
+      });
+
+      await cafe.save();
+
+      res.status(200).json({
+          message: "Image added successfully!",
+          images: cafe.images
+      });
+
+  } catch (error) {
+      console.error("Add Cafe Image Error:", error);
+      res.status(500).json({ error: "Server error while adding image." });
+  }
+};
+
+// 5. Delete an image from a cafe's gallery
+exports.deleteCafeImage = async (req, res) => {
+  const { public_id } = req.body;
+  // --- The middleware has already found the cafe for you! ---
+  const cafe = req.user;
+
+  if (!public_id) {
+      return res.status(400).json({ error: "Image public_id is required." });
+  }
+
+  try {
+      // No need to find the cafe again, the middleware already did.
+
+      const imageExists = cafe.images.some(img => img.public_id === public_id);
+      if (!imageExists) {
+          return res.status(404).json({ error: "Image not found in your gallery." });
+      }
+
+      await cloudinary.uploader.destroy(public_id);
+
+      cafe.images = cafe.images.filter(img => img.public_id !== public_id);
+      await cafe.save();
+
+      res.status(200).json({
+          message: "Image deleted successfully!",
+          images: cafe.images
+      });
+
+  } catch (error) {
+      console.error("Delete Cafe Image Error:", error);
+      res.status(500).json({ error: "Server error while deleting image." });
+  }
+};
+
+
 exports.getCafeDashboardAnalytics = async (req, res) => {
   try {
-    const ownerId = req.user._id;
-    const cafe = await Cafe.findOne({ ownerId });
-    if (!cafe) {
-      res.status(404).json({ error: "Cafe not found." });
-      return;
-    }
+    // The middleware `authenticateCafeOwnerJWT` already finds the cafe
+    // and attaches it as `req.user`. So, `req.user._id` is the cafe's ID.
+    const cafeId = req.user._id;
+
+    // No need to find the cafe again, we already have its ID.
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    const totalVisits = await VisitLog.countDocuments({ cafeId: cafe._id });
+    // Use the cafeId directly in your queries.
+    const totalVisits = await VisitLog.countDocuments({ cafeId: cafeId });
+
     const redeemedClaimsToday = await RewardClaim.find({
-      cafe: cafe._id,
+      cafe: cafeId, // In RewardClaim schema, the field is named 'cafe'
       status: "approved",
       createdAt: { $gte: startOfToday },
     });
 
-    const pointsRedeemedToday = redeemedClaimsToday.reduce((sum, claim) => sum + claim.amount, 0);
+    const pointsRedeemedToday = redeemedClaimsToday.reduce(
+      (sum, claim) => sum + claim.amount,
+      0
+    );
 
     res.status(200).json({
       totalCustomerVisits: totalVisits,
       pointsRedeemedToday,
     });
-    return;
   } catch (error) {
     console.error("Analytics fetch error:", error);
     res.status(500).json({ error: "Server error fetching analytics." });
-    return;
   }
 };
 
 exports.initiateRedemption = async (req, res) => {
   const { customerPhone, pointsToRedeem } = req.body;
-  const cafeOwnerId = req.user._id;
+  const cafe = req.user;
 
-  if (!customerPhone || !pointsToRedeem) {
-    res.status(400).json({ error: "Customer phone and points are required." });
-    return;
+  // ✅ Convert pointsToRedeem to a number right away.
+  const pointsToRedeemNum = parseInt(pointsToRedeem, 10);
+
+  if (!customerPhone || !pointsToRedeemNum || pointsToRedeemNum <= 0) {
+    return res.status(400).json({ error: "Valid customer phone and a positive number of points are required." });
   }
 
   try {
-    const cafe = await Cafe.findOne({ ownerId: cafeOwnerId });
-    if (!cafe) {
-      res.status(404).json({ error: "Cafe not found." });
-      return;
-    }
     const customer = await User.findOne({ phone: customerPhone });
     if (!customer) {
-      res.status(404).json({ error: "Customer not found." });
-      return;
+      return res.status(404).json({ error: "Customer not found." });
     }
+
     const cafePoints = customer.points.find(p => p.cafeId.equals(cafe._id));
-    if (!cafePoints || cafePoints.totalPoints < pointsToRedeem) {
-      res.status(400).json({ error: "Customer does not have enough points." });
-      return;
+    const currentPoints = cafePoints ? cafePoints.totalPoints : 0;
+
+    // ✅ CRITICAL FIX: Compare numbers and provide a detailed error message.
+    if (!cafePoints || currentPoints < pointsToRedeemNum) {
+      return res.status(400).json({
+        error: `Customer has insufficient points. They have ${currentPoints} points but tried to redeem ${pointsToRedeemNum}.`
+      });
     }
+
     const otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
       lowerCaseAlphabets: false,
       specialChars: false
     });
+
     await OTP.findOneAndUpdate(
       { email: customer.email },
-      { 
-        email: customer.email, 
-        otp, 
-        type: 'redemption', 
-        metadata: { cafeId: cafe._id, userId: customer._id, points: pointsToRedeem }
+      {
+        email: customer.email,
+        otp,
+        type: 'redemption',
+        // ✅ Use the numeric value in the metadata
+        metadata: { cafeId: cafe._id, userId: customer._id, points: pointsToRedeemNum }
       },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: customer.email,
-      subject: 'CafeChain Points Redemption OTP',
-      html: `<p>Your OTP to redeem points at ${cafe.name} is: <strong>${otp}</strong>. It expires in 10 minutes. Do not share this code.</p>`
+      subject: `CafeChain Points Redemption OTP`,
+      html: `<p>Your OTP to redeem ${pointsToRedeemNum} points at ${cafe.name} is: <strong>${otp}</strong>. It expires in 10 minutes. Do not share this code.</p>`
     };
     await transporter.sendMail(mailOptions);
 
     res.status(200).json({ message: "OTP sent to customer's email.", customerEmail: customer.email });
-    return;
   } catch (error) {
     console.error("Redemption initiation error:", error);
     res.status(500).json({ error: "Server error during redemption initiation." });
-    return;
   }
 };
 
@@ -283,3 +371,60 @@ exports.verifyRedemption = async (req, res) => {
     return;
   }
 };
+
+exports.getLoyaltyProgramMetrics = async (req, res) => {
+
+  try {
+    const cafeId = req.user._id;
+    // --- Timeframes ---
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+
+// 1. Points Redeemed Today & Number of Transactions Today
+
+    const todaysRedemptions = await RewardClaim.find({
+      cafe: cafeId,
+      status: "approved",
+      createdAt: { $gte: startOfToday },
+    });
+
+    const pointsRedeemedToday = todaysRedemptions.reduce(
+      (sum, claim) => sum + claim.amount, 0
+    );
+    const redemptionTransactionsToday = todaysRedemptions.length;
+    // 2. Redemption Rate (Monthly)
+
+    const monthlyRedemptions = await RewardClaim.countDocuments({
+      cafe: cafeId,
+      status: "approved",
+      createdAt: { $gte: startOfMonth },
+    });
+    const monthlyVisits = await VisitLog.countDocuments({
+      cafe: cafeId,
+      createdAt: { $gte: startOfMonth },
+    });
+
+    // Avoid division by zero
+    const redemptionRate = monthlyVisits > 0
+      ? ((monthlyRedemptions / monthlyVisits) * 100).toFixed(1)
+      : 0;
+    // 3. Average Points Per Transaction (Today)
+
+    const avgPointsPerTransaction = redemptionTransactionsToday > 0
+      ? (pointsRedeemedToday / redemptionTransactionsToday).toFixed(1)
+      : 0;
+    // --- Send Response ---
+    res.status(200).json({
+      pointsRedeemedToday,
+      redemptionRate,
+      avgPointsPerTransaction,
+    });
+  } catch (error) {
+    console.error("Loyalty metrics fetch error:", error);
+    res.status(500).json({ error: "Server error fetching loyalty metrics." });
+  }
+};  

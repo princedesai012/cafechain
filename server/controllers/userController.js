@@ -758,8 +758,7 @@ exports.getLeaderboard = async (req, res) => {
     try {
       const leaderboard = await User.find({})
         .select('name xp profilePic')
-        .sort({ xp: -1 })
-        .limit(15);
+        .sort({ xp: -1 });
   
       let currentUser = null;
       if (req.user) {

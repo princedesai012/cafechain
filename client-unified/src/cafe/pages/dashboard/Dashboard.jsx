@@ -1,20 +1,44 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAppContext } from "../../store/AppContext";
-import Loader from "../../components/Loader"; 
+import { getDashboardAnalytics } from '../../api/api'; // Import the API service
+import Loader from "../../components/Loader";
 
 function Dashboard() {
   const { state } = useAppContext();
-  const { cafeInfo, metrics } = state;
+  const { cafeInfo } = state; // Cafe info from context
 
-  const [isLoading, setIsLoading] = useState(true); 
+  // Local state for metrics fetched from the API
+  const [metrics, setMetrics] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000); 
-    return () => clearTimeout(timer);
+    const fetchAnalytics = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getDashboardAnalytics();
+        // Map the API response to the structure your UI expects
+        setMetrics({
+          daily: {
+            sales: 0, // API does not provide sales data yet
+            newCustomers: response.data.totalCustomerVisits,
+            redemptions: response.data.pointsRedeemedToday,
+          },
+        });
+      } catch (error) {
+        // Error toast is handled by the apiClient interceptor
+        console.error("Failed to fetch dashboard analytics:", error);
+        // Set default metrics on error to prevent UI crash
+        setMetrics({ daily: { sales: 0, newCustomers: 0, redemptions: 0 } });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAnalytics();
   }, []);
 
-  if (isLoading) return <Loader />; 
+  if (isLoading) return <Loader />;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -58,8 +82,35 @@ function Dashboard() {
             Today's Overview
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-purple-500 transform hover:scale-[1.03] transition-all duration-300 animate-slide-in-3">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                Today Sales
+              </p>
+              <p className="text-3xl font-bold text-[#4a3a2f]">
+                {metrics?.daily?.redemptions}
+              </p>
+              <span className="inline-block mt-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
+                Today
+              </span>
+            </article>
+
+            {/* Customers */}
+            <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-blue-500 transform hover:scale-[1.03] transition-all duration-300 animate-slide-in-2">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                Total Visits
+              </p>
+              <p className="text-3xl font-bold text-[#4a3a2f]">
+                {metrics?.daily?.newCustomers}
+              </p>
+              <span className="inline-block mt-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
+                All time
+              </span>
+            </article>
+
+            {/* Redemptions */}
             {/* Sales */}
-            <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-emerald-500 transform hover:scale-[1.03] transition-all duration-300 animate-slide-in-1">
+            {/* <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-emerald-500 transform hover:scale-[1.03] transition-all duration-300 animate-slide-in-1">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                 Total Sales
               </p>
@@ -69,33 +120,8 @@ function Dashboard() {
               <span className="inline-block mt-2 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">
                 +12% today
               </span>
-            </article>
-
-            {/* Customers */}
-            <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-blue-500 transform hover:scale-[1.03] transition-all duration-300 animate-slide-in-2">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                New Customers
-              </p>
-              <p className="text-3xl font-bold text-[#4a3a2f]">
-                {metrics?.daily?.newCustomers}
-              </p>
-              <span className="inline-block mt-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
-                +5 new
-              </span>
-            </article>
-
-            {/* Redemptions */}
-            <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-purple-500 transform hover:scale-[1.03] transition-all duration-300 animate-slide-in-3">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                Redemptions
-              </p>
-              <p className="text-3xl font-bold text-[#4a3a2f]">
-                {metrics?.daily?.redemptions}
-              </p>
-              <span className="inline-block mt-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
-                Active
-              </span>
-            </article>
+            </article> */}
+            
           </div>
         </section>
 

@@ -19,7 +19,7 @@ const CafeCard = ({ cafe, onClick }) => {
       {/* ✅ Image section */}
       <div className="w-full h-40 flex-shrink-0">
         <img
-          src={cafe.image || "/assets/Images/logo.jpg"} // from DB or fallback
+          src={cafe.images?.[0]?.url ?? "/assets/Images/logo.jpg"} // from DB or fallback
           alt={cafe.name}
           className="w-full h-full object-cover"
           onError={handleImgError}
