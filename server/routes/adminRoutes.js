@@ -11,8 +11,10 @@ const {
     getAllCafes,
     getCafeDetails,
     approveCafe,
-    rejectCafe
+    rejectCafe,
+    createEvent
 } = require("../controllers/adminController");
+const upload = require('../middlewares/multerUpload'); 
 
 // --- Reward Claim Routes ---
 router.get("/claims/pending", getPendingClaims);
@@ -30,5 +32,7 @@ router.get("/cafes/:id", getCafeDetails);
 // --- Cafe Approval Routes ---
 router.put("/cafes/:id/approve", approveCafe);
 router.delete("/cafes/:id/reject", rejectCafe); 
+
+router.post("/events", upload.single('image'), createEvent);
 
 module.exports = router;

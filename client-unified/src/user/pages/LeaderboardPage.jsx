@@ -57,8 +57,8 @@ const LeaderboardPage = () => {
         const top15 = rankedData.slice(0, 15);
 
         // Filter out the current user if they are in the top 15 to avoid duplication
-        const filteredLeaderboard = top15.filter((u) => u._id !== user?._id);
-        setLeaderboardData(filteredLeaderboard);
+//         const filteredLeaderboard = top15.filter((u) => u._id !== user?._id);
+        setLeaderboardData(top15);
       } catch (err) {
         console.error("Failed to fetch data:", err);
         setError("Failed to load leaderboard data. Please try again later.");
