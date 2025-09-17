@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { getProfile, getInvoiceHistory, getCafes } from "../api/api";
 import Loader from "../components/Loader";
 import CafeCard from "../components/CafeCard";
-import { Search, Heart, Users, Gift, ExternalLink ,Coffee } from "lucide-react";
+import { Search, Heart, Users, Gift, ExternalLink ,Coffee,Megaphone  } from "lucide-react";
 
 
 
@@ -53,6 +53,8 @@ const AnimatedBalls = () => {
     const interval = setInterval(animateBalls, 50);
     return () => clearInterval(interval);
   }, []);
+
+  
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -150,6 +152,19 @@ const HomePage = () => {
   const [activities, setActivities] = useState([]);
   const [cafes, setCafes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const announcements = [
+    "🎉 CafeChain is launching exciting new rewards next week!",
+    "☕ Enjoy 20% off at our partner cafes this weekend!",
+    "🏆 Refer friends & earn bonus CashPoints instantly.",
+  ];
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % announcements.length);
+    }, 5000); // 5 sec delay
+    return () => clearInterval(interval);
+  }, [announcements.length]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -314,6 +329,39 @@ const HomePage = () => {
           </motion.div>
         </div>
       </motion.section>
+
+      {/* === Announcements Section === */}
+        <motion.section
+          className="py-6 bg-[#4A3A2F]"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          <div className="max-w-7xl mx-auto px-4">
+            <h2 className="flex items-center justify-center gap-3 text-3xl font-bold text-white text-center mb-6">
+              <Megaphone className="w-8 h-8 text-amber-400" /> Announcements
+            </h2>
+
+            {/* Slider effect with pause */}
+            <div className="relative w-full overflow-hidden text-center">
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={currentIndex}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.6 }}
+                  className="text-white text-lg font-medium flex items-center justify-center gap-2"
+                >
+                  <Megaphone className="w-5 h-5 text-amber-400" />
+                    {announcements[currentIndex]}
+                    </motion.p>
+                  </AnimatePresence>
+                </div>
+              </div>
+            </motion.section>
+
 
        {/* === Featured Cafes === */}
       <motion.section className="py-20 bg-white" variants={sectionVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>

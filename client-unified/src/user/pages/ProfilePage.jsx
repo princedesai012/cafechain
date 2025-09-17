@@ -518,12 +518,13 @@ const ProfilePage = () => {
               setProfile(prev => ({ ...prev, ...updated.user }));
               updateUserData(updated.user);
               setEditSuccess('Profile updated successfully!');
+              setSelectedImage(null);
+              setSelectedFile(null);
               setTimeout(() => {
                 closeModal();
                 setEditSuccess('');
-                setSelectedImage(null);
-                setSelectedFile(null);
-              }, 1500);
+                
+              }, 0);
             } catch (e) {
               setEditError(e?.toString() || 'Failed to update profile');
             } finally {
@@ -541,11 +542,13 @@ const ProfilePage = () => {
         setTimeout(() => {
           closeModal();
           setEditSuccess('');
-        }, 1500);
+        }, 0);
       } catch (e) {
         setEditError(e?.toString() || 'Failed to update profile');
       } finally {
-        setSaving(false);
+         if (!selectedFile) {
+          setSaving(false);
+        }
       }
     };
 
@@ -870,4 +873,4 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage;
+export default ProfilePage; 
