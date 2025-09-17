@@ -7,6 +7,7 @@ const {
   addCafeImage,
   deleteCafeImage,
   // setupProfile,
+  getActivityLog,
   getLoyaltyProgramMetrics,
   getCafeDashboardAnalytics, // Kept from your old file
   initiateRedemption,      // Kept from your old file
@@ -37,5 +38,6 @@ router.get("/analytics/summary", authenticateCafeOwnerJWT, getCafeDashboardAnaly
 router.post("/redemption/initiate", authenticateCafeOwnerJWT, initiateRedemption);
 router.post("/redemption/verify", authenticateCafeOwnerJWT, verifyRedemption);
 router.get("/analytics/loyalty", authenticateCafeOwnerJWT, getLoyaltyProgramMetrics);
+router.get("/activity-log", authenticateCafeOwnerJWT, getActivityLog);
 
 module.exports = router;

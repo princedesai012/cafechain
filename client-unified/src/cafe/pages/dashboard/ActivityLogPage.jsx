@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useAppContext } from "../../store/AppContext";
-import Loader from "../../components/Loader"; // ✅ Import loader
+import { getActivityLog } from "../../api/api"; // ✅ Imports the API function
+import Loader from "../../components/Loader";
 
 // 🎨 Animation variants for cards (luxury floating effect)
 const luxuryBoxVariants = {
@@ -16,47 +16,37 @@ const luxuryBoxVariants = {
 
 function ActivityLogPage() {
   const navigate = useNavigate();
-  const { state } = useAppContext();
-
-  const [isLoading, setIsLoading] = useState(true); // ✅ Loader state
+  const [transactions, setTransactions] = useState([]); // ✅ State for API data
+  const [isLoading, setIsLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState("today");
 
-  // ✅ Simulate initial load
+  // ✅ Fetch data from the backend whenever the timeFilter changes
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000); // 1s loader
-    return () => clearTimeout(timer);
-  }, []);
+    const fetchLog = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getActivityLog(timeFilter);
+        setTransactions(response.data);
+      } catch (error) {
+        console.error("Failed to fetch activity log", error);
+        setTransactions([]); // Clear data on error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchLog();
+  }, [timeFilter]); // Re-run effect when timeFilter changes
 
-  if (isLoading) return <Loader />; // ✅ Show loader until ready
+  // ✅ Calculate points from the fetched transactions
+  const totalPointsEarned = transactions
+    .filter((t) => t.type === "earn")
+    .reduce((sum, t) => sum + Math.abs(t.points), 0);
 
-  // ✅ Get transactions safely
-  const transactions = Array.isArray(state.transactions) ? state.transactions : [];
+  const totalPointsRedeemed = transactions
+    .filter((t) => t.type === "redeem")
+    .reduce((sum, t) => sum + Math.abs(t.points), 0);
 
-  // Prepare date boundaries
-  const currentDate = new Date();
-  const today = new Date(currentDate.setHours(0, 0, 0, 0));
-  const oneWeekAgo = new Date(today);
-  oneWeekAgo.setDate(today.getDate() - 7);
-  const oneMonthAgo = new Date(today);
-  oneMonthAgo.setMonth(today.getMonth() - 1);
-
-  // Filter transactions
-  const filteredTransactions = transactions.filter((transaction) => {
-    const transactionDate = new Date(transaction.date);
-    if (timeFilter === "today" && transactionDate < today) return false;
-    if (timeFilter === "week" && transactionDate < oneWeekAgo) return false;
-    if (timeFilter === "month" && transactionDate < oneMonthAgo) return false;
-    return true;
-  });
-
-  // Calculate points
-  const totalPointsEarned = filteredTransactions
-    .filter((t) => t.type === "points" && t.status === "completed")
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
-
-  const totalPointsRedeemed = filteredTransactions
-    .filter((t) => t.type === "redeem" && t.status === "completed")
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
+  if (isLoading) return <Loader />;
 
   return (
     <div className="relative min-h-screen bg-white px-6 md:px-10 py-12 md:py-14">
@@ -98,7 +88,7 @@ function ActivityLogPage() {
 
       {/* Points Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 max-w-5xl mx-auto mt-16">
-        {/* Earned Points */}
+        {/* Earned Points Card */}
         <motion.div
           whileHover="hover"
           initial="rest"
@@ -110,7 +100,7 @@ function ActivityLogPage() {
           <h2 className="text-5xl md:text-7xl font-extrabold mt-6">{totalPointsEarned}</h2>
         </motion.div>
 
-        {/* Redeemed Points */}
+        {/* Redeemed Points Card */}
         <motion.div
           whileHover="hover"
           initial="rest"

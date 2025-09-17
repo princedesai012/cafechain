@@ -428,3 +428,40 @@ exports.getLoyaltyProgramMetrics = async (req, res) => {
     res.status(500).json({ error: "Server error fetching loyalty metrics." });
   }
 };  
+
+exports.getActivityLog = async (req, res) => {
+  try {
+    const cafeId = req.user._id;
+    const { filter } = req.query; // e.g., 'today', 'week', 'month', 'all'
+
+    const query = { cafeId: cafeId };
+
+    // Set the time to the beginning of the day in the server's local timezone
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    if (filter === 'today') {
+      query.createdAt = { $gte: now };
+    } else if (filter === 'week') {
+      // Go back to the beginning of the day 7 days ago
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - 7);
+      query.createdAt = { $gte: startOfWeek };
+    } else if (filter === 'month') {
+      // Go back to the beginning of the day 1 month ago
+      const startOfMonth = new Date(now);
+      startOfMonth.setMonth(now.getMonth() - 1);
+      query.createdAt = { $gte: startOfMonth };
+    }
+    // For the 'all' filter, we don't add a date constraint to the query.
+    
+    // Fetch all relevant transactions from the correct model
+    const transactions = await RewardTransaction.find(query).sort({ createdAt: -1 });
+
+    res.status(200).json(transactions);
+
+  } catch (error) {
+    console.error("Activity log fetch error:", error);
+    res.status(500).json({ error: "Server error fetching activity log." });
+  }
+};

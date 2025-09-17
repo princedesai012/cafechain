@@ -35,6 +35,9 @@ apiClient.interceptors.response.use(
 // Analytics
 export const getDashboardAnalytics = () => apiClient.get('/analytics/summary');
 export const getLoyaltyMetrics = () => apiClient.get('/analytics/loyalty');
+export const getActivityLog = (timeFilter) => {
+  return apiClient.get('/activity-log', { params: { filter: timeFilter } });
+};
 
 // Redemption
 export const initiateRedemption = (customerPhone, pointsToRedeem) => {
