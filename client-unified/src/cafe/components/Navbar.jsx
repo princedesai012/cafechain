@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAppContext } from "../store/AppContext";
 import { useState, useEffect } from "react";
 import logo from "../assets/cc.png";
@@ -6,33 +6,43 @@ import logo from "../assets/cc.png";
 function Navbar() {
   const { state } = useAppContext();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Scroll effect for blur and shadow
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Path checks
   const isAuthOrSetup =
     location.pathname.startsWith("/auth/login") ||
     location.pathname.startsWith("/auth/register") ||
     location.pathname.startsWith("/setup");
 
-  const isHome = location.pathname === "/" || location.pathname === "/cafe/" || location.pathname === "/cafe";
+  const isHome =
+    location.pathname === "/" ||
+    location.pathname === "/cafe/" ||
+    location.pathname === "/cafe";
+
   const isDashboard = location.pathname.startsWith("/cafe/dashboard");
 
-  // Reusable button styles
+  const handleLogout = () => {
+    if (state.logout) {
+      state.logout();
+    }
+    navigate("/cafe/auth/login", { replace: true });
+  };
+
   const buttonClasses = (from, to) =>
     `px-5 py-2 rounded-full text-base font-semibold text-gray-700
      bg-gradient-to-r from-${from} to-${to} shadow-md
      hover:from-${from === "yellow-200" ? "yellow-300" : "amber-300"}
      hover:to-${to === "yellow-400" ? "yellow-500" : "amber-500"}
-     hover:scale-105 hover:shadow-lg transition-all duration-300`;
+     hover:scale-105 hover:shadow-lg transition-all duration-300
+     focus:outline-none focus:ring-0 active:outline-none`;
 
   return (
     <nav
@@ -46,8 +56,11 @@ function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          {/* Left: Logo and Name */}
-          <Link to="/cafe" className="flex items-center group">
+          {/* Logo + CafeChain text -> Always /cafe */}
+          <Link
+            to="/cafe"
+            className="flex items-center group focus:outline-none focus:ring-0 active:outline-none"
+          >
             <img
               src={logo}
               alt="CafeChain Logo"
@@ -58,16 +71,22 @@ function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop Menu (only for home/dashboard) */}
+          {/* Desktop Menu */}
           {!isAuthOrSetup && (
-            <div className="hidden md:flex items-center">
+            <div className="hidden md:flex items-center gap-4">
               {isHome && (
-                <Link to="/cafe/dashboard" className={buttonClasses("yellow-200", "yellow-400")}>
+                <Link
+                  to="/cafe/dashboard"
+                  className={buttonClasses("yellow-200", "yellow-400")}
+                >
                   Dashboard
                 </Link>
               )}
               {isDashboard && (
-                <Link to="/cafe" className={`flex items-center ml-4 ${buttonClasses("amber-200", "amber-400")}`}>
+                <Link
+                  to="/cafe"
+                  className={`flex items-center ml-4 ${buttonClasses("amber-200", "amber-400")}`}
+                >
                   <svg
                     className="h-5 w-5 mr-2"
                     fill="none"
@@ -75,11 +94,21 @@ function Navbar() {
                     strokeWidth="2"
                     viewBox="0 0 24 24"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h5m6-11v11a1 1 0 001 1h5m-7-1h-4" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h5m6-11v11a1 1 0 001 1h5m-7-1h-4"
+                    />
                   </svg>
                   Home
                 </Link>
               )}
+              <button
+                onClick={handleLogout}
+                className="px-5 py-2 rounded-full text-base font-semibold text-white bg-red-500 shadow-md hover:bg-red-600 hover:scale-105 hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-0 active:outline-none"
+              >
+                Logout
+              </button>
             </div>
           )}
 
@@ -91,26 +120,34 @@ function Navbar() {
                 aria-controls="mobile-menu"
                 aria-expanded={mobileMenuOpen}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-md text-gray-700 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary transition-all duration-300"
+                className="p-2 rounded-md text-gray-700 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-0 active:outline-none transition-all duration-300"
               >
                 <span className="sr-only">Toggle menu</span>
-                {/* Hamburger Icon */}
                 <svg
                   className={`${mobileMenuOpen ? "hidden" : "block"} h-6 w-6`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 </svg>
-                {/* Close Icon */}
                 <svg
                   className={`${mobileMenuOpen ? "block" : "hidden"} h-6 w-6`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -122,9 +159,11 @@ function Navbar() {
       {!isAuthOrSetup && (
         <div
           id="mobile-menu"
-          className={`${mobileMenuOpen ? "block" : "hidden"} md:hidden bg-white/90 backdrop-blur-md transition-all duration-300`}
+          className={`${
+            mobileMenuOpen ? "block" : "hidden"
+          } md:hidden bg-white/90 backdrop-blur-md transition-all duration-300`}
         >
-          <div className="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200">
+          <div className="px-2 pt-2 pb-3 space-y-3 border-t border-gray-200 flex flex-col">
             {isHome && (
               <Link
                 to="/cafe/dashboard"
@@ -147,11 +186,24 @@ function Navbar() {
                   strokeWidth="2"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h5m6-11v11a1 1 0 001 1h5m-7-1h-4" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h5m6-11v11a1 1 0 001 1h5m-7-1h-4"
+                  />
                 </svg>
                 Home
               </Link>
             )}
+            <button
+              onClick={() => {
+                handleLogout();
+                setMobileMenuOpen(false);
+              }}
+              className="px-5 py-2 rounded-full text-base font-semibold text-white bg-red-500 shadow-md hover:bg-red-600 hover:scale-105 hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-0 active:outline-none"
+            >
+              Logout
+            </button>
           </div>
         </div>
       )}
