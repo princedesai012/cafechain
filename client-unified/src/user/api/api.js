@@ -64,6 +64,21 @@ export const claimReward = (formData) =>
     withCredentials: true,
 });
 
+export const getActiveEvents = async () => {
+  try {
+    // IMPORTANT: Use the full URL to your backend server
+    const response = await fetch('http://localhost:5000/api/events/active');
+    
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch active events:', error);
+    throw error;
+  }
+};
+
 // cafepoints
 export const getUserCafePoints = (phone) =>
   apiClient(`/users/cafe-points/${phone}`, {}, { method: "GET" });
