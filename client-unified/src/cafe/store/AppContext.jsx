@@ -96,6 +96,15 @@ function appReducer(state, action) {
       saveToStorage(newState);
       return newState;
     }
+
+    case 'SET_CAFE_INFO': {
+      const newState = {
+        ...state,
+        cafeInfo: action.payload,
+      };
+      saveToStorage(newState);
+      return newState;
+    }
     
     // Setup completion
     case 'COMPLETE_SETUP': {
