@@ -4,8 +4,10 @@ const {
   requestCafeEmailOTP, 
   verifyCafeEmailOTP,
   loginCafe,
+  getCafeProfile,
   addCafeImage,
   deleteCafeImage,
+  updateCafeProfile,
   // setupProfile,
   getActivityLog,
   getLoyaltyProgramMetrics,
@@ -23,6 +25,8 @@ router.post("/login", loginCafe);
 
 
 // --- Profile & Image Management (Protected) ---
+router.get("/profile", authenticateCafeOwnerJWT, getCafeProfile);
+router.put("/profile", authenticateCafeOwnerJWT, updateCafeProfile); 
 router.post("/images/add", authenticateCafeOwnerJWT, addCafeImage);
 router.post("/images/delete", authenticateCafeOwnerJWT, deleteCafeImage);
 // CRITICAL CHANGE: This route is now protected by our new, temporary onboarding middleware.

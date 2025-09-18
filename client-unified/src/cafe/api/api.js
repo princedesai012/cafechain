@@ -51,6 +51,11 @@ export const getActiveEvents = async () => {
   }
 };
 
+export const getCafeProfile = () => apiClient.get('/profile');
+export const updateCafeProfile = (profileData) => apiClient.put('/profile', profileData);
+export const addCafeImage = (imageData) => apiClient.post('/images/add', { image: imageData });
+export const deleteCafeImage = (public_id) => apiClient.post('/images/delete', { public_id });
+
 // Redemption
 export const initiateRedemption = (customerPhone, pointsToRedeem) => {
   return apiClient.post('/redemption/initiate', { customerPhone, pointsToRedeem });

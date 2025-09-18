@@ -465,3 +465,25 @@ exports.getActivityLog = async (req, res) => {
     res.status(500).json({ error: "Server error fetching activity log." });
   }
 };
+
+exports.getCafeProfile = async (req, res) => {
+  try {
+    // The middleware already fetched the full cafe object and attached it to req.user
+    const cafe = req.user;
+    res.status(200).json({ cafe });
+  } catch (error) {
+    console.error("Get Cafe Profile Error:", error);
+    res.status(500).json({ error: "Server error while fetching cafe profile." });
+  }
+};
+
+// 6. Update Cafe Profile
+exports.updateCafeProfile = async (req, res) => {
+  try {
+    const cafe = await Cafe.findByIdAndUpdate(req.user._id, req.body, { new: true });
+    res.status(200).json({ cafe });
+  } catch (error) {
+    console.error("Update Cafe Profile Error:", error);
+    res.status(500).json({ error: "Server error while updating cafe profile." });
+  }
+};
