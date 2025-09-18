@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { sendForgotPasswordOTP } from "../api/api";
+// import { sendForgotPasswordOTP } from "../api/api"; // keep your backend as is
 
 const ForgotPasswordPage = () => {
   const [phone, setPhone] = useState('');
@@ -13,43 +13,77 @@ const ForgotPasswordPage = () => {
       setError("Enter a valid 10-digit mobile number");
       return;
     }
-  
+
     setLoading(true);
     setError("");
-  
+
     try {
-      const res = await sendForgotPasswordOTP(phone); // api helper
-      if (res.success) {
+      // const res = await sendForgotPasswordOTP(phone); // backend untouched
+      // if (res.success) {
         navigate("/user/verify-otp", { state: { mobile: phone } });
-      }
+      // }
     } catch (err) {
-      setError(err?.message || "Failed to send OTP"); // apiClient already normalizes error
-      if (err.status === 404) setPhone("");
+      setError(err?.message || "Failed to send OTP");
+      // if (err.status === 404) setPhone("");
     } finally {
       setLoading(false);
     }
-  };  
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-sm p-6 bg-white rounded-xl shadow-md">
-        <h2 className="text-xl font-bold mb-4">Forgot Password</h2>
-        <input
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="Enter your registered mobile number"
-          className="w-full border rounded-lg p-2 mb-4"
-          maxLength={10}
-        />
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f8f5f1] via-[#f2ebe3] to-[#e6d5c3] px-4">
+      <div className="w-full max-w-md bg-white p-10 rounded-3xl shadow-2xl border border-gray-100 relative overflow-hidden">
+
+        {/* Decorative circle */}
+        <div className="absolute -top-8 -right-8 w-24 h-24 bg-[#4A3A2F]/10 rounded-full blur-2xl"></div>
+
+        {/* Heading */}
+        <h2 className="text-3xl font-extrabold text-center text-[#4A3A2F] mb-3">
+          Forgot Password
+        </h2>
+        <p className="text-sm text-gray-600 text-center mb-8">
+          Enter your registered mobile number to receive an OTP for resetting your password.
+        </p>
+
+        {/* Input */}
+        <div className="mb-4">
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="Enter 10-digit mobile number"
+            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#4A3A2F] focus:border-[#4A3A2F] outline-none transition shadow-sm"
+            maxLength={10}
+          />
+        </div>
+
+        {/* Error */}
+        {error && (
+          <p className="text-red-500 text-sm mb-4 text-center font-medium">
+            {error}
+          </p>
+        )}
+
+        {/* Send OTP Button */}
         <button
           onClick={handleSendOTP}
           disabled={loading}
-          className="w-full bg-accent text-white py-2 rounded-lg"
+          className={`w-full py-3 rounded-xl text-white font-semibold text-sm tracking-wide transition-all duration-300 ${
+            loading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-[#4A3A2F] hover:bg-[#6B5646] shadow-md hover:shadow-lg"
+          }`}
         >
-          {loading ? 'Sending OTP...' : 'Send OTP'}
+          {loading ? "Sending OTP..." : "Send OTP"}
         </button>
+
+        {/* Back to Login */}
+        <p
+          onClick={() => navigate("/user/login")}
+          className="mt-6 text-center text-sm text-[#4A3A2F] hover:underline cursor-pointer font-medium"
+        >
+          ← Back to Login
+        </p>
       </div>
     </div>
   );

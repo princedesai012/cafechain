@@ -236,8 +236,6 @@
 // }
 
 // export default Login;
-
-
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -299,7 +297,8 @@ const LoginForm = ({
           </div>
         </div>
         <div className="text-right">
-          <Link to="/cafe/forgot-password" className="text-gray-600 hover:underline text-sm font-medium">
+          {/* ✅ Fixed Forgot Password link */}
+          <Link to="/cafe/auth/ForgotPasswordPage" className="text-gray-600 hover:underline text-sm font-medium">
             Forgot Password?
           </Link>
         </div>
@@ -312,6 +311,17 @@ const LoginForm = ({
           {isLoading ? 'Signing In...' : 'Sign In'}
         </button>
       </form>
+
+      {/* Login as User */}
+      <div className="mt-4">
+        <Link
+          to="/user/login"
+          className="block w-full text-center py-3 rounded-xl font-semibold text-[#4a3a2f] border-2 border-[#4a3a2f] transition-all hover:bg-[#4a3a2f] hover:text-white"
+        >
+          Login as User
+        </Link>
+      </div>
+
       <div className="text-center mt-6 pt-4 border-t border-gray-100">
         <span className="text-gray-600">Don't have an account? </span>
         <Link to="/cafe/auth/register" className="font-semibold hover:underline" style={{ color: '#4a3a2f' }}>
@@ -389,9 +399,6 @@ function Login() {
         <div className="flex-1 relative overflow-hidden" style={{ backgroundColor: '#4a3a2f' }}>
           <div className="relative z-10 h-full flex flex-col justify-center items-center p-8 text-white">
             <div className={`text-center transform transition-all duration-1000 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-              {/* <div className="logo-container mb-6">
-                <img src="/src/assets/logo.jpg" alt="CafeChain Logo" className="w-20 h-20 rounded-full object-cover shadow-2xl" />
-              </div> */}
               <h1 className="text-3xl font-bold mb-3">CafeChain</h1>
               <p className="text-lg opacity-90 mb-8 leading-relaxed">
                 Where every cup tells a story and every connection matters
@@ -456,4 +463,6 @@ function Login() {
     </div>
   );
 }
+
 export default Login;
+
