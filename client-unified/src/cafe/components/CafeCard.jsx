@@ -28,6 +28,7 @@ const CafeCard = ({ cafe, onClick }) => {
 
       {/* Details section */}
       <div className="flex flex-col flex-1 p-4">
+        {/* Top part of the card content */}
         <div>
           <h3 className="font-semibold text-dark-brown text-lg mb-1 truncate">
             {cafe.name}
@@ -44,10 +45,10 @@ const CafeCard = ({ cafe, onClick }) => {
           </div>
         </div>
 
-        {/* Features section pushed to the bottom */}
+        {/* This div pushes the features to the bottom and reserves space */}
         <div className="mt-auto pt-2" style={{ minHeight: '40px' }}>
           {cafe.features?.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mt-2">
               {cafe.features.slice(0, 3).map((feature, index) => (
                 <span
                   key={index}

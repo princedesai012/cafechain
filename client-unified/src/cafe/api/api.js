@@ -65,4 +65,6 @@ export const verifyRedemption = (otp, customerEmail) => {
   return apiClient.post('/redemption/verify', { otp, customerEmail });
 };
 
+export const getAllCafes = () => axios.get('/api/cafes');
+
 export default apiClient;
