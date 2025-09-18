@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAppContext } from "../../store/AppContext";
-import { getDashboardAnalytics } from '../../api/api'; // Import the API service
+import { getDashboardAnalytics } from "../../api/api";
 import Loader from "../../components/Loader";
+import { LogOut } from "lucide-react";
 
 function Dashboard() {
-  const { state } = useAppContext();
-  const { cafeInfo } = state; // Cafe info from context
+  const { state, dispatch } = useAppContext();
+  const { cafeInfo } = state;
+  const navigate = useNavigate();
 
-  // Local state for metrics fetched from the API
   const [metrics, setMetrics] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -17,10 +18,9 @@ function Dashboard() {
       setIsLoading(true);
       try {
         const response = await getDashboardAnalytics();
-        // Map the API response to the structure your UI expects
         setMetrics({
           daily: {
-            sales: 0, // API does not provide sales data yet
+            sales: 0,
             newCustomers: response.data.totalCustomerVisits,
             redemptions: response.data.pointsRedeemedToday,
           },
@@ -36,128 +36,174 @@ function Dashboard() {
     fetchAnalytics();
   }, []);
 
+  const handleLogout = () => {
+    dispatch({ type: "LOGOUT" });
+    localStorage.removeItem("cafeToken");
+    navigate("/cafe/auth/login", { replace: true });
+  };
+
   if (isLoading) return <Loader />;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="max-w-6xl mx-auto py-6 px-3 sm:px-6 lg:px-8">
-        {/* Dashboard Header */}
-        <header className="bg-white shadow-lg rounded-2xl mb-6 p-6 transition-all duration-300 hover:shadow-2xl animate-fade-in-down">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+    <main className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white shadow-lg fixed inset-y-0 left-0 z-20 flex flex-col">
+        <div className="p-6 border-b">
+          <h2 className="text-2xl font-extrabold" style={{ color: "#4a3a2f" }}>
+            CafeChain
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">{cafeInfo?.name}</p>
+        </div>
 
-            {/* Welcome Text instead of Cafe Logo */}
+        <nav className="mt-6 flex-1 flex flex-col gap-2 px-4">
+          <Link
+            to="/"
+            className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
+          >
+            Home
+          </Link>
+          <Link
+            to="/cafe/dashboard/metrics"
+            className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
+          >
+            Metrics
+          </Link>
+          <Link
+            to="/cafe/dashboard/redemption"
+            className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
+          >
+            Redemption
+          </Link>
+          <Link
+            to="/cafe/dashboard/ads-events"
+            className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
+          >
+            Ads & Events
+          </Link>
+          <Link
+            to="/cafe/dashboard/activity"
+            className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
+          >
+            Activity Log
+          </Link>
+          <Link
+            to="/cafe/dashboard/profile"
+            className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
+          >
+            Profile & Settings
+          </Link>
+        </nav>
+
+        <div className="p-4 border-t">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+          >
+            <LogOut className="w-5 h-5" />
+            Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* Dashboard Content */}
+      <div className="flex-1 ml-64 p-8">
+        {/* Header */}
+        <header className="bg-white rounded-2xl shadow-md p-6 mb-10">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div>
-              <h1 className="text-3xl font-extrabold text-[#4a3a2f] leading-snug">
-                Welcome to CafeChain
+              <h1 className="text-3xl font-extrabold text-gray-800">
+                Welcome cafename{cafeInfo?.name}
               </h1>
-              <p className="text-sm text-gray-600 mt-1">{cafeInfo?.name} {cafeInfo?.address && `- ${cafeInfo?.address}`}</p>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto items-start sm:items-center">
-              <Link
-                to="/cafe/dashboard/profile"
-                className="bg-[#4a3a2f] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#3d312a] transition-colors duration-200 shadow-md hover:shadow-lg text-center transform hover:scale-105"
-              >
-                Profile & Settings
-              </Link>
+              <p className="text-gray-500 mt-1">
+                {cafeInfo?.address && `${cafeInfo.address}`}
+              </p>
             </div>
           </div>
         </header>
 
-        {/* Quick Stats */}
-        <section aria-labelledby="overview-heading" className="mb-8 animate-fade-in-up">
-          <h2 id="overview-heading" className="text-2xl font-bold text-[#4a3a2f] mb-4">
+        {/* Stats Section */}
+        <section className="mb-12">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">
             Today's Overview
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="group bg-indigo-600 text-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.03]">
+              <p className="text-xs uppercase opacity-80">Today Redemptions</p>
+              <p className="text-3xl font-bold mt-1">{metrics?.daily?.redemptions}</p>
+              <span className="mt-3 inline-block text-xs px-2 py-1 bg-white/20 rounded-full">Today</span>
+            </div>
 
-            <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-purple-500 transform hover:scale-[1.03] transition-all duration-300 animate-slide-in-3">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                Today Sales
-              </p>
-              <p className="text-3xl font-bold text-[#4a3a2f]">
-                {metrics?.daily?.redemptions}
-              </p>
-              <span className="inline-block mt-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
-                Today
-              </span>
-            </article>
+            <div className="group bg-emerald-600 text-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.03] delay-100">
+              <p className="text-xs uppercase opacity-80">Total Visits</p>
+              <p className="text-3xl font-bold mt-1">{metrics?.daily?.newCustomers}</p>
+              <span className="mt-3 inline-block text-xs px-2 py-1 bg-white/20 rounded-full">All Time</span>
+            </div>
 
-            {/* Customers */}
-            <article className="bg-white shadow-lg rounded-xl p-5 border-t-4 border-blue-500 transform hover:scale-[1.03] transition-all duration-300 animate-slide-in-2">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                Total Visits
-              </p>
-              <p className="text-3xl font-bold text-[#4a3a2f]">
-                {metrics?.daily?.newCustomers}
-              </p>
-              <span className="inline-block mt-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
-                All time
-              </span>
-            </article>
+            
           </div>
         </section>
 
-        {/* Quick Actions */}
-        <section aria-labelledby="actions-heading" className="animate-fade-in-up">
-          <h2 id="actions-heading" className="text-2xl font-bold text-[#4a3a2f] mb-4">
+        {/* Quick Action Cards in Dashboard */}
+        <section>
+          <h2 className="text-xl font-bold text-gray-800 mb-4">
             Quick Actions
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            
-            {/* Metrics */}
-            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300 animate-slide-in-4">
-              <Link to="/cafe/dashboard/metrics" className="block p-5 focus:outline-none focus:ring-0">
-                <div className="p-3 rounded-lg bg-gradient-to-br from-[#4a3a2f] to-[#3d312a] mb-3 w-fit transition-transform">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19V10M6 19V4M16 19v-7M21 19V8" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-bold text-[#4a3a2f] mb-1">Metrics</h3>
-                <p className="text-sm text-gray-600">View detailed sales and customer metrics</p>
-              </Link>
-            </article>
+            {/* Metrics Card */}
+            <Link
+              to="/cafe/dashboard/metrics"
+              className="group bg-indigo-600 text-white rounded-xl shadow-md hover:shadow-xl p-6 flex flex-col items-start transform transition-all duration-300 hover:-translate-y-1 hover:scale-[1.04]"
+            >
+              <div className="p-3 rounded-lg bg-white/20 mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19V10M6 19V4M16 19v-7M21 19V8" />
+                </svg>
+              </div>
+              <h3 className="font-bold">Metrics</h3>
+              <p className="text-sm opacity-80">View detailed sales & customers</p>
+            </Link>
 
-            {/* Redemption */}
-            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300 animate-slide-in-5">
-              <Link to="/cafe/dashboard/redemption" className="block p-5 focus:outline-none focus:ring-0">
-                <div className="p-3 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 mb-3 w-fit transition-transform">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7m16 0H4m16 0a2 2 0 01-2-2h-3.5a1.5 1.5 0 01-1.5-1.5V7m-8 5a2 2 0 002-2V7m0 0a2 2 0 114 0v3a2 2 0 002 2m-6-5a2 2 0 11-4 0" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-bold text-[#4a3a2f] mb-1">Redemption</h3>
-                <p className="text-sm text-gray-600">Process customer reward redemptions</p>
-              </Link>
-            </article>
+            {/* Redemption Card */}
+            <Link
+              to="/cafe/dashboard/redemption"
+              className="group bg-emerald-600 text-white rounded-xl shadow-md hover:shadow-xl p-6 flex flex-col items-start transform transition-all duration-300 hover:-translate-y-1 hover:scale-[1.04] delay-100"
+            >
+              <div className="p-3 rounded-lg bg-white/20 mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7m16 0H4" />
+                </svg>
+              </div>
+              <h3 className="font-bold">Redemption</h3>
+              <p className="text-sm opacity-80">Process customer rewards</p>
+            </Link>
 
-            {/* Ads & Events */}
-            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300 animate-slide-in-6">
-              <Link to="/cafe/dashboard/ads-events" className="block p-5 focus:outline-none focus:ring-0">
-                <div className="p-3 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 mb-3 w-fit transition-transform">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5l6-2v14l-6-2M5 8v8a2 2 0 002 2h2l3 3V5L9 2H7a2 2 0 00-2 2z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-bold text-[#4a3a2f] mb-1">Ads & Events</h3>
-                <p className="text-sm text-gray-600">Manage promotions and special events</p>
-              </Link>
-            </article>
+            {/* Ads & Events Card */}
+            <Link
+              to="/cafe/dashboard/ads-events"
+              className="group bg-orange-500 text-white rounded-xl shadow-md hover:shadow-xl p-6 flex flex-col items-start transform transition-all duration-300 hover:-translate-y-1 hover:scale-[1.04] delay-200"
+            >
+              <div className="p-3 rounded-lg bg-white/20 mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5l6-2v14l-6-2M5 8v8" />
+                </svg>
+              </div>
+              <h3 className="font-bold">Ads & Events</h3>
+              <p className="text-sm opacity-80">Manage promotions & events</p>
+            </Link>
 
-            {/* Activity */}
-            <article className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.05] transition-all duration-300 animate-slide-in-7">
-              <Link to="/cafe/dashboard/activity" className="block p-5 focus:outline-none focus:ring-0">
-                <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 mb-3 w-fit transition-transform">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-bold text-[#4a3a2f] mb-1">Activity Log</h3>
-                <p className="text-sm text-gray-600">View recent transactions and activities</p>
-              </Link>
-            </article>
-
+            {/* Activity Card */}
+            <Link
+              to="/cafe/dashboard/activity"
+              className="group bg-blue-600 text-white rounded-xl shadow-md hover:shadow-xl p-6 flex flex-col items-start transform transition-all duration-300 hover:-translate-y-1 hover:scale-[1.04] delay-300"
+            >
+              <div className="p-3 rounded-lg bg-white/20 mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0" />
+                </svg>
+              </div>
+              <h3 className="font-bold">Activity Log</h3>
+              <p className="text-sm opacity-80">Recent transactions & logs</p>
+            </Link>
           </div>
         </section>
       </div>
