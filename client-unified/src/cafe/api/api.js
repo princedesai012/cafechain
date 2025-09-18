@@ -39,6 +39,18 @@ export const getActivityLog = (timeFilter) => {
   return apiClient.get('/activity-log', { params: { filter: timeFilter } });
 };
 
+export const getActiveEvents = async () => {
+  try {
+    // IMPORTANT: Use the full URL to your backend server
+    const response = await axios.get('http://localhost:5000/api/events/active');
+    return response.data; // Axios wraps the JSON response in a 'data' object
+  } catch (error) {
+    const errorMessage = error.response?.data?.error || 'Failed to fetch events.';
+    toast.error(errorMessage);
+    throw error;
+  }
+};
+
 // Redemption
 export const initiateRedemption = (customerPhone, pointsToRedeem) => {
   return apiClient.post('/redemption/initiate', { customerPhone, pointsToRedeem });

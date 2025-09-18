@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { getProfile, getInvoiceHistory, getCafes } from "../api/api";
 import Loader from "../components/Loader";
 import CafeCard from "../components/CafeCard";
+import UpcomingEvents from "../components/UpcomingEvents";
 import { Search, Heart, Users, Gift, ExternalLink ,Coffee,Megaphone  } from "lucide-react";
 
 
@@ -362,6 +363,8 @@ const HomePage = () => {
               </div>
             </motion.section>
 
+      {/* === Upcoming Events Section === */}
+      <UpcomingEvents />
 
        {/* === Featured Cafes === */}
       <motion.section className="py-20 bg-white" variants={sectionVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
