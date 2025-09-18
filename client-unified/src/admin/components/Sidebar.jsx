@@ -1,3 +1,5 @@
+// src/admin/components/Sidebar.jsx
+
 import React from "react";
 import { NavLink } from "react-router-dom";
 
@@ -6,12 +8,14 @@ const navItems = [
   { to: "/admin/cafes/approval-queue", label: "Cafe Approval Queue" },
   { to: "/admin/cafes", label: "Cafe List" },
   { to: "/admin/users", label: "User Management" },
+  { to: "/admin/events", label: "Event Management" }, // ✅ ADD THIS LINE
   { to: "/admin/analytics", label: "Analytics" },
   { to: "/admin/promotions", label: "Promotions" },
-  { to: "/admin/invoices", label: "Invoices" }, // ✅ New route for invoices
+  { to: "/admin/invoices", label: "Invoices" },
 ];
 
 export default function Sidebar() {
+  // ... rest of your Sidebar component
   return (
     <aside className="w-64 bg-white border-r flex flex-col">
       <div className="h-16 flex items-center justify-center font-bold text-xl border-b">

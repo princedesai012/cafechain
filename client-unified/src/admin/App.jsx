@@ -14,6 +14,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminInvoicesPage from "./pages/invoice"; 
+import EventManagementPage from './pages/EventManagementPage';
 // import AdminSignupPage from "./pages/AdminSignupPage";
 
 const AdminLayout = ({ children }) => (
@@ -47,6 +48,14 @@ export default function AdminApp() {
           element={
             <AdminLayout>
               <DashboardPage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="events"
+          element={
+            <AdminLayout>
+              <EventManagementPage />
             </AdminLayout>
           }
         />
