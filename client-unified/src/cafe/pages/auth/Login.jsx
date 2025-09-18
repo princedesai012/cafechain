@@ -352,7 +352,7 @@ function Login() {
       });
       toast.success(response.data.message);
       if (response.data.cafe.status === 'active') {
-        navigate('/cafe/dashboard');
+        navigate('/cafe');
       } else if (response.data.cafe.status === 'pendingApproval') {
         navigate('/cafe/pending-approval');
       } else {
