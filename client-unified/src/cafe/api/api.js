@@ -3,7 +3,8 @@ import toast from 'react-hot-toast';
 
 // Create an Axios instance with default settings
 const apiClient = axios.create({
-  baseURL: '/api/cafe-owner', // All requests will be prefixed with this
+  // ✅ CRITICAL: Change this baseURL to the full Render URL
+  baseURL: 'https://cafechain.onrender.com/api/cafe-owner', 
 });
 
 // Add a request interceptor to include the auth token
@@ -41,8 +42,8 @@ export const getActivityLog = (timeFilter) => {
 
 export const getActiveEvents = async () => {
   try {
-    // IMPORTANT: Use the full URL to your backend server
-    const response = await axios.get('http://localhost:5000/api/events/active');
+    // This is already correct
+    const response = await axios.get('https://cafechain.onrender.com/api/events/active');
     return response.data; // Axios wraps the JSON response in a 'data' object
   } catch (error) {
     const errorMessage = error.response?.data?.error || 'Failed to fetch events.';
@@ -65,6 +66,7 @@ export const verifyRedemption = (otp, customerEmail) => {
   return apiClient.post('/redemption/verify', { otp, customerEmail });
 };
 
-export const getAllCafes = () => axios.get('/api/cafes');
+// ✅ CRITICAL: Change this line to the full Render URL
+export const getAllCafes = () => axios.get('https://cafechain.onrender.com/api/cafes');
 
 export default apiClient;

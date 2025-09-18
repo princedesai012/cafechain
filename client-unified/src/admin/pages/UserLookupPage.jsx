@@ -14,7 +14,7 @@ export default function UserLookupPage() {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await axios.get("/api/admin/users/all");
+                const response = await axios.get("https://cafechain.onrender.com/api/admin/users/all");
                 setAllUsers(response.data);
                 setFilteredUsers(response.data);
             } catch (error) {

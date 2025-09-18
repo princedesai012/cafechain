@@ -18,6 +18,21 @@ function ProfileGalleryPage() {
   const { cafeInfo } = state || {};
   const navigate = useNavigate();
 
+  const [activeTab, setActiveTab] = useState("profile");
+  const [editMode, setEditMode] = useState(false);
+  const [cafeForm, setCafeForm] = useState({
+    name: cafeInfo?.name || "",
+    address: cafeInfo?.address || "",
+    phone: cafeInfo?.cafePhone || "",
+    email: cafeInfo?.email || "",
+    description: cafeInfo?.description || "",
+    openingHours: cafeInfo?.openingHours || "",
+    tags: cafeInfo?.features || [],
+  });
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   useEffect(() => {
     const fetchCafeProfile = async () => {
       try {
@@ -37,23 +52,7 @@ function ProfileGalleryPage() {
     return <div>Loading...</div>;
   }
 
-  const [activeTab, setActiveTab] = useState("profile");
-  const [editMode, setEditMode] = useState(false);
-
-  const [cafeForm, setCafeForm] = useState({
-    name: cafeInfo.name || "",
-    address: cafeInfo.address || "",
-    phone: cafeInfo.cafePhone || "",
-    email: cafeInfo.email || "",
-    description: cafeInfo.description || "",
-    openingHours: cafeInfo.openingHours || "",
-    tags: cafeInfo.features || [],
-  });
-
-  const [selectedImages, setSelectedImages] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]);
-  const [uploadProgress, setUploadProgress] = useState(0);
-
+  // Rest of the component logic remains the same
   const availableTags = [
     "Coffee", "Tea", "Pastries", "Breakfast", "Lunch", "Vegan", "Organic",
     "Specialty Coffee", "Wifi", "Study Friendly", "Pet Friendly", "Outdoor Seating", "Live Music",

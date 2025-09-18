@@ -1,7 +1,8 @@
 // api/api.js
 import axios from 'axios';
 
-// const API_URL = 'http://localhost:5000/api';
+// ✅ CRITICAL: Change this line to the full Render URL
+const API_URL = 'https://cafechain.onrender.com/api';
 
 const apiClient = async (endpoint, data = {}, options = {}) => {
   const token = localStorage.getItem('authToken');
@@ -17,7 +18,8 @@ const apiClient = async (endpoint, data = {}, options = {}) => {
   try {
     const response = await axios({
       method: options.method || 'GET',
-      url: `/api${endpoint}`,
+      // ✅ CRITICAL: Change this line to use the API_URL variable
+      url: `${API_URL}${endpoint}`,
       data: options.method === 'POST' || options.method === 'PUT' ? data : null,
       headers,
       // withCredentials: true,
@@ -66,8 +68,8 @@ export const claimReward = (formData) =>
 
 export const getActiveEvents = async () => {
   try {
-    // IMPORTANT: Use the full URL to your backend server
-    const response = await fetch('http://localhost:5000/api/events/active');
+    // This is already correct
+    const response = await fetch('https://cafechain.onrender.com/api/events/active');
     
     if (!response.ok) {
       throw new Error('Network response was not ok');

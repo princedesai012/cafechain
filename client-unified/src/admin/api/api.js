@@ -5,7 +5,8 @@ import toast from 'react-hot-toast';
 
 // Create an Axios instance for the admin panel
 const adminApiClient = axios.create({
-  baseURL: '/api/admin', // All admin requests will be prefixed with this
+  // ✅ CRITICAL: Change this baseURL to the full Render URL
+  baseURL: 'https://cafechain.onrender.com/api/admin', 
 });
 
 // Interceptor to add the auth token (assuming you store it in localStorage)
@@ -26,8 +27,9 @@ adminApiClient.interceptors.request.use(
  */
 export const adminGetCafesList = async () => {
     try {
-        const response = await axios.get('http://localhost:5000/api/admin/cafes/all');
-        return response.data;
+        // This is already correct
+        const response = await axios.get('https://cafechain.onrender.com/api/admin/cafes/all');
+        return response.data
     } catch (error) {
         toast.error("Could not fetch cafe list.");
         throw error;
