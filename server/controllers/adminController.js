@@ -1,8 +1,11 @@
 const PendingCafe = require("../models/PendingCafe");
 const User = require("../models/User");
 const Cafe = require("../models/Cafe");
+const Event = require('../models/Event');
 const crypto = require("crypto");
 const RewardClaim = require("../models/RewardClaim");
+const cloudinary = require('../config/cloudinary');
+const streamifier = require('streamifier');
 const { logVisit } = require("../controllers/userController");
 
 // Get all pending claims
@@ -189,5 +192,59 @@ exports.rejectCafe = async (req, res) => {
   } catch (err) {
       console.error("Reject Cafe Error:", err);
       res.status(500).json({ error: "Server error rejecting cafe" });
+  }
+};
+
+
+exports.createEvent = async (req, res) => {
+  try {
+    const { name, description, date, time, cafe } = req.body;
+
+    // 1. Validate text fields and file presence
+    if (!name || !description || !date || !time || !cafe) {
+      return res.status(400).json({ error: 'Please provide all required fields.' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'Event image is required.' });
+    }
+
+    // 2. Upload image to Cloudinary (wrapped in a Promise for async/await)
+    const uploadImage = () => {
+      return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: 'Cafechain/Events' }, // The correct folder
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+      });
+    };
+
+    const uploadResult = await uploadImage();
+    const imageUrl = uploadResult.secure_url;
+
+    // 3. Create and save the new event with the image URL
+    const newEvent = new Event({
+      name,
+      description,
+      date,
+      time,
+      cafe,
+      image: imageUrl, // Use the URL from the upload result
+    });
+
+    await newEvent.save();
+
+    // 4. Send success response
+    res.status(201).json({
+      message: 'Event created successfully!',
+      event: newEvent,
+    });
+
+  } catch (error) {
+    console.error('Error creating event:', error);
+    res.status(500).json({ error: 'Server error while creating the event.' });
   }
 };

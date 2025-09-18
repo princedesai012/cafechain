@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { register, login, logVisit, getUserProfile, updateUserProfile, changePassword, logout, getReferralChain, getRewardHistory, getVisitHistory, addFavoriteCafe, getFavoriteCafes, getLeaderboard  } = require("../controllers/userController");
+const { register, login, logVisit, getUserCafePoints, getUserProfile, updateUserProfile, changePassword, logout, getReferralChain, getRewardHistory, getVisitHistory, addFavoriteCafe, getFavoriteCafes, getLeaderboard  } = require("../controllers/userController");
 const { validatePhoneNumber } = require("../middlewares/validate");
 const { authenticateUserJWT } = require("../middlewares/auth");
 const { uploadToCloudinary } = require("../middlewares/cloudinaryUpload");
@@ -16,6 +16,7 @@ router.put("/profile/:phone/change-password", authenticateUserJWT, changePasswor
 router.post("/logout", authenticateUserJWT, logout);
 
 router.get("/referral-chain/:phone", authenticateUserJWT, getReferralChain);
+router.get("/cafe-points/:phone", authenticateUserJWT, getUserCafePoints);
 router.get("/history/:phone", authenticateUserJWT, getVisitHistory); 
 router.get("/rewards/:phone", authenticateUserJWT, getRewardHistory); 
 router.post("/favorites/:phone", authenticateUserJWT, addFavoriteCafe);

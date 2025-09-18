@@ -1,60 +1,45 @@
-// src/pages/UserCafePointsPage.jsx
-import React, { useEffect, useState } from "react";
+// ✅ The Fix is on this line: Add 'useContext' to the import
+import React, { useState, useEffect, useContext } from "react"; 
 import { ArrowLeft, Coffee } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Loader from "../components/Loader";
+import { useAuth } from "../context/AuthContext"; // Keep using your custom hook
+import { getUserCafePoints } from "../api/api";
 
-// ✅ Dummy data: cafes with users and points
-const dummyCafePoints = [
-  {
-    _id: "cafe1",
-    name: "Brew Haven",
-    users: [
-      { name: "Raj", points: 120 },
-      { name: "Aman", points: 95 },
-      { name: "Kashyap", points: 75 },
-    ],
-  },
-  {
-    _id: "cafe2",
-    name: "Coffee Corner",
-    users: [
-      { name: "Raj", points: 60 },
-      { name: "Aman", points: 150 },
-      { name: "Kashyap", points: 110 },
-    ],
-  },
-  {
-    _id: "cafe3",
-    name: "Cafe Mocha",
-    users: [
-      { name: "Raj", points: 200 },
-      { name: "Aman", points: 90 },
-    ],
-  },
-];
-
-const UserCafePointsPage = () => {
+// The component name in the error is UserCafePointsPage, so I am assuming that's the component in this file.
+const UserCafePointsPage = () => { 
   const navigate = useNavigate();
+  const { user } = useAuth(); // This line now works correctly
   const [loading, setLoading] = useState(true);
   const [userPoints, setUserPoints] = useState([]);
-  const userName = "Raj"; // This would come from logged-in user context
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // simulate API delay
-    setTimeout(() => {
-      const points = dummyCafePoints
-        .map((cafe) => {
-          const user = cafe.users.find((u) => u.name === userName);
-          return user ? { cafeName: cafe.name, points: user.points } : null;
-        })
-        .filter(Boolean); // remove nulls
-      setUserPoints(points);
+    if (!user || !user.phone) {
       setLoading(false);
-    }, 1000); // 1 sec loader
-  }, [userName]);
+      setError("You must be logged in to view your points.");
+      return;
+    }
 
+    const fetchUserPoints = async () => {
+      try {
+        setLoading(true);
+        const pointsData = await getUserCafePoints(user.phone);
+        setUserPoints(pointsData);
+        setError(null);
+      } catch (err) {
+        setError("Could not fetch your cafe points. Please try again later.");
+        console.error("Fetch Points Error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserPoints();
+  }, [user]);
+
+  // ... rest of your component's JSX remains the same
   if (loading) return <Loader />;
 
   return (
@@ -81,7 +66,9 @@ const UserCafePointsPage = () => {
         <Coffee className="w-6 h-6" /> Your Cafe Points
       </motion.h1>
 
-      {userPoints.length === 0 ? (
+      {error ? (
+        <div className="text-center text-red-500 mt-20">{error}</div>
+      ) : userPoints.length === 0 ? (
         <div className="text-center text-gray-500 mt-20">
           You have no points in any cafe yet.
         </div>
@@ -100,7 +87,9 @@ const UserCafePointsPage = () => {
               whileTap={{ scale: 0.98 }}
               className="p-5 border rounded-2xl bg-white shadow-md hover:shadow-xl transition-all"
             >
-              <div className="font-bold text-lg text-[#4a3a2f]">{cafe.cafeName}</div>
+              <div className="font-bold text-lg text-[#4a3a2f]">
+                {cafe.cafeName}
+              </div>
               <div className="mt-2 text-gray-600">
                 Points: <span className="font-semibold">{cafe.points}</span>
               </div>

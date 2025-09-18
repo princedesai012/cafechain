@@ -16,6 +16,7 @@ const forgotPasswordRoutes = require("./routes/forgotPasswordRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const cafeOwnerRoutes = require("./routes/cafeOwnerRoutes");
 const { authenticateUserJWT } = require("./middlewares/auth");
+const eventRoutes = require('./routes/eventRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -46,6 +47,7 @@ app.use("/api/cafes", cafeRoutes);
 app.use("/api/forgot-password", forgotPasswordRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/cafe-owner", cafeOwnerRoutes);
+app.use('/api/events', eventRoutes);
 
 app.use((err, req, res, next) => {
     console.error("UNHANDLED ERROR:", err);

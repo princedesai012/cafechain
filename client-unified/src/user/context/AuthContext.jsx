@@ -1,9 +1,12 @@
+// src/user/context/AuthContext.jsx
+
 import { createContext, useContext, useState, useEffect } from 'react';
 import { loginUser, registerUser, verifyEmailOtp, logoutUser, getProfile } from '../api/api';
 
-const AuthContext = createContext();
+// ✅ 1. EXPORT the context so it can be imported by name elsewhere
+export const AuthContext = createContext();
 
-// export const useAuth = () => useContext(AuthContext);
+// ✅ 2. KEEP this custom hook to easily access the context's value
 export function useAuth() {
   return useContext(AuthContext);
 }

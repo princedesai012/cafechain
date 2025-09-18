@@ -10,6 +10,7 @@ const RewardClaim = require("../models/RewardClaim");
 const RewardTransaction = require("../models/RewardTransaction");
 const nodemailer = require("nodemailer");
 const otpGenerator = require("otp-generator");
+const cloudinary = require("../config/cloudinary"); 
 
 // Configure email transporter
 const transporter = nodemailer.createTransport({
@@ -146,6 +147,88 @@ exports.loginCafe = async (req, res) => {
   }
 };
 
+// 4. Add a new image to a cafe's gallery
+exports.addCafeImage = async (req, res) => {
+  const { image } = req.body;
+  // The middleware already fetched the full cafe object and attached it to req.user
+  const cafe = req.user;
+
+  if (!image) {
+      return res.status(400).json({ error: "Image data is required." });
+  }
+
+  try {
+      // No need to find the cafe again, we already have it.
+      
+      if (cafe.images.length >= 5) {
+          return res.status(400).json({ error: "Cannot add more than 5 images." });
+      }
+
+      // Sanitize the cafe name to create a safe folder name.
+      const safeCafeName = cafe.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+
+      // Upload to Cloudinary in a cafe-specific folder
+      const result = await cloudinary.uploader.upload(image, {
+          folder: `CafeChain/Cafe/${safeCafeName}_${cafe._id}`,
+          transformation: [
+              { width: 1024, height: 768, crop: 'limit' },
+              { quality: 'auto:good' }
+          ]
+      });
+
+      cafe.images.push({
+          url: result.secure_url,
+          public_id: result.public_id
+      });
+
+      await cafe.save();
+
+      res.status(200).json({
+          message: "Image added successfully!",
+          images: cafe.images
+      });
+
+  } catch (error) {
+      console.error("Add Cafe Image Error:", error);
+      res.status(500).json({ error: "Server error while adding image." });
+  }
+};
+
+// 5. Delete an image from a cafe's gallery
+exports.deleteCafeImage = async (req, res) => {
+  const { public_id } = req.body;
+  // --- The middleware has already found the cafe for you! ---
+  const cafe = req.user;
+
+  if (!public_id) {
+      return res.status(400).json({ error: "Image public_id is required." });
+  }
+
+  try {
+      // No need to find the cafe again, the middleware already did.
+
+      const imageExists = cafe.images.some(img => img.public_id === public_id);
+      if (!imageExists) {
+          return res.status(404).json({ error: "Image not found in your gallery." });
+      }
+
+      await cloudinary.uploader.destroy(public_id);
+
+      cafe.images = cafe.images.filter(img => img.public_id !== public_id);
+      await cafe.save();
+
+      res.status(200).json({
+          message: "Image deleted successfully!",
+          images: cafe.images
+      });
+
+  } catch (error) {
+      console.error("Delete Cafe Image Error:", error);
+      res.status(500).json({ error: "Server error while deleting image." });
+  }
+};
+
+
 exports.getCafeDashboardAnalytics = async (req, res) => {
   try {
     // The middleware `authenticateCafeOwnerJWT` already finds the cafe
@@ -240,7 +323,6 @@ exports.initiateRedemption = async (req, res) => {
   }
 };
 
-
 exports.verifyRedemption = async (req, res) => {
   const { otp, customerEmail } = req.body;
 
@@ -289,7 +371,6 @@ exports.verifyRedemption = async (req, res) => {
     return;
   }
 };
-
 
 exports.getLoyaltyProgramMetrics = async (req, res) => {
 

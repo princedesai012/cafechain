@@ -2,8 +2,10 @@ const express = require("express");
 const router = express.Router();
 const { 
   requestCafeEmailOTP, 
-  verifyCafeEmailOTP, 
-  loginCafe, 
+  verifyCafeEmailOTP,
+  loginCafe,
+  addCafeImage,
+  deleteCafeImage,
   // setupProfile,
   getActivityLog,
   getLoyaltyProgramMetrics,
@@ -19,7 +21,10 @@ router.post("/register/request-otp", requestCafeEmailOTP);
 router.post("/register/verify-otp", verifyCafeEmailOTP);
 router.post("/login", loginCafe);
 
-// --- Profile Management ---
+
+// --- Profile & Image Management (Protected) ---
+router.post("/images/add", authenticateCafeOwnerJWT, addCafeImage);
+router.post("/images/delete", authenticateCafeOwnerJWT, deleteCafeImage);
 // CRITICAL CHANGE: This route is now protected by our new, temporary onboarding middleware.
 // This ensures only users who have just verified their OTP can access this.
 // router.put("/setup-profile", authenticateOnboardingJWT, setupProfile);

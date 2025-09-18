@@ -13,11 +13,10 @@ const CafeDetailPage = () => {
 
   // slider states
   const [currentIndex, setCurrentIndex] = useState(0);
-  const dummyImages = [
-    "https://picsum.photos/seed/cafe1/800/600",
-    "https://picsum.photos/seed/cafe2/800/600",
-    "https://picsum.photos/seed/cafe3/800/600",
-  ];
+  const images = 
+  (cafe?.images && cafe.images.length > 0) 
+  ? cafe.images.map(img => img.url) 
+  : ['/assets/Images/logo.jpg']; // Fallback image
 
   useEffect(() => {
     const fetchCafe = async () => {
@@ -41,11 +40,13 @@ const CafeDetailPage = () => {
 
   // slider auto change
   useEffect(() => {
+    if (images.length <= 1) return;
+
     const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % dummyImages.length);
-    }, 3000); // auto slide every 3s
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+    }, 3000);
     return () => clearInterval(interval);
-  }, [dummyImages.length]);
+  }, [images.length]);
 
   const handleBack = () => navigate("/user/cafes");
 
@@ -68,12 +69,12 @@ const CafeDetailPage = () => {
 
   const prevSlide = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? dummyImages.length - 1 : prevIndex - 1
+      prevIndex === 0 ? images.length - 1 : prevIndex - 1
     );
   };
 
   const nextSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % dummyImages.length);
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
   };
 
   if (loading) {
@@ -97,24 +98,29 @@ const CafeDetailPage = () => {
           {/* Slider */}
           <div className="bg-light-gray rounded-2xl h-48 overflow-hidden relative">
             <img
-              src={dummyImages[currentIndex]}
+              src={images[currentIndex]}
               alt={cafe.name}
               className="w-full h-full object-cover rounded-2xl transition-transform duration-700 ease-in-out"
               onError={handleImgError}
             />
-            {/* Arrows */}
-            <button
-              onClick={prevSlide}
-              className="absolute top-1/2 left-3 transform -translate-y-1/2 bg-white p-2 rounded-full shadow"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={nextSlide}
-              className="absolute top-1/2 right-3 transform -translate-y-1/2 bg-white p-2 rounded-full shadow"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+
+            {images.length > 1 && (
+              <>
+                {/* Arrows */}
+                <button
+                  onClick={prevSlide}
+                  className="absolute top-1/2 left-3 transform -translate-y-1/2 bg-white p-2 rounded-full shadow"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={nextSlide}
+                  className="absolute top-1/2 right-3 transform -translate-y-1/2 bg-white p-2 rounded-full shadow"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </>
+            )}
           </div>
 
           <div className="flex items-center justify-end">
@@ -170,10 +176,7 @@ const CafeDetailPage = () => {
             <div>
               <h3 className="font-semibold text-dark-brown mb-2">Description</h3>
               <p className="text-gray-600 text-sm leading-relaxed max-h-40 overflow-y-auto">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut
-                perspiciatis unde omnis iste natus error sit voluptatem
-                accusantium doloremque laudantium. This is a dummy description
-                for responsiveness testing.
+                {cafe?.description || "No description available."}
               </p>
             </div>
           </div>
@@ -187,23 +190,27 @@ const CafeDetailPage = () => {
             {/* Slider */}
             <div className="bg-light-gray rounded-2xl h-96 overflow-hidden relative">
               <img
-                src={dummyImages[currentIndex]}
+                src={images[currentIndex]}
                 alt={cafe.name}
                 className="w-full h-full object-cover rounded-2xl transition-transform duration-700 ease-in-out"
                 onError={handleImgError}
               />
-              <button
-                onClick={prevSlide}
-                className="absolute top-1/2 left-3 transform -translate-y-1/2 bg-white p-2 rounded-full shadow"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-              <button
-                onClick={nextSlide}
-                className="absolute top-1/2 right-3 transform -translate-y-1/2 bg-white p-2 rounded-full shadow"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={prevSlide}
+                    className="absolute top-1/2 left-3 transform -translate-y-1/2 bg-white p-2 rounded-full shadow"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={nextSlide}
+                    className="absolute top-1/2 right-3 transform -translate-y-1/2 bg-white p-2 rounded-full shadow"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </>
+              )}
             </div>
 
             <div className="space-y-6">
@@ -266,10 +273,7 @@ const CafeDetailPage = () => {
                   Description
                 </h3>
                 <p className="text-gray-600 text-base leading-relaxed max-h-48 overflow-y-auto">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-                  ut perspiciatis unde omnis iste natus error sit voluptatem
-                  accusantium doloremque laudantium. This is a dummy description
-                  for responsiveness testing.
+                  {cafe?.description || "No description available."}
                 </p>
               </div>
             </div>
