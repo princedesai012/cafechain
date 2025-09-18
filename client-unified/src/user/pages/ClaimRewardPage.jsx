@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getRewardCafes, claimReward } from "../api/api";
+import toast, { Toaster } from "react-hot-toast"; // <-- added toast
 
 const ClaimRewardPage = () => {
   const navigate = useNavigate();
@@ -27,11 +28,10 @@ const ClaimRewardPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Fetch cafes from backend (rewards router)
   useEffect(() => {
     const fetchCafes = async () => {
       try {
-        const data = await getRewardCafes(); // cleaner
+        const data = await getRewardCafes();
         setCafes(data || []);
       } catch (err) {
         console.error("Failed to fetch cafes:", err);
@@ -68,13 +68,14 @@ const ClaimRewardPage = () => {
       formData.append("cafeId", cafeId);
       formData.append("amount", amount);
       formData.append("invoice", invoice);
-    
-      const res = await claimReward(formData); // use api helper
-    
+
+      const res = await claimReward(formData);
+
       setSubmitMessage(res?.message || "Claim submitted successfully!");
       setIsSuccess(true);
-    
-      // reset...
+
+      // Show toast notification on success
+      toast.success(res?.message || "Claim submitted successfully!");
     } catch (error) {
       console.error("Failed to submit claim:", error);
       const msg =
@@ -106,13 +107,11 @@ const ClaimRewardPage = () => {
 
   const handleAmountChange = (e) => {
     const value = e.target.value;
-    // allow only digits (you can switch to decimal if you prefer)
     if (/^\d*$/.test(value)) {
       setAmount(value);
     }
   };
 
-  // Animation variants
   const formContainerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -129,8 +128,10 @@ const ClaimRewardPage = () => {
 
   return (
     <div className="min-h-screen bg-white text-[#4A3A2F] font-sans pb-24">
+      {/* Toast container */}
+      <Toaster position="top-right" reverseOrder={false} />
+
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
         <motion.header
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -139,11 +140,12 @@ const ClaimRewardPage = () => {
         >
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-500 hover:text-[#4A3A2F] transition-colors"
+            className="flex items-center gap-2 text-gray-500 hover:text-[#4A3A2F] transition-colors focus:outline-none focus:ring-0"
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="font-semibold">Back</span>
           </button>
+
 
           <button
             onClick={() => navigate("/user/invoice-history")}
@@ -173,7 +175,6 @@ const ClaimRewardPage = () => {
                 initial="hidden"
                 animate="visible"
               >
-                {/* Cafe Dropdown */}
                 <motion.div variants={formItemVariants}>
                   <label
                     htmlFor="cafe"
@@ -200,7 +201,6 @@ const ClaimRewardPage = () => {
                   </div>
                 </motion.div>
 
-                {/* Amount Input */}
                 <motion.div variants={formItemVariants}>
                   <label
                     htmlFor="amount"
@@ -223,16 +223,14 @@ const ClaimRewardPage = () => {
                   </div>
                 </motion.div>
 
-                {/* Invoice Upload */}
                 <motion.div variants={formItemVariants}>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Upload Invoice
                   </label>
                   <label
                     htmlFor="invoice-upload"
-                    className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-2xl bg-white cursor-pointer transition-colors hover:border-[#4A3A2F] hover:bg-stone-100 ${
-                      fileError ? "border-red-500" : "border-stone-300"
-                    }`}
+                    className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-2xl bg-white cursor-pointer transition-colors hover:border-[#4A3A2F] hover:bg-stone-100 ${fileError ? "border-red-500" : "border-stone-300"
+                      }`}
                   >
                     {invoice ? (
                       <div className="flex items-center gap-3 text-[#4A3A2F] p-4 w-full">
@@ -269,34 +267,27 @@ const ClaimRewardPage = () => {
                   )}
                 </motion.div>
 
-                {/* Submit button */}
                 <motion.div variants={formItemVariants}>
                   <button
                     type="submit"
                     disabled={isSubmitting}
                     className="w-full p-4 bg-[#4A3A2F] text-white font-bold rounded-xl hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {isSubmitting && (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    )}
+                    {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
                     {isSubmitting ? "Submitting..." : "Claim Points"}
                   </button>
                 </motion.div>
               </motion.div>
             </form>
 
-            {/* Submission message */}
             <AnimatePresence>
               {submitMessage && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className={`mt-6 p-4 rounded-xl text-center font-semibold flex items-center justify-center gap-3 ${
-                    isSuccess
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
+                  className={`mt-6 p-4 rounded-xl text-center font-semibold flex items-center justify-center gap-3 ${isSuccess ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                    }`}
                 >
                   {isSuccess ? (
                     <CheckCircle className="w-5 h-5" />
