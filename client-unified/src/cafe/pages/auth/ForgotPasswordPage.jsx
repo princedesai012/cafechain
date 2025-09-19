@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { sendForgotPasswordOTP } from "../api/api"; // keep your backend as is
+// import { sendForgotPasswordOTP } from "../api/api"; // backend untouched
 
 const ForgotPasswordPage = () => {
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const validateEmail = (email) => {
+    // simple regex for email validation
+    return /\S+@\S+\.\S+/.test(email);
+  };
+
   const handleSendOTP = async () => {
-    if (!phone || phone.length !== 10) {
-      setError("Enter a valid 10-digit mobile number");
+    if (!email || !validateEmail(email)) {
+      setError("Enter a valid email address");
       return;
     }
 
@@ -18,13 +23,12 @@ const ForgotPasswordPage = () => {
     setError("");
 
     try {
-      // const res = await sendForgotPasswordOTP(phone); // backend untouched
+      // const res = await sendForgotPasswordOTP(email); // backend untouched
       // if (res.success) {
-        navigate("/user/verify-otp", { state: { mobile: phone } });
+        navigate("/user/verify-otp", { state: { email } });
       // }
     } catch (err) {
       setError(err?.message || "Failed to send OTP");
-      // if (err.status === 404) setPhone("");
     } finally {
       setLoading(false);
     }
@@ -42,18 +46,17 @@ const ForgotPasswordPage = () => {
           Forgot Password
         </h2>
         <p className="text-sm text-gray-600 text-center mb-8">
-          Enter your registered mobile number to receive an OTP for resetting your password.
+          Enter your registered email address to receive an OTP for resetting your password.
         </p>
 
         {/* Input */}
         <div className="mb-4">
           <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="Enter 10-digit mobile number"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email address"
             className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#4A3A2F] focus:border-[#4A3A2F] outline-none transition shadow-sm"
-            maxLength={10}
           />
         </div>
 

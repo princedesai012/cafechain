@@ -293,20 +293,31 @@ export default function CafeChainLanding() {
               <span className="text-2xl font-bold text-[#4A3A2F]">CafeChain</span>
             </div>
             
-            <div className="flex items-center gap-2 sm:gap-3">
-              <button 
-                onClick={handleNavigation} 
-                className="px-4 py-2 text-sm font-semibold rounded-full hover:bg-gray-50 transition-colors"
-              >
-                Sign In
-              </button>
-              <button 
-                onClick={handleNavigation} 
-                className="px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-semibold bg-[#4A3A2F] text-white rounded-full hover:bg-[#4A3A2F]/90 transition-all transform hover:scale-105 shadow-lg"
-              >
-                Get Started
-              </button>
-            </div>
+         <div className="flex items-center gap-2 sm:gap-3">
+  {/* Mobile: Icon button */}
+  <button
+    onClick={handleNavigation}
+    className="p-2 rounded-full hover:bg-gray-50 transition-colors sm:hidden"
+  >
+    <Users size={22} className="text-[#4A3A2F]" />
+  </button>
+
+  {/* Desktop: Text button */}
+  <button 
+    onClick={handleNavigation} 
+    className="px-4 py-2 text-sm font-semibold rounded-full hover:bg-gray-50 transition-colors hidden sm:block"
+  >
+    Sign In
+  </button>
+
+  <button 
+    onClick={handleNavigation} 
+    className="px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-semibold bg-[#4A3A2F] text-white rounded-full hover:bg-[#4A3A2F]/90 transition-all transform hover:scale-105 shadow-lg"
+  >
+    Get Started
+  </button>
+</div>
+
           </div>
         </div>
       </header>
