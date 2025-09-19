@@ -4,14 +4,14 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 
 const navItems = [
-  { to: "/admin/dashboard", label: "Dashboard" },
-  { to: "/admin/cafes/approval-queue", label: "Cafe Approval Queue" },
-  { to: "/admin/cafes", label: "Cafe List" },
-  { to: "/admin/users", label: "User Management" },
-  { to: "/admin/events", label: "Event Management" }, // ✅ ADD THIS LINE
-  { to: "/admin/analytics", label: "Analytics" },
-  { to: "/admin/promotions", label: "Promotions" },
-  { to: "/admin/invoices", label: "Invoices" },
+  { to: "/pd/dashboard", label: "Dashboard" },
+  { to: "/pd/cafes/approval-queue", label: "Cafe Approval Queue" },
+  { to: "/pd/cafes", label: "Cafe List" },
+  { to: "/pd/users", label: "User Management" },
+  { to: "/pd/events", label: "Event Management" }, // ✅ ADD THIS LINE
+  { to: "/pd/analytics", label: "Analytics" },
+  { to: "/pd/promotions", label: "Promotions" },
+  { to: "/pd/invoices", label: "Invoices" },
 ];
 
 export default function Sidebar() {
