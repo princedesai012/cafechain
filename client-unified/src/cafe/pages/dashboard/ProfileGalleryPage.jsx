@@ -246,7 +246,7 @@ function ProfileGalleryPage() {
               {editMode ? (
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* Name */}
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">Cafe Name</label>
                     <input
                       type="text"
@@ -255,10 +255,10 @@ function ProfileGalleryPage() {
                       readOnly
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 focus:outline-none"
                     />
-                  </div>
+                  </div> */}
 
                   {/* Phone */}
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">Phone</label>
                     <input
                       type="text"
@@ -267,10 +267,10 @@ function ProfileGalleryPage() {
                       readOnly
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 focus:outline-none"
                     />
-                  </div>
+                  </div> */}
 
                   {/* Email */}
-                  <div className="lg:col-span-2 space-y-2">
+                  {/* <div className="lg:col-span-2 space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">Email</label>
                     <input
                       type="email"
@@ -279,7 +279,7 @@ function ProfileGalleryPage() {
                       readOnly
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 focus:outline-none"
                     />
-                  </div>
+                  </div> */}
 
                   {/* Address */}
                   <div className="lg:col-span-2 space-y-2">
