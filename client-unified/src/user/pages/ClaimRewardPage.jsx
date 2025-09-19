@@ -127,7 +127,7 @@ const ClaimRewardPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#4A3A2F] font-sans pb-24">
+    <div className="min-h-screen bg-white text-[#4A3A2F] font-sans pb-24 pt-20 md:pt-0">
       {/* Toast container */}
       <Toaster position="top-right" reverseOrder={false} />
 

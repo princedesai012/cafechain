@@ -63,7 +63,7 @@ const VerifyEmailPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-warm-gray flex items-center justify-center px-6">
+    <div className="min-h-screen bg-warm-gray flex items-center justify-center px-6 pt-20 md:pt-0">
       <div className="w-full max-w-sm bg-white rounded-2xl shadow p-6">
         <div className="text-center mb-4">
           <div className="flex items-center justify-center mb-2">

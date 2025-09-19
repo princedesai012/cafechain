@@ -50,7 +50,7 @@ const InvoiceHistoryPage = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="p-6 min-h-screen bg-white">
+    <div className="p-6 min-h-screen bg-white pt-20 md:pt-0">
       {/* Back Button */}
       <motion.button
         initial={{ x: -30, opacity: 0 }}

@@ -159,7 +159,7 @@ const LeaderboardPage = () => {
   if (topThree[2]) podiumOrder.push(topThree[2]);
 
   return (
-    <div className="min-h-screen bg-[#ffffff] text-gray-900 font-['Inter'] p-6 md:p-10 pb-28 md:pb-10 overflow-hidden">
+    <div className="min-h-screen bg-[#ffffff] text-gray-900 font-['Inter'] p-6 md:p-10 pb-28 md:pb-10 overflow-hidden pt-20 md:pt-0">
       <style>{`.drop-shadow-glow { filter: drop-shadow(0 0 8px rgba(0,0,0,0.1)); }`}</style>
       <motion.div
         className="text-center mb-10"

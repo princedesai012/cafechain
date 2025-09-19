@@ -63,7 +63,7 @@ const AnimatedBalls = () => {
   }, []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none pt-20 md:pt-0">
       {balls.map(ball => (
         <motion.div
           key={ball.id}
