@@ -29,7 +29,7 @@ export default function CafeListPage() {
     // ✅ NEW: This function will be called when a row is clicked
     const handleRowClick = (cafe) => {
         // Navigate to the dynamic detail page route
-        navigate(`/admin/cafes/${cafe._id}`); 
+        navigate(`/pd/cafes/${cafe._id}`); 
     };
 
     const filteredCafes = cafes.filter(cafe => {

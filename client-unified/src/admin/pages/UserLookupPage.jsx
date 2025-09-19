@@ -51,7 +51,7 @@ export default function UserLookupPage() {
                         filteredUsers.map((user) => (
                             // ✅ NEW: Make the entire list item a clickable link
                             <li key={user._id} className="hover:bg-gray-50 transition">
-                                <Link to={`/admin/users/${user._id}`} className="p-4 flex justify-between items-center block">
+                                <Link to={`/pd/users/${user._id}`} className="p-4 flex justify-between items-center block">
                                     <div>
                                         <p className="font-semibold text-gray-800">{user.name}</p>
                                         <p className="text-sm text-gray-500">{user.phone}</p>

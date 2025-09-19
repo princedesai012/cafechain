@@ -55,3 +55,36 @@ export const adminCreateEvent = async (formData) => {
     throw error;
   }
 };
+
+// ---- CLAIM APIs ----
+export const adminGetPendingClaims = async () => {
+  try {
+    const res = await adminApiClient.get("https://cafechain.onrender.com/api/admin/claims/pending");
+    return res.data;
+  } catch (err) {
+    toast.error("Failed to fetch claims");
+    throw err;
+  }
+};
+
+export const adminApproveClaim = async (id) => {
+  try {
+    const res = await adminApiClient.put(`/claims/${id}/approve`);
+    toast.success("Claim approved ✅");
+    return res.data;
+  } catch (err) {
+    toast.error(err.response?.data?.error || "Failed to approve claim");
+    throw err;
+  }
+};
+
+export const adminRejectClaim = async (id) => {
+  try {
+    const res = await adminApiClient.put(`/claims/${id}/reject`);
+    toast.success("Claim rejected ❌");
+    return res.data;
+  } catch (err) {
+    toast.error(err.response?.data?.error || "Failed to reject claim");
+    throw err;
+  }
+};
