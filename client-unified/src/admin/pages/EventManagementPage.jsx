@@ -118,12 +118,14 @@ function EventManagementPage() {
           <div>
             <label className="block text-gray-700 font-medium mb-1">Date</label>
             <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleInputChange}
-              className="w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+                type="date"
+                name="date"
+                value={formData.date}
+                onChange={handleInputChange}
+                // ADDED: Prevent selecting past dates
+                min={new Date().toISOString().split("T")[0]}
+                className="w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
             />
           </div>
           <div>
