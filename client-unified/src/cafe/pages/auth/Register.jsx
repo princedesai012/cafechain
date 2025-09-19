@@ -71,7 +71,7 @@ function Register() {
                 description: formData.description,
                 openingHours: formData.openingHours,
             };
-            const response = await axios.post('/api/cafe-owner/register/request-otp', payload);
+            const response = await axios.post('https://cafechain.onrender.com/api/cafe-owner/register/request-otp', payload);
             toast.success(response.data.message);
             navigate('/cafe/auth/verify-otp', { state: { email: formData.email } });
         } catch (error) {

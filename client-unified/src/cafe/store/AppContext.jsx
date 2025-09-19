@@ -96,13 +96,30 @@ function appReducer(state, action) {
       saveToStorage(newState);
       return newState;
     }
+
+    case 'SET_CAFE_INFO': {
+      const newState = {
+        ...state,
+        cafeInfo: action.payload,
+        setupCompleted: true,
+      };
+      saveToStorage(newState);
+      return newState;
+    }
+
+    case 'SET_PARTNER_CAFES': {
+      return {
+        ...state,
+        partnerCafes: action.payload,
+      };
+    }
     
     // Setup completion
     case 'COMPLETE_SETUP': {
       const newState = {
         ...state,
+        cafeInfo: action.payload,
         setupCompleted: true,
-        cafeInfo: action.payload
       };
       saveToStorage(newState);
       return newState;
@@ -248,6 +265,10 @@ function appReducer(state, action) {
 // Provider component
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
+
+  useEffect(() => {
+    dispatch({ type: 'INIT_APP' });
+  }, []);
 
   useEffect(() => {
     if (!state.isLoading) {

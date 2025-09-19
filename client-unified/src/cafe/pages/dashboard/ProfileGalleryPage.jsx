@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppContext } from "../../store/AppContext";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-
+import { getCafeProfile, updateCafeProfile, addCafeImage, deleteCafeImage } from "../../api/api";
 import {
   BuildingStorefrontIcon,
   PhotoIcon,
@@ -14,42 +14,48 @@ import {
 } from "@heroicons/react/24/outline";
 
 function ProfileGalleryPage() {
-  const { state } = useAppContext();
-  const { cafeInfo, gallery: initialGallery } = state;
+  const { state, dispatch } = useAppContext();
+  const { cafeInfo } = state || {};
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState("profile");
   const [editMode, setEditMode] = useState(false);
-
   const [cafeForm, setCafeForm] = useState({
-    name: cafeInfo.name || "",
-    address: cafeInfo.address || "",
-    phone: cafeInfo.phone || "",
-    email: cafeInfo.email || "",
-    description: cafeInfo.description || "",
-    openingHours: cafeInfo.openingHours || "",
-    tags: cafeInfo.tags || [],
+    name: cafeInfo?.name || "",
+    address: cafeInfo?.address || "",
+    phone: cafeInfo?.cafePhone || "",
+    email: cafeInfo?.email || "",
+    description: cafeInfo?.description || "",
+    openingHours: cafeInfo?.openingHours || "",
+    tags: cafeInfo?.features || [],
   });
-
-  const [gallery, setGallery] = useState(initialGallery || []);
   const [selectedImages, setSelectedImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  useEffect(() => {
+    const fetchCafeProfile = async () => {
+      try {
+        const response = await getCafeProfile();
+        dispatch({ type: "SET_CAFE_INFO", payload: response.data.cafe });
+      } catch (error) {
+        toast.error("Failed to fetch cafe profile.");
+      }
+    };
+
+    if (!cafeInfo) {
+      fetchCafeProfile();
+    }
+  }, [cafeInfo, dispatch]);
+
+  if (!cafeInfo) {
+    return <div>Loading...</div>;
+  }
+
+  // Rest of the component logic remains the same
   const availableTags = [
-    "Coffee",
-    "Tea",
-    "Pastries",
-    "Breakfast",
-    "Lunch",
-    "Vegan",
-    "Organic",
-    "Specialty Coffee",
-    "Wifi",
-    "Study Friendly",
-    "Pet Friendly",
-    "Outdoor Seating",
-    "Live Music",
+    "Coffee", "Tea", "Pastries", "Breakfast", "Lunch", "Vegan", "Organic",
+    "Specialty Coffee", "Wifi", "Study Friendly", "Pet Friendly", "Outdoor Seating", "Live Music",
   ];
 
   const handleCafeFormChange = (e) => {
@@ -69,61 +75,71 @@ function ProfileGalleryPage() {
     });
   };
 
-  // Updated to allow multiple images at once
   const handleImageSelect = (e) => {
     if (!e.target.files) return;
-
     const files = Array.from(e.target.files);
-
-    // Check total limit
-    if (gallery.length + selectedImages.length + files.length > 5) {
-      toast.error("You can upload maximum 5 images in total.");
+    if ((cafeInfo.images?.length || 0) + selectedImages.length + files.length > 5) {
+      toast.error("You can upload a maximum of 5 images in total.");
       return;
     }
-
     setSelectedImages((prev) => [...prev, ...files]);
-
     const previews = files.map((file) => URL.createObjectURL(file));
     setImagePreviews((prev) => [...prev, ...previews]);
   };
 
-  const handleImageUpload = () => {
+  const handleImageUpload = async () => {
     if (selectedImages.length === 0) return;
 
-    setUploadProgress(0);
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      setUploadProgress(progress);
+    const toBase64 = file => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
 
-      if (progress >= 100) {
-        clearInterval(interval);
-
-        const newImages = selectedImages.map((file, idx) => ({
-          url: imagePreviews[idx],
-          caption: file.name,
-        }));
-
-        setGallery((prev) => [...prev, ...newImages].slice(0, 5)); // enforce max 5
-
-        setSelectedImages([]);
-        setImagePreviews([]);
-        setUploadProgress(0);
-
-        toast.success("Images uploaded successfully!");
+    setUploadProgress(20);
+    for (const image of selectedImages) {
+      try {
+        const base64Image = await toBase64(image);
+        const response = await addCafeImage(base64Image);
+        dispatch({ type: 'SET_CAFE_INFO', payload: { ...cafeInfo, images: response.data.images } });
+      } catch (error) {
+        toast.error(`Failed to upload ${image.name}.`);
       }
-    }, 200);
+    }
+    setUploadProgress(100);
+
+    setSelectedImages([]);
+    setImagePreviews([]);
+    toast.success("Images uploaded successfully!");
+    setTimeout(() => setUploadProgress(0), 1000);
   };
 
-  const handleRemoveImage = (idx) => {
-    setGallery((prev) => prev.filter((_, i) => i !== idx));
-    toast.success("Image removed!");
+  const handleRemoveImage = async (public_id) => {
+    try {
+      const response = await deleteCafeImage(public_id);
+      dispatch({ type: 'SET_CAFE_INFO', payload: { ...cafeInfo, images: response.data.images } });
+      toast.success("Image removed!");
+    } catch (error) {
+      toast.error("Failed to remove image.");
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setEditMode(false);
-    toast.success("Profile updated successfully!");
+    try {
+      const payload = {
+        ...cafeForm,
+        features: cafeForm.tags,
+      };
+      delete payload.tags;
+      const response = await updateCafeProfile(payload);
+      dispatch({ type: "SET_CAFE_INFO", payload: response.data.cafe });
+      setEditMode(false);
+      toast.success("Profile updated successfully!");
+    } catch (error) {
+      toast.error("Failed to update profile.");
+    }
   };
 
   const tabConfig = [
@@ -135,7 +151,6 @@ function ProfileGalleryPage() {
     <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 font-sans antialiased">
       <Toaster position="top-right" />
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
         <div className="hidden md:flex items-center mb-6">
           <button
             onClick={() => navigate(-1)}
@@ -146,18 +161,15 @@ function ProfileGalleryPage() {
           </button>
         </div>
 
-        {/* Header Section */}
         <header className="text-center mb-12">
           <h1 className="text-4xl font-extrabold font-serif text-[#4a3a2f] mb-3 tracking-tight">
             Manage Your Cafe
           </h1>
           <p className="text-lg font-sans text-[#4a3a2f]/70 max-w-2xl mx-auto leading-relaxed">
-            Keep your cafe details up-to-date and showcase your unique
-            atmosphere with photos.
+            Keep your cafe details up-to-date and showcase your unique atmosphere with photos.
           </p>
         </header>
 
-        {/* Tab Navigation */}
         <nav className="flex justify-center mb-10">
           <div className="flex bg-white border border-[#4a3a2f]/20 rounded-xl shadow-md overflow-hidden">
             {tabConfig.map((tab) => {
@@ -180,7 +192,6 @@ function ProfileGalleryPage() {
           </div>
         </nav>
 
-        {/* PROFILE TAB */}
         {activeTab === "profile" && (
           <section
             className="bg-white shadow-xl rounded-2xl border border-[#4a3a2f]/20 overflow-hidden"
@@ -214,7 +225,6 @@ function ProfileGalleryPage() {
                   onSubmit={handleSubmit}
                   className="grid grid-cols-1 lg:grid-cols-2 gap-8"
                 >
-                  {/* Cafe Name */}
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
                       Cafe Name
@@ -223,11 +233,11 @@ function ProfileGalleryPage() {
                       type="text"
                       name="name"
                       value={cafeForm.name}
-                      className="w-full px-4 py-3 border border-[#4a3a2f]/30 rounded-lg focus:border-[#4a3a2f] focus:outline-none"
+                      readOnly
+                      className="w-full px-4 py-3 border border-[#4a3a2f]/30 rounded-lg bg-gray-100 focus:outline-none"
                     />
                   </div>
 
-                  {/* Phone */}
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
                       Phone Number
@@ -236,12 +246,24 @@ function ProfileGalleryPage() {
                       type="text"
                       name="phone"
                       value={cafeForm.phone}
-                      onChange={handleCafeFormChange}
-                      className="w-full px-4 py-3 border border-[#4a3a2f]/30 rounded-lg focus:border-[#4a3a2f] focus:outline-none"
+                      readOnly
+                      className="w-full px-4 py-3 border border-[#4a3a2f]/30 rounded-lg bg-gray-100 focus:outline-none"
                     />
                   </div>
 
-                  {/* Address */}
+                  <div className="lg:col-span-2 space-y-2">
+                    <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={cafeForm.email}
+                      readOnly
+                      className="w-full px-4 py-3 border border-[#4a3a2f]/30 rounded-lg bg-gray-100 focus:outline-none"
+                    />
+                  </div>
+                  
                   <div className="lg:col-span-2 space-y-2">
                     <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
                       Address
@@ -255,21 +277,6 @@ function ProfileGalleryPage() {
                     />
                   </div>
 
-                  {/* Email */}
-                  <div className="lg:col-span-2 space-y-2">
-                    <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={cafeForm.email}
-                      onChange={handleCafeFormChange}
-                      className="w-full px-4 py-3 border border-[#4a3a2f]/30 rounded-lg focus:border-[#4a3a2f] focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Opening Hours */}
                   <div className="lg:col-span-2 space-y-2">
                     <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
                       Opening Hours
@@ -284,7 +291,6 @@ function ProfileGalleryPage() {
                     />
                   </div>
 
-                  {/* Description */}
                   <div className="lg:col-span-2 space-y-2">
                     <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
                       Description
@@ -298,7 +304,6 @@ function ProfileGalleryPage() {
                     />
                   </div>
 
-                  {/* Tags */}
                   <div className="lg:col-span-2 space-y-4">
                     <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
                       Cafe Tags (Select up to 3)
@@ -321,7 +326,6 @@ function ProfileGalleryPage() {
                     </div>
                   </div>
 
-                  {/* Buttons */}
                   <div className="lg:col-span-2 flex justify-end gap-4 pt-6 border-t border-[#4a3a2f]/10">
                     <button
                       type="button"
@@ -340,20 +344,18 @@ function ProfileGalleryPage() {
                 </form>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Contact Info */}
                   <div className="p-6 bg-gray-50 rounded-xl border border-[#4a3a2f]/10">
                     <h3 className="flex items-center gap-2 font-semibold font-serif text-[#4a3a2f] mb-3">
                       <PhoneIcon className="h-5 w-5" /> Contact Information
                     </h3>
                     <p className="text-sm font-sans text-[#4a3a2f]/70">
-                      Phone: {cafeInfo.phone || "Not provided"}
+                      Phone: {cafeInfo.cafePhone || "Not provided"}
                     </p>
                     <p className="text-sm font-sans text-[#4a3a2f]/70">
                       Email: {cafeInfo.email || "Not provided"}
                     </p>
                   </div>
 
-                  {/* Location */}
                   <div className="p-6 bg-gray-50 rounded-xl border border-[#4a3a2f]/10">
                     <h3 className="flex items-center gap-2 font-semibold font-serif text-[#4a3a2f] mb-3">
                       <MapPinIcon className="h-5 w-5" /> Location & Hours
@@ -366,10 +368,10 @@ function ProfileGalleryPage() {
                     </p>
                   </div>
 
-                  {/* Description */}
                   <div className="md:col-span-2 p-6 bg-gray-50 rounded-xl border border-[#4a3a2f]/10">
                     <h3 className="flex items-center gap-2 font-semibold font-serif text-[#4a3a2f] mb-3">
-                      <InformationCircleIcon className="h-5 w-5" /> About Our Cafe
+                      <InformationCircleIcon className="h-5 w-5" /> About Our
+                      Cafe
                     </h3>
                     <p className="text-sm font-sans text-[#4a3a2f]/80 leading-relaxed">
                       {cafeInfo.description ||
@@ -377,14 +379,13 @@ function ProfileGalleryPage() {
                     </p>
                   </div>
 
-                  {/* Tags */}
-                  {cafeInfo.tags && cafeInfo.tags.length > 0 && (
+                  {cafeInfo.features && cafeInfo.features.length > 0 && (
                     <div className="md:col-span-2 p-6 bg-gray-50 rounded-xl border border-[#4a3a2f]/10">
                       <h3 className="flex items-center gap-2 font-semibold font-serif text-[#4a3a2f] mb-3">
                         Cafe Tags
                       </h3>
                       <div className="flex flex-wrap gap-2">
-                        {cafeInfo.tags.slice(0, 3).map((tag, idx) => (
+                        {cafeInfo.features.slice(0, 3).map((tag, idx) => (
                           <span
                             key={idx}
                             className="px-3 py-1 rounded-full text-sm bg-[#4a3a2f] text-white"
@@ -401,7 +402,6 @@ function ProfileGalleryPage() {
           </section>
         )}
 
-        {/* GALLERY TAB */}
         {activeTab === "gallery" && (
           <section
             className="bg-white shadow-xl rounded-2xl border border-[#4a3a2f]/20 overflow-hidden"
@@ -420,7 +420,6 @@ function ProfileGalleryPage() {
             </div>
 
             <div className="p-8">
-              {/* Upload Section */}
               <div className="mb-10 p-8 border-2 border-dashed border-[#4a3a2f]/30 rounded-xl bg-gray-50">
                 <div className="text-center">
                   <PhotoIcon className="h-12 w-12 mx-auto stroke-1 text-[#4a3a2f]" />
@@ -441,7 +440,6 @@ function ProfileGalleryPage() {
                   </label>
                 </div>
 
-                {/* Preview & Upload Controls */}
                 {imagePreviews.length > 0 && (
                   <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
                     {imagePreviews.map((preview, idx) => (
@@ -500,21 +498,20 @@ function ProfileGalleryPage() {
                 )}
               </div>
 
-              {/* Gallery Grid */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {gallery.length > 0 ? (
-                  gallery.map((img, idx) => (
+                {cafeInfo.images && cafeInfo.images.length > 0 ? (
+                  cafeInfo.images.map((img, idx) => (
                     <div
                       key={idx}
                       className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition group"
                     >
                       <img
                         src={img.url}
-                        alt={img.caption}
+                        alt="Cafe"
                         className="w-full h-full object-cover"
                       />
                       <button
-                        onClick={() => handleRemoveImage(idx)}
+                        onClick={() => handleRemoveImage(img.public_id)}
                         className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
                       >
                         <XMarkIcon className="h-5 w-5" />

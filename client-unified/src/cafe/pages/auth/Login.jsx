@@ -353,7 +353,7 @@ function Login() {
     }
     setIsLoading(true);
     try {
-      const response = await axios.post('/api/cafe-owner/login', { email, password });
+      const response = await axios.post('https://cafechain.onrender.com/api/cafe-owner/login', { email, password });
       localStorage.setItem('cafe_token', response.data.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
       dispatch({ 
@@ -362,7 +362,7 @@ function Login() {
       });
       toast.success(response.data.message);
       if (response.data.cafe.status === 'active') {
-        navigate('/cafe/dashboard');
+        navigate('/cafe');
       } else if (response.data.cafe.status === 'pendingApproval') {
         navigate('/cafe/pending-approval');
       } else {

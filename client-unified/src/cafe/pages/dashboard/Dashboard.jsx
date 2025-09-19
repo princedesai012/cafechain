@@ -57,7 +57,7 @@ function Dashboard() {
 
         <nav className="mt-6 flex-1 flex flex-col gap-2 px-4">
           <Link
-            to="/"
+            to="/cafe"
             className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
           >
             Home
@@ -112,7 +112,7 @@ function Dashboard() {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div>
               <h1 className="text-3xl font-extrabold text-gray-800">
-                Welcome cafename{cafeInfo?.name}
+                Welcome back, {cafeInfo?.name}
               </h1>
               <p className="text-gray-500 mt-1">
                 {cafeInfo?.address && `${cafeInfo.address}`}

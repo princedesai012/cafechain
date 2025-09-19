@@ -39,7 +39,9 @@ function VerifyOTP() {
         setIsLoading(true);
 
         try {
-            const response = await axios.post('/api/cafe-owner/register/verify-otp', { email, otp });
+            // The backend now creates the pending application directly.
+            // It no longer sends back a temporary token.
+            const response = await axios.post('https://cafechain.onrender.com/api/cafe-owner/register/verify-otp', { email, otp });
             toast.success(response.data.message);
             navigate('/cafe/pending-approval');
         } catch (error) {

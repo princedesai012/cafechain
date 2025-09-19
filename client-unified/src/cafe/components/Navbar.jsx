@@ -79,12 +79,12 @@ function Navbar() {
                 Dashboard
               </Link>
             )}
-            <button
+            { /*<button
               onClick={handleLogout}
               className="px-5 py-2 rounded-full text-base font-semibold text-white bg-red-500 shadow-md hover:bg-red-600 hover:scale-105 hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-0 active:outline-none"
             >
               Logout
-            </button>
+            </button> */}
           </div>
 
           {/* Mobile Menu Button */}

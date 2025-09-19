@@ -15,7 +15,7 @@ export default function UserProfilePage() {
         const fetchUserProfile = async () => {
             if (!userId) return;
             try {
-                const response = await axios.get(`/api/admin/users/${userId}`);
+                const response = await axios.get(`https://cafechain.onrender.com/api/admin/users/${userId}`);
                 setUser(response.data);
             } catch (err) {
                 toast.error("Could not load user data.");
