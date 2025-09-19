@@ -27,7 +27,7 @@ const ResetPasswordPage = () => {
 
     try {
       const res = await axios.post(
-        'https://cafechain.onrender.com/api/forgot-password/reset-password',
+        'https://api.cafechain.in/api/forgot-password/reset-password',
         { mobile, password }
       );
       if (res.data.success) {

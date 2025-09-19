@@ -15,7 +15,7 @@ export default function CafeListPage() {
     useEffect(() => {
         const fetchAllCafes = async () => {
             try {
-                const response = await axios.get("https://cafechain.onrender.com/api/admin/cafes/all");
+                const response = await axios.get("https://api.cafechain.in/api/admin/cafes/all");
                 setCafes(response.data);
             } catch (error) {
                 toast.error("Failed to fetch cafe list.");

@@ -14,7 +14,7 @@ function PendingApproval() {
           Thank you for submitting your cafe details. Our team will review your application, and you will be notified via email once it's approved. This usually takes 1-2 business days.
         </p>
         <p className="mt-6 text-sm text-gray-500">
-          You can now close this window.
+          You can now close this window. or click on cafechain logo to go back to home page.
         </p>
       </div>
     </div>

@@ -41,7 +41,7 @@ function VerifyOTP() {
         try {
             // The backend now creates the pending application directly.
             // It no longer sends back a temporary token.
-            const response = await axios.post('https://cafechain.onrender.com/api/cafe-owner/register/verify-otp', { email, otp });
+            const response = await axios.post('https://api.cafechain.in/api/cafe-owner/register/verify-otp', { email, otp });
             toast.success(response.data.message);
             navigate('/cafe/pending-approval');
         } catch (error) {
@@ -54,7 +54,7 @@ function VerifyOTP() {
 
     const handleResendOTP = async () => {
         try {
-            await axios.post('/api/cafe-owner/register/resend-otp', { email });
+            await axios.post('https://api.cafechain.in/api/cafe-owner/register/resend-otp', { email });
             toast.success("OTP resent successfully!");
             setResendTimer(59);
         } catch (error) {

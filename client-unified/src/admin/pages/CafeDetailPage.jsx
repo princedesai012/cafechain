@@ -25,7 +25,7 @@ export default function CafeDetailPage() {
         const fetchCafeDetails = async () => {
             try {
                 console.log(`Attempting to send API request to: /api/admin/cafes/${cafeId}`);
-                const response = await axios.get(`/api/admin/cafes/${cafeId}`);
+                const response = await axios.get(`https://api.cafechain.in/api/admin/cafes/${cafeId}`);
                 console.log("API Success! Response data:", response.data);
                 setCafe(response.data);
             } catch (error) {
@@ -46,7 +46,7 @@ export default function CafeDetailPage() {
     // Handler for updating the cafe's status
     const handleUpdateStatus = async (newStatus) => {
         try {
-            const response = await axios.put(`https://cafechain.onrender.com/api/admin/cafes/${cafeId}/status`, { status: newStatus });
+            const response = await axios.put(`https://api.cafechain.in/api/admin/cafes/${cafeId}/status`, { status: newStatus });
             toast.success(response.data.message);
             // Update the local state to instantly reflect the change in the UI
             setCafe(prevCafe => ({ ...prevCafe, status: newStatus }));

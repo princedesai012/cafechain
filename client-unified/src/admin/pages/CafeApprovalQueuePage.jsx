@@ -13,7 +13,7 @@ export default function CafeApprovalQueuePage() {
     // Function to fetch pending cafes from the backend
     const fetchPendingCafes = async () => {
         try {
-            const response = await axios.get("https://cafechain.onrender.com/api/admin/cafes/pending");
+            const response = await axios.get("https://api.cafechain.in/api/admin/cafes/pending");
             setPendingCafes(response.data);
         } catch (error) {
             toast.error("Failed to fetch pending cafes.");
@@ -31,7 +31,7 @@ export default function CafeApprovalQueuePage() {
     // Handler for approving a cafe
     const handleApprove = async (cafeId) => {
         try {
-            const response = await axios.put(`https://cafechain.onrender.com/api/admin/cafes/${cafeId}/approve`);
+            const response = await axios.put(`https://api.cafechain.in/api/admin/cafes/${cafeId}/approve`);
             toast.success(response.data.message);
             // Update the UI by removing the approved cafe from the list
             setPendingCafes(currentCafes => currentCafes.filter(cafe => cafe._id !== cafeId));
@@ -47,7 +47,7 @@ export default function CafeApprovalQueuePage() {
         // The reason can be used later to send an email, for now we just log it
         console.log(`Rejecting cafe ${cafeId} for reason: ${reason}`);
         try {
-            const response = await axios.delete(`https://cafechain.onrender.com/api/admin/cafes/${cafeId}/reject`);
+            const response = await axios.delete(`https://api.cafechain.in/api/admin/cafes/${cafeId}/reject`);
             toast.success(response.data.message);
             // Update the UI by removing the rejected cafe
             setPendingCafes(currentCafes => currentCafes.filter(cafe => cafe._id !== cafeId));

@@ -24,7 +24,7 @@ const PORT = process.env.PORT || 5000;
 
 // --- Database Connection ---
 connectDB();
-const allowedOrigins = ["http://localhost:5173", "http://localhost:3000", "https://cafechain-livid.vercel.app"];
+const allowedOrigins = ["http://localhost:5173", "http://localhost:3000", "https://cafechain-livid.vercel.app", "https://www.cafechain.in", "https://cafechain.in"];
 
 // --- Core Middleware ---
 // app.use(cors({
