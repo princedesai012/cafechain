@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useAppContext } from "../../store/AppContext";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import { getCafeProfile, updateCafeProfile, addCafeImage, deleteCafeImage } from "../../api/api";
+import {
+  getCafeProfile,
+  updateCafeProfile,
+  addCafeImage,
+  deleteCafeImage,
+} from "../../api/api";
 import {
   BuildingStorefrontIcon,
   PhotoIcon,
@@ -52,10 +57,20 @@ function ProfileGalleryPage() {
     return <div>Loading...</div>;
   }
 
-  // Rest of the component logic remains the same
   const availableTags = [
-    "Coffee", "Tea", "Pastries", "Breakfast", "Lunch", "Vegan", "Organic",
-    "Specialty Coffee", "Wifi", "Study Friendly", "Pet Friendly", "Outdoor Seating", "Live Music",
+    "Coffee",
+    "Tea",
+    "Pastries",
+    "Breakfast",
+    "Lunch",
+    "Vegan",
+    "Organic",
+    "Specialty Coffee",
+    "Wifi",
+    "Study Friendly",
+    "Pet Friendly",
+    "Outdoor Seating",
+    "Live Music",
   ];
 
   const handleCafeFormChange = (e) => {
@@ -90,19 +105,23 @@ function ProfileGalleryPage() {
   const handleImageUpload = async () => {
     if (selectedImages.length === 0) return;
 
-    const toBase64 = file => new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = error => reject(error);
-    });
+    const toBase64 = (file) =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (error) => reject(error);
+      });
 
     setUploadProgress(20);
     for (const image of selectedImages) {
       try {
         const base64Image = await toBase64(image);
         const response = await addCafeImage(base64Image);
-        dispatch({ type: 'SET_CAFE_INFO', payload: { ...cafeInfo, images: response.data.images } });
+        dispatch({
+          type: "SET_CAFE_INFO",
+          payload: { ...cafeInfo, images: response.data.images },
+        });
       } catch (error) {
         toast.error(`Failed to upload ${image.name}.`);
       }
@@ -118,7 +137,10 @@ function ProfileGalleryPage() {
   const handleRemoveImage = async (public_id) => {
     try {
       const response = await deleteCafeImage(public_id);
-      dispatch({ type: 'SET_CAFE_INFO', payload: { ...cafeInfo, images: response.data.images } });
+      dispatch({
+        type: "SET_CAFE_INFO",
+        payload: { ...cafeInfo, images: response.data.images },
+      });
       toast.success("Image removed!");
     } catch (error) {
       toast.error("Failed to remove image.");
@@ -128,10 +150,7 @@ function ProfileGalleryPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = {
-        ...cafeForm,
-        features: cafeForm.tags,
-      };
+      const payload = { ...cafeForm, features: cafeForm.tags };
       delete payload.tags;
       const response = await updateCafeProfile(payload);
       dispatch({ type: "SET_CAFE_INFO", payload: response.data.cafe });
@@ -148,30 +167,38 @@ function ProfileGalleryPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 font-sans antialiased">
+    <div className="min-h-screen bg-white font-sans antialiased">
       <Toaster position="top-right" />
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+        {/* Back button */}
         <div className="hidden md:flex items-center mb-6">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-[#4a3a2f] hover:text-[#3a2d24] transition font-medium"
-          >
-            <ArrowLeftIcon className="h-5 w-5" />
-            Back
-          </button>
+       {/* Back button */}
+<div className="hidden md:flex items-center mb-6">
+  <button
+    onClick={() => navigate(-1)}
+    className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition font-medium 
+               border-none outline-none focus:outline-none focus:ring-0 active:outline-none active:ring-0 focus-visible:outline-none bg-transparent"
+  >
+    <ArrowLeftIcon className="h-5 w-5" />
+    Back
+  </button>
+</div>
+
         </div>
 
+        {/* Header */}
         <header className="text-center mb-12">
-          <h1 className="text-4xl font-extrabold font-serif text-[#4a3a2f] mb-3 tracking-tight">
+          <h1 className="text-4xl font-extrabold font-serif text-gray-800 mb-3 tracking-tight">
             Manage Your Cafe
           </h1>
-          <p className="text-lg font-sans text-[#4a3a2f]/70 max-w-2xl mx-auto leading-relaxed">
-            Keep your cafe details up-to-date and showcase your unique atmosphere with photos.
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Keep your cafe details up-to-date and showcase your atmosphere with photos.
           </p>
         </header>
 
+        {/* Tabs */}
         <nav className="flex justify-center mb-10">
-          <div className="flex bg-white border border-[#4a3a2f]/20 rounded-xl shadow-md overflow-hidden">
+          <div className="flex bg-gray-100 rounded-xl overflow-hidden shadow-sm">
             {tabConfig.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -180,11 +207,11 @@ function ProfileGalleryPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 px-8 py-3 text-sm font-medium transition-all ${
                     activeTab === tab.id
-                      ? "bg-[#4a3a2f] text-white"
-                      : "text-[#4a3a2f] hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-amber-500 to-orange-400 text-white"
+                      : "text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  <Icon className="h-5 w-5 stroke-[2]" />
+                  <Icon className="h-5 w-5" />
                   {tab.label}
                 </button>
               );
@@ -192,120 +219,108 @@ function ProfileGalleryPage() {
           </div>
         </nav>
 
+        {/* Profile Tab */}
         {activeTab === "profile" && (
-          <section
-            className="bg-white shadow-xl rounded-2xl border border-[#4a3a2f]/20 overflow-hidden"
-            aria-labelledby="cafe-profile"
-          >
-            <div className="px-8 py-6 border-b border-[#4a3a2f]/10 flex justify-between items-center">
+          <section className="bg-white shadow-lg rounded-2xl border border-gray-200 overflow-hidden">
+            {/* Header */}
+            <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-amber-50 to-orange-50">
               <div>
-                <h2
-                  id="cafe-profile"
-                  className="text-2xl font-bold font-serif text-[#4a3a2f]"
-                >
-                  Cafe Information
-                </h2>
-                <p className="text-sm font-sans text-[#4a3a2f]/70 mt-1">
+                <h2 className="text-2xl font-bold font-serif text-gray-800">Cafe Information</h2>
+                <p className="text-sm text-gray-500 mt-1">
                   Update your cafe details to help customers find you.
                 </p>
               </div>
               {!editMode && (
                 <button
                   onClick={() => setEditMode(true)}
-                  className="px-5 py-2 border border-[#4a3a2f] text-[#4a3a2f] rounded-lg hover:bg-[#4a3a2f] hover:text-white transition"
+                  className="px-5 py-2 border border-amber-500 text-amber-600 rounded-lg hover:bg-amber-500 hover:text-white transition"
                 >
                   Edit Profile
                 </button>
               )}
             </div>
 
+            {/* Content */}
             <div className="p-8">
+              {/* Editable Form */}
               {editMode ? (
-                <form
-                  onSubmit={handleSubmit}
-                  className="grid grid-cols-1 lg:grid-cols-2 gap-8"
-                >
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Name */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
-                      Cafe Name
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700">Cafe Name</label>
                     <input
                       type="text"
                       name="name"
                       value={cafeForm.name}
                       readOnly
-                      className="w-full px-4 py-3 border border-[#4a3a2f]/30 rounded-lg bg-gray-100 focus:outline-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 focus:outline-none"
                     />
                   </div>
 
+                  {/* Phone */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
-                      Phone Number
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700">Phone</label>
                     <input
                       type="text"
                       name="phone"
                       value={cafeForm.phone}
                       readOnly
-                      className="w-full px-4 py-3 border border-[#4a3a2f]/30 rounded-lg bg-gray-100 focus:outline-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 focus:outline-none"
                     />
                   </div>
 
+                  {/* Email */}
                   <div className="lg:col-span-2 space-y-2">
-                    <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
-                      Email Address
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700">Email</label>
                     <input
                       type="email"
                       name="email"
                       value={cafeForm.email}
                       readOnly
-                      className="w-full px-4 py-3 border border-[#4a3a2f]/30 rounded-lg bg-gray-100 focus:outline-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 focus:outline-none"
                     />
                   </div>
-                  
+
+                  {/* Address */}
                   <div className="lg:col-span-2 space-y-2">
-                    <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
-                      Address
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700">Address</label>
                     <input
                       type="text"
                       name="address"
                       value={cafeForm.address}
                       onChange={handleCafeFormChange}
-                      className="w-full px-4 py-3 border border-[#4a3a2f]/30 rounded-lg focus:border-[#4a3a2f] focus:outline-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
                     />
                   </div>
 
+                  {/* Hours */}
                   <div className="lg:col-span-2 space-y-2">
-                    <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
-                      Opening Hours
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700">Opening Hours</label>
                     <input
                       type="text"
                       name="openingHours"
                       value={cafeForm.openingHours}
                       onChange={handleCafeFormChange}
                       placeholder="e.g. Mon-Fri: 8am-6pm"
-                      className="w-full px-4 py-3 border border-[#4a3a2f]/30 rounded-lg focus:border-[#4a3a2f] focus:outline-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
                     />
                   </div>
 
+                  {/* Description */}
                   <div className="lg:col-span-2 space-y-2">
-                    <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
-                      Description
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700">Description</label>
                     <textarea
                       name="description"
                       value={cafeForm.description}
                       onChange={handleCafeFormChange}
                       rows={4}
-                      className="w-full px-4 py-3 border border-[#4a3a2f]/30 rounded-lg focus:border-[#4a3a2f] focus:outline-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
                     />
                   </div>
 
+                  {/* Tags */}
                   <div className="lg:col-span-2 space-y-4">
-                    <label className="block text-sm font-semibold font-sans text-[#4a3a2f]">
+                    <label className="block text-sm font-semibold text-gray-700">
                       Cafe Tags (Select up to 3)
                     </label>
                     <div className="flex flex-wrap gap-2">
@@ -316,8 +331,8 @@ function ProfileGalleryPage() {
                           onClick={() => handleTagToggle(tag)}
                           className={`px-4 py-2 rounded-full text-sm border transition ${
                             cafeForm.tags.includes(tag)
-                              ? "bg-[#4a3a2f] text-white border-[#4a3a2f]"
-                              : "bg-white text-[#4a3a2f] border-[#4a3a2f]/30 hover:border-[#4a3a2f]"
+                              ? "bg-gradient-to-r from-amber-500 to-orange-400 text-white border-amber-500"
+                              : "bg-white text-gray-700 border-gray-300 hover:border-amber-400"
                           }`}
                         >
                           {tag}
@@ -326,69 +341,67 @@ function ProfileGalleryPage() {
                     </div>
                   </div>
 
-                  <div className="lg:col-span-2 flex justify-end gap-4 pt-6 border-t border-[#4a3a2f]/10">
+                  {/* Actions */}
+                  <div className="lg:col-span-2 flex justify-end gap-4 pt-6 border-t border-gray-100">
                     <button
                       type="button"
                       onClick={() => setEditMode(false)}
-                      className="px-6 py-2 border border-[#4a3a2f]/30 text-[#4a3a2f] rounded-lg hover:bg-[#4a3a2f] hover:text-white transition"
+                      className="px-6 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-100 transition"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-[#4a3a2f] text-white rounded-lg hover:bg-[#3a2d24] transition"
+                      className="px-6 py-2 bg-gradient-to-r from-amber-500 to-orange-400 text-white rounded-lg hover:opacity-90 transition"
                     >
                       Save Changes
                     </button>
                   </div>
                 </form>
               ) : (
+                // View Mode
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-6 bg-gray-50 rounded-xl border border-[#4a3a2f]/10">
-                    <h3 className="flex items-center gap-2 font-semibold font-serif text-[#4a3a2f] mb-3">
-                      <PhoneIcon className="h-5 w-5" /> Contact Information
+                  {/* Contact */}
+                  <div className="p-6 bg-amber-50 rounded-xl border border-amber-100">
+                    <h3 className="flex items-center gap-2 font-semibold text-gray-800 mb-3">
+                      <PhoneIcon className="h-5 w-5" /> Contact
                     </h3>
-                    <p className="text-sm font-sans text-[#4a3a2f]/70">
-                      Phone: {cafeInfo.cafePhone || "Not provided"}
-                    </p>
-                    <p className="text-sm font-sans text-[#4a3a2f]/70">
-                      Email: {cafeInfo.email || "Not provided"}
-                    </p>
+                    <p className="text-sm text-gray-600">Phone: {cafeInfo.cafePhone || "N/A"}</p>
+                    <p className="text-sm text-gray-600">Email: {cafeInfo.email || "N/A"}</p>
                   </div>
 
-                  <div className="p-6 bg-gray-50 rounded-xl border border-[#4a3a2f]/10">
-                    <h3 className="flex items-center gap-2 font-semibold font-serif text-[#4a3a2f] mb-3">
+                  {/* Location */}
+                  <div className="p-6 bg-orange-50 rounded-xl border border-orange-100">
+                    <h3 className="flex items-center gap-2 font-semibold text-gray-800 mb-3">
                       <MapPinIcon className="h-5 w-5" /> Location & Hours
                     </h3>
-                    <p className="text-sm font-sans text-[#4a3a2f]/70">
-                      Address: {cafeInfo.address || "Not provided"}
-                    </p>
-                    <p className="text-sm font-sans text-[#4a3a2f]/70">
+                    <p className="text-sm text-gray-600">Address: {cafeInfo.address || "N/A"}</p>
+                    <p className="text-sm text-gray-600">
                       Hours: {cafeInfo.openingHours || "Not specified"}
                     </p>
                   </div>
 
-                  <div className="md:col-span-2 p-6 bg-gray-50 rounded-xl border border-[#4a3a2f]/10">
-                    <h3 className="flex items-center gap-2 font-semibold font-serif text-[#4a3a2f] mb-3">
-                      <InformationCircleIcon className="h-5 w-5" /> About Our
-                      Cafe
+                  {/* Description */}
+                  <div className="md:col-span-2 p-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100">
+                    <h3 className="flex items-center gap-2 font-semibold text-gray-800 mb-3">
+                      <InformationCircleIcon className="h-5 w-5" /> About
                     </h3>
-                    <p className="text-sm font-sans text-[#4a3a2f]/80 leading-relaxed">
-                      {cafeInfo.description ||
-                        "No description provided yet. Add one in Edit Mode."}
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {cafeInfo.description || "No description yet."}
                     </p>
                   </div>
 
+                  {/* Tags */}
                   {cafeInfo.features && cafeInfo.features.length > 0 && (
-                    <div className="md:col-span-2 p-6 bg-gray-50 rounded-xl border border-[#4a3a2f]/10">
-                      <h3 className="flex items-center gap-2 font-semibold font-serif text-[#4a3a2f] mb-3">
+                    <div className="md:col-span-2 p-6 bg-white rounded-xl border border-gray-200">
+                      <h3 className="flex items-center gap-2 font-semibold text-gray-800 mb-3">
                         Cafe Tags
                       </h3>
                       <div className="flex flex-wrap gap-2">
                         {cafeInfo.features.slice(0, 3).map((tag, idx) => (
                           <span
                             key={idx}
-                            className="px-3 py-1 rounded-full text-sm bg-[#4a3a2f] text-white"
+                            className="px-3 py-1 rounded-full text-sm bg-gradient-to-r from-amber-500 to-orange-400 text-white"
                           >
                             {tag}
                           </span>
@@ -402,32 +415,24 @@ function ProfileGalleryPage() {
           </section>
         )}
 
+        {/* Gallery Tab */}
         {activeTab === "gallery" && (
-          <section
-            className="bg-white shadow-xl rounded-2xl border border-[#4a3a2f]/20 overflow-hidden"
-            aria-labelledby="photo-gallery"
-          >
-            <div className="px-8 py-6 border-b border-[#4a3a2f]/10">
-              <h2
-                id="photo-gallery"
-                className="text-2xl font-bold font-serif text-[#4a3a2f]"
-              >
-                Photo Gallery
-              </h2>
-              <p className="text-sm font-sans text-[#4a3a2f]/70">
-                Upload and manage photos of your cafe.
-              </p>
+          <section className="bg-white shadow-lg rounded-2xl border border-gray-200 overflow-hidden">
+            <div className="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-orange-50">
+              <h2 className="text-2xl font-bold font-serif text-gray-800">Photo Gallery</h2>
+              <p className="text-sm text-gray-600">Upload and manage cafe photos.</p>
             </div>
 
             <div className="p-8">
-              <div className="mb-10 p-8 border-2 border-dashed border-[#4a3a2f]/30 rounded-xl bg-gray-50">
+              {/* Upload */}
+              <div className="mb-10 p-8 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
                 <div className="text-center">
-                  <PhotoIcon className="h-12 w-12 mx-auto stroke-1 text-[#4a3a2f]" />
-                  <p className="mt-3 text-sm font-sans text-[#4a3a2f]/70">
+                  <PhotoIcon className="h-12 w-12 mx-auto text-amber-500" />
+                  <p className="mt-3 text-sm text-gray-600">
                     Select and upload new cafe photos
                   </p>
                   <label className="inline-block mt-4 cursor-pointer">
-                    <span className="px-6 py-2 bg-[#4a3a2f] text-white rounded-lg hover:bg-[#3a2d24] transition">
+                    <span className="px-6 py-2 bg-gradient-to-r from-amber-500 to-orange-400 text-white rounded-lg hover:opacity-90 transition">
                       Choose Images
                     </span>
                     <input
@@ -447,16 +452,12 @@ function ProfileGalleryPage() {
                         <img
                           src={preview}
                           alt="Preview"
-                          className="w-full h-40 object-contain rounded-lg border border-[#4a3a2f]/20"
+                          className="w-full h-40 object-cover rounded-lg border border-gray-200"
                         />
                         <button
                           onClick={() => {
-                            setSelectedImages((prev) =>
-                              prev.filter((_, i) => i !== idx)
-                            );
-                            setImagePreviews((prev) =>
-                              prev.filter((_, i) => i !== idx)
-                            );
+                            setSelectedImages((prev) => prev.filter((_, i) => i !== idx));
+                            setImagePreviews((prev) => prev.filter((_, i) => i !== idx));
                           }}
                           className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
                         >
@@ -471,7 +472,7 @@ function ProfileGalleryPage() {
                   <div className="mt-4 flex justify-center gap-4">
                     <button
                       onClick={handleImageUpload}
-                      className="px-6 py-2 bg-[#4a3a2f] text-white rounded-lg hover:bg-[#3a2d24] transition"
+                      className="px-6 py-2 bg-gradient-to-r from-amber-500 to-orange-400 text-white rounded-lg hover:opacity-90 transition"
                     >
                       Upload
                     </button>
@@ -481,7 +482,7 @@ function ProfileGalleryPage() {
                         setImagePreviews([]);
                         setUploadProgress(0);
                       }}
-                      className="px-6 py-2 border border-[#4a3a2f]/30 text-[#4a3a2f] rounded-lg hover:bg-[#4a3a2f] hover:text-white transition"
+                      className="px-6 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-100 transition"
                     >
                       Cancel
                     </button>
@@ -491,13 +492,14 @@ function ProfileGalleryPage() {
                 {uploadProgress > 0 && (
                   <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
                     <div
-                      className="bg-[#4a3a2f] h-2 rounded-full transition-all"
+                      className="bg-gradient-to-r from-amber-500 to-orange-400 h-2 rounded-full transition-all"
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
                 )}
               </div>
 
+              {/* Gallery */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {cafeInfo.images && cafeInfo.images.length > 0 ? (
                   cafeInfo.images.map((img, idx) => (
@@ -505,11 +507,7 @@ function ProfileGalleryPage() {
                       key={idx}
                       className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition group"
                     >
-                      <img
-                        src={img.url}
-                        alt="Cafe"
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={img.url} alt="Cafe" className="w-full h-full object-cover" />
                       <button
                         onClick={() => handleRemoveImage(img.public_id)}
                         className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
@@ -519,7 +517,7 @@ function ProfileGalleryPage() {
                     </div>
                   ))
                 ) : (
-                  <p className="col-span-full text-center text-sm font-sans text-[#4a3a2f]/70">
+                  <p className="col-span-full text-center text-sm text-gray-600">
                     No photos uploaded yet.
                   </p>
                 )}
