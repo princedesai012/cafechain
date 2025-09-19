@@ -17,6 +17,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const cafeOwnerRoutes = require("./routes/cafeOwnerRoutes");
 const { authenticateUserJWT } = require("./middlewares/auth");
 const eventRoutes = require('./routes/eventRoutes');
+const { startEventCleanupJob } = require('./jobs/eventCleanup');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -68,6 +69,8 @@ app.use((err, req, res, next) => {
     console.error("UNHANDLED ERROR:", err);
     res.status(500).send({ error: 'Something went wrong on the server!' });
 });
+
+startEventCleanupJob();
 
 // --- Server Startup ---
 app.listen(PORT, () => {

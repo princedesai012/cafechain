@@ -1,4 +1,4 @@
-// server/models/Event.js
+// server/models/Event.js (MODIFIED)
 
 const mongoose = require('mongoose');
 
@@ -13,7 +13,7 @@ const eventSchema = new mongoose.Schema({
     required: true,
   },
   date: {
-    type: Date,
+    type: Date, // Keep as Date for proper comparison
     required: true,
   },
   time: {
@@ -21,36 +21,19 @@ const eventSchema = new mongoose.Schema({
     required: true,
   },
   image: {
-    type: String, // URL from Cloudinary or another image host
+    type: String,
+    required: true,
   },
   cafe: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Cafe',
     required: true,
   },
-  status: {
-    type: String,
-    enum: ['active', 'inactive'],
-    default: 'active',
-  },
+  // --- REMOVED ---
+  // The 'status' field is no longer needed. If an event exists, it's active.
+  // The pre('save') middleware is also removed.
 }, {
   timestamps: true,
 });
-
-// Mongoose middleware to automatically set the status before saving
-eventSchema.pre('save', function(next) {
-  const today = new Date();
-  // Set time to the beginning of the day for accurate date comparison
-  today.setHours(0, 0, 0, 0);
-
-  // If the event date is before today, it's inactive. Otherwise, it's active.
-  if (this.date < today) {
-    this.status = 'inactive';
-  } else {
-    this.status = 'active';
-  }
-  next();
-});
-
 
 module.exports = mongoose.model('Event', eventSchema);

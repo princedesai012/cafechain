@@ -31,7 +31,7 @@ router.get("/cafes/:id", getCafeDetails);
 
 // --- Cafe Approval Routes ---
 router.put("/cafes/:id/approve", approveCafe);
-router.delete("/cafes/:id/rejaaaqqqect", rejectCafe); 
+router.delete("/cafes/:id/reject", rejectCafe);
 
 router.post("/events", upload.single('image'), createEvent);
 

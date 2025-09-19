@@ -13,7 +13,7 @@ import PromotionsPage from "./pages/PromotionsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import AdminLoginPage from "./pages/AdminLoginPage";
-import AdminInvoicesPage from "./pages/invoice"; 
+import AdminInvoicesPage from "./pages/invoice";
 import EventManagementPage from './pages/EventManagementPage';
 // import AdminSignupPage from "./pages/AdminSignupPage";
 
