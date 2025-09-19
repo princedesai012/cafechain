@@ -86,7 +86,7 @@ const CafeDetailPage = () => {
       <div className="px-4 pt-4 md:max-w-7xl md:mx-auto md:px-8">
         <button
           onClick={handleBack}
-          className="text-base font-semibold text-gray-600 hover:text-dark-brown transition-colors"
+          className="text-base font-semibold text-gray-600 hover:text-dark-brown transition-colors focus:outline-none focus:ring-0 border-none"
         >
           &larr; Back
         </button>
