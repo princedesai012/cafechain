@@ -21,12 +21,12 @@ const TermsAndConditionsPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="min-h-screen bg-white text-[#4a3a2f] font-sans pt-10 md:pt-0"
+            className="min-h-screen bg-white text-[#4a3a2f] font-sans pt-10 md:pt-0 pb-20 "
         >
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
                 <button
                     onClick={() => navigate(-1)}
-                    className="flex items-center gap-2 text-gray-500 hover:text-[#4a3a2f] transition-colors mb-8 font-semibold"
+                    className="flex items-center gap-2 text-gray-500 hover:text-[#4a3a2f] transition-colors mb-8 font-semibold focus:outline-none focus:ring-0 border-none"
                 >
                     <ChevronLeft size={20} />
                     Back

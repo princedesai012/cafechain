@@ -50,15 +50,15 @@ const InvoiceHistoryPage = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="p-6 min-h-screen bg-white pt-20 md:pt-0">
+    <div className="p-6 min-h-screen bg-white pt-20 md:pt-0 pb-20">
       {/* Back Button */}
       <motion.button
         initial={{ x: -30, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.6 }}
         onClick={() => navigate(-1)}
-        className="flex items-center mb-6 text-[#4a3a2f] hover:opacity-80"
-      >
+        className="flex items-center mb-6 text-[#4a3a2f] hover:opacity-80 focus:outline-none focus:ring-0 border-none"
+      > 
         <ArrowLeft className="w-5 h-5 mr-2" />
         Back
       </motion.button>
