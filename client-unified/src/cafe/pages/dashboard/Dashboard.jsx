@@ -128,7 +128,7 @@ function Dashboard() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="group bg-indigo-600 text-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.03]">
-              <p className="text-xs uppercase opacity-80">Today Redemptions</p>
+              <p className="text-xs uppercase opacity-80">Today Redemptions Amount</p>
               <p className="text-3xl font-bold mt-1">{metrics?.daily?.redemptions}</p>
               <span className="mt-3 inline-block text-xs px-2 py-1 bg-white/20 rounded-full">Today</span>
             </div>

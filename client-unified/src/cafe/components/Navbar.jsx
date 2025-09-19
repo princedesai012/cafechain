@@ -56,7 +56,7 @@ function Navbar() {
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
           <Link
-            to="/cafe"
+            to="auth/login"
             className="flex items-center group focus:outline-none focus:ring-0 active:outline-none"
           >
             <img

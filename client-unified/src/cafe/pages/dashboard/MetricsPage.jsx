@@ -81,7 +81,7 @@ function MetricsPage() {
           variants={cardVariants}
           className="flex flex-col justify-center items-center bg-gradient-to-br from-[#FFE4C4] to-[#FFD580] text-gray-900 rounded-3xl shadow-lg p-8 sm:p-10 md:p-12 border border-gray-200 hover:shadow-xl transition-all"
         >
-          <p className="text-sm sm:text-base font-medium opacity-90">Points Redeemed Today</p>
+          <p className="text-sm sm:text-base font-medium opacity-90">Redeemed Amount(Today)</p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mt-4 text-[#B55A1B]">
             {metrics?.pointsRedeemedToday ?? 0}
           </h2>
@@ -109,7 +109,7 @@ function MetricsPage() {
           variants={cardVariants}
           className="flex flex-col justify-center items-center bg-gradient-to-br from-[#E8F4E8] to-[#A8E6A3] text-gray-900 rounded-3xl shadow-lg p-8 sm:p-10 md:p-12 border border-gray-200 hover:shadow-xl transition-all"
         >
-          <p className="text-sm sm:text-base font-medium opacity-90">Avg. Points / Transaction</p>
+          <p className="text-sm sm:text-base font-medium opacity-90">Avg. Amount / Transaction</p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mt-4 text-[#1F6D1F]">
             {metrics?.avgPointsPerTransaction ?? 0}
           </h2>
