@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -7,18 +6,17 @@ import Loader from '../../components/Loader';
 import axios from 'axios';
 
 function Register() {
-    // State now includes all fields from both pages
     const [formData, setFormData] = useState({
         ownerName: '',
         email: '',
         password: '',
         confirmPassword: '',
         ownerPhone: '',
-        name: '', // Cafe Name
-        address: '', 
-        cafePhone: '', 
-        description: '', 
-        openingHours: '', 
+        name: '',
+        address: '',
+        cafePhone: '',
+        description: '',
+        openingHours: '',
     });
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -46,13 +44,10 @@ function Register() {
             toast.error('Phone numbers must be exactly 10 digits.');
             return false;
         }
-        
-        // ✅ NEW: Check if phone numbers are the same
         if (ownerPhone === cafePhone) {
             toast.error("Owner's phone and Cafe's phone must be different.");
             return false;
         }
-
         if (password !== confirmPassword) {
             toast.error('Passwords do not match.');
             return false;
@@ -78,8 +73,6 @@ function Register() {
             };
             const response = await axios.post('https://cafechain.onrender.com/api/cafe-owner/register/request-otp', payload);
             toast.success(response.data.message);
-            
-            // ✅ FIXED: Correct navigation path
             navigate('/cafe/auth/verify-otp', { state: { email: formData.email } });
         } catch (error) {
             const errorMessage = error.response?.data?.error || 'Registration failed. Please try again.';
@@ -88,7 +81,7 @@ function Register() {
             setIsLoading(false);
         }
     };
-    
+
     const features = [
         { icon: Star, text: "Unlock Exclusive Rewards" },
         { icon: Users, text: "Join Our Vibrant Community" },
@@ -134,26 +127,47 @@ function Register() {
                             <InputField icon={Lock} label="Confirm Password" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm your password">
                                 <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">{showConfirmPassword ? <EyeOff /> : <Eye />}</button>
                             </InputField>
-                            <hr className="my-6"/>
+                            <hr className="my-6" />
                             <InputField icon={CafeIcon} label="Cafe Name" name="name" value={formData.name} onChange={handleChange} placeholder="Enter your cafe's name" />
                             <InputField icon={CafeIcon} label="Cafe Address" name="address" value={formData.address} onChange={handleChange} placeholder="Enter the full cafe address" />
                             <InputField icon={Phone} label="Cafe Business Phone (Public)" name="cafePhone" value={formData.cafePhone} onChange={handleChange} placeholder="Enter cafe's contact number" />
                             <InputField icon={Clock} label="Opening Hours" name="openingHours" value={formData.openingHours} onChange={handleChange} placeholder="e.g., Mon-Fri: 8am-6pm" />
                             <div className="relative">
-                               <label className="block text-sm font-medium text-[#4a3a2f]">Description (Optional)</label>
-                               <FileText className="absolute left-3 top-10 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                               <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Tell us about your cafe..." className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-400" rows="3"></textarea>
+                                <label className="block text-sm font-medium text-[#4a3a2f]">Description (Optional)</label>
+                                <FileText className="absolute left-3 top-10 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Tell us about your cafe..." className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-400" rows="3"></textarea>
                             </div>
-                             <button type="submit" disabled={isLoading} className="w-full text-white py-3 rounded-xl font-medium transition-colors hover:bg-[#3a2d24] disabled:opacity-60 text-lg" style={{ backgroundColor: '#4a3a2f' }}>
+
+                            {/* Submit Button */}
+                            {/* Submit Button */}
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full text-white py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-[1.02] hover:bg-[#3a2d24] disabled:opacity-60 text-lg shadow-md"
+                                style={{ backgroundColor: '#4a3a2f' }}
+                            >
                                 {isLoading ? 'Sending OTP...' : 'Submit For Approval'}
                             </button>
+
+                            {/* Register as User Button (White → Brown on hover) */}
+                            <button
+                                type="button"
+                                onClick={() => navigate('/user/signup')}
+                                className="w-full py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-[1.02] 
+             text-[#4a3a2f] bg-white border-2 border-[#4a3a2f] hover:bg-[#4a3a2f] hover:text-white text-lg shadow-md"
+                            >
+                                Register as User
+                            </button>
+
                         </form>
                         <div className="text-center mt-6">
-                            {/* ✅ FIXED: Correct navigation path */}
-                            <span className="text-gray-600">Already have an account? </span><Link to="/cafe/auth/login" className="font-semibold text-[#4a3a2f]">Sign in</Link>
+                            <span className="text-gray-600">Already have an account? </span>
+                            <Link to="/cafe/auth/login" className="font-semibold text-[#4a3a2f]">Sign in</Link>
                         </div>
                     </div>
                 </div>
+
+                {/* Right side panel */}
                 <div className="flex-1 relative overflow-hidden" style={{ backgroundColor: '#4a3a2f' }}>
                     <div className="relative z-10 h-full flex flex-col justify-center items-center p-8 text-white text-center">
                         <div className={`transform transition-all duration-1000 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
@@ -185,7 +199,6 @@ function Register() {
                     <div className="text-center mb-8">
                         <h1 className="text-2xl font-bold mb-2 text-[#4a3a2f]">Create Your Cafe Account</h1>
                     </div>
-                    {/* ✅ FIXED: Mobile view now has all fields */}
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <InputField icon={UserIcon} label="Your Full Name" name="ownerName" value={formData.ownerName} onChange={handleChange} placeholder="Enter your full name" />
                         <InputField icon={Phone} label="Your Personal Phone (Private)" name="ownerPhone" value={formData.ownerPhone} onChange={handleChange} placeholder="Enter your mobile number" />
@@ -196,19 +209,35 @@ function Register() {
                         <InputField icon={Lock} label="Confirm Password" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm your password">
                             <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">{showConfirmPassword ? <EyeOff /> : <Eye />}</button>
                         </InputField>
-                        <hr/>
+                        <hr />
                         <InputField icon={CafeIcon} label="Cafe Name" name="name" value={formData.name} onChange={handleChange} placeholder="Enter your cafe's name" />
                         <InputField icon={CafeIcon} label="Cafe Address" name="address" value={formData.address} onChange={handleChange} placeholder="Enter the full cafe address" />
                         <InputField icon={Phone} label="Cafe Business Phone (Public)" name="cafePhone" value={formData.cafePhone} onChange={handleChange} placeholder="Enter cafe's contact number" />
                         <InputField icon={Clock} label="Opening Hours" name="openingHours" value={formData.openingHours} onChange={handleChange} placeholder="e.g., Mon-Fri: 8am-6pm" />
-                        
-                        <button type="submit" disabled={isLoading} className="w-full text-white py-3 rounded-xl font-medium transition-colors hover:bg-[#3a2d24] disabled:opacity-60" style={{ backgroundColor: '#4a3a2f' }}>
+
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full text-white py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-[1.02] hover:bg-[#3a2d24] disabled:opacity-60 shadow-md"
+                            style={{ backgroundColor: '#4a3a2f' }}
+                        >
                             {isLoading ? 'Sending OTP...' : 'Submit For Approval'}
+                        </button>
+
+                        {/* Register as User Button */}
+                        <button
+                            type="button"
+                            onClick={() => navigate('/user/signup')}
+                            className="w-full text-white py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-[1.02] hover:bg-[#3a2d24] shadow-md"
+                            style={{ backgroundColor: '#4a3a2f' }}
+                        >
+                            Register as User
                         </button>
                     </form>
                     <div className="text-center mt-6">
-                        {/* ✅ FIXED: Correct navigation path */}
-                        <span className="text-gray-600">Already have an account? </span><Link to="/auth/login" className="font-semibold text-[#4a3a2f]">Sign in</Link>
+                        <span className="text-gray-600">Already have an account? </span>
+                        <Link to="/auth/login" className="font-semibold text-[#4a3a2f]">Sign in</Link>
                     </div>
                 </div>
             </div>
@@ -216,7 +245,7 @@ function Register() {
     );
 }
 
-// Helper component to keep the UI consistent
+// Input Field Component
 const InputField = ({ icon: Icon, label, name, children, ...props }) => (
     <div>
         <label className="block text-sm font-medium text-[#4a3a2f]">{label}</label>
