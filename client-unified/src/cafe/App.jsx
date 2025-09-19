@@ -26,7 +26,7 @@ import ProfileGalleryPage from './pages/dashboard/ProfileGalleryPage'
 // Components
 import ProtectedRoute from './components/ProtectedRoute'
 import Loader from './components/Loader'
-// import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 
 const CafeLayout = () => {
   const { state, dispatch } = useAppContext()
@@ -51,7 +51,7 @@ const CafeLayout = () => {
           <Route path="/auth/register" element={<Register />} />
           <Route path="/auth/verify-otp" element={<VerifyOTP />} />
           <Route path="/pending-approval" element={<PendingApproval />} />
-          {/* <Route path="/forgot-password" element={<ForgotPasswordPage />}></Route> */}
+          <Route path="/auth/ForgotPasswordPage" element={<ForgotPasswordPage />}></Route>
           
           {/* Protected Routes */}
           <Route path="/" element={<ProtectedRoute requireActiveCafe={true}><Home /></ProtectedRoute>} />
