@@ -49,7 +49,7 @@ const VerifyOTPPage = () => {
 
     try {
       const res = await axios.post(
-        'http://localhost:5000/api/forgot-password/verify-otp',
+        'https://cafechain.onrender.com/api/forgot-password/verify-otp',
         { mobile, otp }
       );
       if (res.data.success) {
@@ -69,7 +69,7 @@ const VerifyOTPPage = () => {
     localStorage.setItem(`otp_resend_expiry_${mobile}`, expiry.toString());
 
     try {
-      await axios.post('http://localhost:5000/api/forgot-password/send-otp', {
+      await axios.post('https://cafechain.onrender.com/api/forgot-password/send-otp', {
         mobile,
       });
     } catch (err) {
