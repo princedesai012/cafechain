@@ -82,7 +82,7 @@ const CafeDetailPage = () => {
   }
 
   return (
-    <div className="pb-20 md:pb-0 font-['Inter'] md:bg-gray-100">
+    <div className="pb-20 md:pb-0 font-['Inter'] md:bg-gray-100 pt-20 md:pt-0">
       <div className="px-4 pt-4 md:max-w-7xl md:mx-auto md:px-8">
         <button
           onClick={handleBack}

@@ -182,7 +182,7 @@ const LoginPage = ({ onNavigate }) => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white ">
       <style>{`
         .logo-border-glow {
           border: 4px solid white;

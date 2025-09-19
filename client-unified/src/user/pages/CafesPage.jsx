@@ -164,7 +164,7 @@ const CafesPage = () => {
   const totalPages = isMobile ? Math.ceil(filteredCafes.length / cafesPerPage) : 1;
 
   return (
-    <div className="w-full min-h-screen bg-white flex flex-col items-center pb-24 text-[#4a3a2f]">
+    <div className="w-full min-h-screen bg-white flex flex-col items-center pb-24 text-[#4a3a2f] pt-20 md:pt-0">
       <div className="w-full max-w-7xl px-4 py-6">
         <motion.div
           className="text-center my-8 md:my-12"

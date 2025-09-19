@@ -66,7 +66,7 @@ const MobileNavbar = () => {
                 initial={{ y: -100, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="md:hidden bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 w-full"
+                className="md:hidden bg-white/80 backdrop-blur-md shadow-sm fixed top-0 z-50 w-full"
             >
                 <div className="px-4 py-3 flex items-center justify-between h-20">
                     {/* Logo with link to home page */}

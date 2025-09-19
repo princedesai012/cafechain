@@ -7,7 +7,7 @@ const NotFoundPage = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="bg-warm-gray flex justify-center px-6 font-['Inter']">
+    <div className="bg-warm-gray flex justify-center px-6 font-['Inter'] pt-20 md:pt-0">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         .bg-warm-gray { background-color: #F8F6F1; }

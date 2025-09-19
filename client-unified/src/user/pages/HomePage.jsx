@@ -275,7 +275,7 @@ const HomePage = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="min-h-screen bg-white text-[#4A3A2F]">
+    <div className="min-h-screen bg-white text-[#4A3A2F] pt-20 md:pt-0">
       {/* === Hero Section === */}
       <section className="relative py-24 bg-gradient-to-br from-[#4A3A2F] via-[#3B2D25] to-[#2A1F18] overflow-hidden">
         <AnimatedBalls />

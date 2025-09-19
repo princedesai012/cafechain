@@ -554,7 +554,7 @@ const ProfilePage = () => {
 
     return (
       <Modal closeModal={closeModal} isVisible={isVisible}>
-        <h2 className="text-2xl font-bold mb-6 text-center">Edit Your Profile</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center pt-20 md:pt-0">Edit Your Profile</h2>
         <form onSubmit={handleEditProfile} className="space-y-4">
           <div className="flex flex-col items-center space-y-4">
             <div className="relative w-32 h-32">
