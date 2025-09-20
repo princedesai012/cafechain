@@ -33,16 +33,18 @@ function RedemptionPage() {
     if (!customerPhone || !pointsToRedeem) {
       return toast.error("Please fill in all fields.");
     }
-    if (
-      parseInt(pointsToRedeem, 10) <= 0 ||
-      parseInt(pointsToRedeem, 10) > customerPoints
-    ) {
-      return toast.error("Please enter a valid number of points.");
+    if (redeemPoints <= 0) {
+    return toast.error("Please enter a valid number of points.");
+    }
+
+     
+    if (redeemPoints > customerPoints) {
+      return toast.error("Insufficient points. You only have " + customerPoints + " points.");
     }
 
     setIsVerifying(true);
     try {
-      const response = await initiateRedemption(customerPhone, pointsToRedeem);
+      const response = await initiateRedemption(customerPhone, Number(pointsToRedeem));
       toast.success(response.data.message);
       setCustomerEmail(response.data.customerEmail);
       setStep("verifyOtp");
