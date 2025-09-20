@@ -91,8 +91,8 @@ const VerifyOTPPage = () => {
           Verify OTP
         </h2>
         <p className="text-sm text-gray-600 text-center mb-8">
-          We’ve sent an OTP to your mobile number <br />
-          <span className="font-semibold text-[#4A3A2F]">{mobile}</span>
+          We’ve sent an OTP to your registered email id<br />
+          {/* <span className="font-semibold text-[#4A3A2F]">{}</span> */}
         </p>
 
         {/* OTP Input */}

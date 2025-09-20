@@ -10,7 +10,7 @@ const ForgotPasswordPage = () => {
 
   const handleSendOTP = async () => {
     if (!phone || phone.length !== 10) {
-      setError("Enter a valid 10-digit mobile number");
+      setError("Enter a valid email");
       return;
     }
 
@@ -42,7 +42,7 @@ const ForgotPasswordPage = () => {
           Forgot Password
         </h2>
         <p className="text-sm text-gray-600 text-center mb-8">
-          Don’t worry! Enter your registered mobile number and we’ll send you an OTP to reset your password.
+          Don’t worry! Enter your registered mobile number and we’ll send you an OTP to reset your password on your registered email id.
         </p>
 
         {/* Input */}
