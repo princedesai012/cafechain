@@ -63,14 +63,19 @@ const EventCard = ({ event }) => {
           <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0 text-amber-700" />
           <div>
             {/* The Link now only wraps the cafe name */}
-            <Link to={`/user/cafes/${event.cafe._id}`}>
-              {/* Added hover styles for better user experience */}
-              <p className="font-semibold truncate text-gray-800 hover:underline hover:text-amber-800 transition-colors">
-                {event.cafe.name}
-              </p>
-            </Link>
-            <p className="text-xs truncate">{event.cafe.address}</p>
-          </div>
+            {event.cafe ? (
+  <Link to={`/user/cafes/${event.cafe._id}`}>
+    <p className="font-semibold truncate text-gray-800 hover:underline hover:text-amber-800 transition-colors">
+      {event.cafe.name}
+    </p>
+  </Link>
+) : (
+  <p className="font-semibold text-gray-500">Cafe info not available</p>
+)}
+<p className="text-xs truncate">
+  {event.cafe?.address || "Address not available"}
+</p>
+</div>
         </div>
 
         {/* ✅ ADDED: "Posted On" date using createdAt */}
