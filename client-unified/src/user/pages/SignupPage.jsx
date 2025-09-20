@@ -283,7 +283,7 @@ const SignupPage = ({ onNavigate }) => {
       {/* Mobile Layout (unchanged except logo in header) */}
       <div className="lg:hidden min-h-screen">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 bg-white shadow-sm">
+        {/* <div className="flex items-center justify-between p-4 bg-white shadow-sm">
           <button
             onClick={() => {
               if (currentView === 'verify') switchView('signup');
@@ -300,7 +300,7 @@ const SignupPage = ({ onNavigate }) => {
             <span className="text-lg font-bold" style={{ color: '#4a3a2f' }}>CafeChain</span>
           </div>
           <div className="w-10" />
-        </div>
+        </div> */}
 
         {/* Hero Section */}
         <div className="relative py-12 px-6" style={{ backgroundColor: '#4a3a2f' }}>
