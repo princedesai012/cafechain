@@ -61,66 +61,69 @@ function Dashboard() {
       </div>
 
       {/* Sidebar */}
-      <aside
-        className={`fixed lg:static inset-y-0 left-0 w-64 bg-white shadow-lg z-20 flex flex-col transform transition-transform duration-300
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
-      >
-        <div className="p-6 border-b hidden lg:block">
-          <h2 className="text-2xl font-extrabold" style={{ color: "#4a3a2f" }}>
-            CafeChain
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">{cafeInfo?.name}</p>
-        </div>
+ {/* Sidebar */}
+<aside
+  className={`fixed lg:static inset-y-0 left-0 w-64 bg-white shadow-lg z-20 flex flex-col transform transition-transform duration-300
+  ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+  lg:pt-0 pt-16`} // <-- add pt-16 for mobile view so content is below header
+>
+  <div className="p-6 border-b hidden lg:block">
+    <h2 className="text-2xl font-extrabold" style={{ color: "#4a3a2f" }}>
+      CafeChain
+    </h2>
+    <p className="text-sm text-gray-500 mt-1">{cafeInfo?.name}</p>
+  </div>
 
-        <nav className="mt-6 flex-1 flex flex-col gap-2 px-4">
-          <Link
-            to="/cafe"
-            className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
-          >
-            Home
-          </Link>
-          <Link
-            to="/cafe/dashboard/metrics"
-            className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
-          >
-            Metrics
-          </Link>
-          <Link
-            to="/cafe/dashboard/redemption"
-            className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
-          >
-            Redemption
-          </Link>
-          <Link
-            to="/cafe/dashboard/ads-events"
-            className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
-          >
-            Ads & Events
-          </Link>
-          <Link
-            to="/cafe/dashboard/activity"
-            className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
-          >
-            Activity Log
-          </Link>
-          <Link
-            to="/cafe/dashboard/profile"
-            className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
-          >
-            Profile & Settings
-          </Link>
-        </nav>
+  <nav className="mt-6 flex-1 flex flex-col gap-2 px-4">
+    <Link
+      to="/cafe"
+      className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
+    >
+      Home
+    </Link>
+    <Link
+      to="/cafe/dashboard/metrics"
+      className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
+    >
+      Metrics
+    </Link>
+    <Link
+      to="/cafe/dashboard/redemption"
+      className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
+    >
+      Redemption
+    </Link>
+    <Link
+      to="/cafe/dashboard/ads-events"
+      className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
+    >
+      Ads & Events
+    </Link>
+    <Link
+      to="/cafe/dashboard/activity"
+      className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
+    >
+      Activity Log
+    </Link>
+    <Link
+      to="/cafe/dashboard/profile"
+      className="px-4 py-2 rounded-lg text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition"
+    >
+      Profile & Settings
+    </Link>
+  </nav>
 
-        <div className="p-4 border-t">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
-          >
-            <LogOut className="w-5 h-5" />
-            Logout
-          </button>
-        </div>
-      </aside>
+  <div className="p-4 border-t">
+    <button
+      onClick={handleLogout}
+      className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+    >
+      <LogOut className="w-5 h-5" />
+      Logout
+    </button>
+  </div>
+</aside>
+
 
       {/* Dashboard Content */}
       <div className="flex-1  p-4 sm:p-6 lg:p-8">
