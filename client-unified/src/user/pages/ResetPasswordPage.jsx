@@ -54,9 +54,9 @@ const ResetPasswordPage = () => {
           Reset Password
         </h2>
         <p className="text-sm text-gray-600 text-center mb-8">
-          Enter a new password for your account linked to
+          Enter a new password for your account linked to your registered email id
           <br />
-          <span className="font-semibold text-[#4A3A2F]">{mobile}</span>
+          {/* <span className="font-semibold text-[#4A3A2F]">{mobile}</span> */}
         </p>
 
         {/* Input fields */}

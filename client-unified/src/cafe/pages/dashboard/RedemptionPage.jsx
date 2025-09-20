@@ -187,7 +187,7 @@ function RedemptionPage() {
                 </label>
 
                 <label className="block text-gray-700 font-medium text-lg">
-                  Points to Redeem (Available: {customerPoints})
+                  Points to Redeem (Maximum: {customerPoints})
                   <input
                     type="number"
                     min={1}
